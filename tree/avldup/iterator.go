@@ -1,7 +1,7 @@
 package avldup
 
 import (
-	"474420502.top/eson/structure/lastack"
+	"github.com/474420502/focus/lastack"
 )
 
 type Iterator struct {

@@ -1,7 +1,7 @@
 package heap
 
 import (
-	"474420502.top/eson/structure/compare"
+	"github.com/474420502/focus/compare"
 )
 
 type Heap struct {

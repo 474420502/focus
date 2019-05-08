@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"474420502.top/eson/structure/compare"
+	"github.com/474420502/focus/compare"
 	"github.com/huandu/skiplist"
 
 	"github.com/Pallinder/go-randomdata"

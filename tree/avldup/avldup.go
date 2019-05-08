@@ -1,7 +1,7 @@
 package avldup
 
 import (
-	"474420502.top/eson/structure/compare"
+	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
 )
 

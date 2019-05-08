@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"474420502.top/eson/structure/avldup"
-	"474420502.top/eson/structure/compare"
+	"github.com/474420502/focus/avldup"
+	"github.com/474420502/focus/compare"
 )
 
 // TreeSet

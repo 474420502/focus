@@ -1,6 +1,6 @@
 package pqueuekey
 
-import "474420502.top/eson/structure/compare"
+import "github.com/474420502/focus/compare"
 
 type PriorityQueue struct {
 	queue *vbTree

@@ -5,7 +5,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"474420502.top/eson/structure/compare"
+	"github.com/474420502/focus/compare"
 )
 
 func TestQueuePush(t *testing.T) {
