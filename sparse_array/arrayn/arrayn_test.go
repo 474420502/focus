@@ -3,7 +3,6 @@ package arrayn
 import (
 	"testing"
 
-	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -171,54 +170,54 @@ func TestArray2Grow(t *testing.T) {
 	}
 }
 
-func BenchmarkGoMap(b *testing.B) {
-	m := make(map[int]bool)
-	b.N = 50000000
-	b.StopTimer()
-	var l []int
-	for i := 0; i < b.N/10; i++ {
-		l = append(l, randomdata.Number(0, 100000000))
-	}
-	b.StartTimer()
-	for c := 0; c < 10; c++ {
-		for i := 0; i < b.N/10; i++ {
-			m[l[i]] = true
-		}
-	}
-}
+// func BenchmarkGoMap(b *testing.B) {
+// 	m := make(map[int]bool)
+// 	b.N = 50000000
+// 	b.StopTimer()
+// 	var l []int
+// 	for i := 0; i < b.N/10; i++ {
+// 		l = append(l, randomdata.Number(0, 100000000))
+// 	}
+// 	b.StartTimer()
+// 	for c := 0; c < 10; c++ {
+// 		for i := 0; i < b.N/10; i++ {
+// 			m[l[i]] = true
+// 		}
+// 	}
+// }
 
-func BenchmarkArrayNSet(b *testing.B) {
+// func BenchmarkArrayNSet(b *testing.B) {
 
-	arr := NewWithCap(1000, 10, 10, 100)
-	b.N = 10000000
+// 	arr := NewWithCap(1000, 10, 10, 100)
+// 	b.N = 10000000
 
-	b.StopTimer()
-	var l []int
-	for i := 0; i < b.N/10; i++ {
-		l = append(l, randomdata.Number(0, 10000000))
-	}
-	b.StartTimer()
-	for c := 0; c < 10; c++ {
-		for i := 0; i < b.N/10; i++ {
-			arr.Set(l[i], i)
-		}
-	}
-}
+// 	b.StopTimer()
+// 	var l []int
+// 	for i := 0; i < b.N/10; i++ {
+// 		l = append(l, randomdata.Number(0, 10000000))
+// 	}
+// 	b.StartTimer()
+// 	for c := 0; c < 10; c++ {
+// 		for i := 0; i < b.N/10; i++ {
+// 			arr.Set(l[i], i)
+// 		}
+// 	}
+// }
 
-func BenchmarkArray3Set(b *testing.B) {
+// func BenchmarkArray3Set(b *testing.B) {
 
-	arr := NewWithCap(100, 100, 10)
-	b.N = 500000000
+// 	arr := NewWithCap(100, 100, 10)
+// 	b.N = 500000000
 
-	b.StopTimer()
-	var l []int
-	for i := 0; i < b.N/10; i++ {
-		l = append(l, randomdata.Number(0, 65535))
-	}
-	b.StartTimer()
-	for c := 0; c < 10; c++ {
-		for i := 0; i < b.N/10; i++ {
-			arr.Set(l[i], i)
-		}
-	}
-}
+// 	b.StopTimer()
+// 	var l []int
+// 	for i := 0; i < b.N/10; i++ {
+// 		l = append(l, randomdata.Number(0, 65535))
+// 	}
+// 	b.StartTimer()
+// 	for c := 0; c < 10; c++ {
+// 		for i := 0; i < b.N/10; i++ {
+// 			arr.Set(l[i], i)
+// 		}
+// 	}
+// }

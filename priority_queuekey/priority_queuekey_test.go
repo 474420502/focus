@@ -242,106 +242,106 @@ func TestQueueIndex(t *testing.T) {
 	}
 }
 
-func BenchmarkQueueGet(b *testing.B) {
+// func BenchmarkQueueGet(b *testing.B) {
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	pq := New(compare.Int)
-	for _, v := range l {
-		pq.Push(v, v)
-	}
+// 	pq := New(compare.Int)
+// 	for _, v := range l {
+// 		pq.Push(v, v)
+// 	}
 
-	execCount := 5
-	b.N = len(l) * execCount
+// 	execCount := 5
+// 	b.N = len(l) * execCount
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-ALL:
-	for i := 0; i < execCount; i++ {
-		for _, v := range l {
-			if gv, ok := pq.Get(v); !ok {
-				b.Error(gv)
-				break ALL
-			}
-		}
-	}
-}
+// ALL:
+// 	for i := 0; i < execCount; i++ {
+// 		for _, v := range l {
+// 			if gv, ok := pq.Get(v); !ok {
+// 				b.Error(gv)
+// 				break ALL
+// 			}
+// 		}
+// 	}
+// }
 
-func BenchmarkQueueRemove(b *testing.B) {
-	l := loadTestData()
+// func BenchmarkQueueRemove(b *testing.B) {
+// 	l := loadTestData()
 
-	pq := New(compare.Int)
-	for _, v := range l {
-		pq.Push(v, v)
-	}
+// 	pq := New(compare.Int)
+// 	for _, v := range l {
+// 		pq.Push(v, v)
+// 	}
 
-	b.N = len(l)
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.N = len(l)
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for _, v := range l {
-		pq.Remove(v)
-	}
-}
+// 	for _, v := range l {
+// 		pq.Remove(v)
+// 	}
+// }
 
-func BenchmarkQueueIndex(b *testing.B) {
+// func BenchmarkQueueIndex(b *testing.B) {
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	pq := New(compare.Int)
-	for _, v := range l {
-		pq.Push(v, v)
-	}
+// 	pq := New(compare.Int)
+// 	for _, v := range l {
+// 		pq.Push(v, v)
+// 	}
 
-	execCount := 2
-	b.N = len(l) * execCount
+// 	execCount := 2
+// 	b.N = len(l) * execCount
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-ALL:
-	for i := 0; i < execCount; i++ {
-		for idx := range l {
-			if v, ok := pq.Index(idx); !ok {
-				b.Error(v)
-				break ALL
-			}
-		}
-	}
-}
+// ALL:
+// 	for i := 0; i < execCount; i++ {
+// 		for idx := range l {
+// 			if v, ok := pq.Index(idx); !ok {
+// 				b.Error(v)
+// 				break ALL
+// 			}
+// 		}
+// 	}
+// }
 
-func BenchmarkPriorityPush(b *testing.B) {
+// func BenchmarkPriorityPush(b *testing.B) {
 
-	l := loadTestData()
-	execCount := 5
-	b.N = len(l) * execCount
+// 	l := loadTestData()
+// 	execCount := 5
+// 	b.N = len(l) * execCount
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < execCount; i++ {
-		pq := New(compare.Int)
-		for _, v := range l {
-			pq.Push(v, v)
-		}
-	}
-}
+// 	for i := 0; i < execCount; i++ {
+// 		pq := New(compare.Int)
+// 		for _, v := range l {
+// 			pq.Push(v, v)
+// 		}
+// 	}
+// }
 
-func BenchmarkPriorityPop(b *testing.B) {
+// func BenchmarkPriorityPop(b *testing.B) {
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	pq := New(compare.Int)
-	for _, v := range l {
-		pq.Push(v, v)
-	}
+// 	pq := New(compare.Int)
+// 	for _, v := range l {
+// 		pq.Push(v, v)
+// 	}
 
-	b.N = len(l)
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.N = len(l)
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		pq.Pop()
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		pq.Pop()
+// 	}
+// }

@@ -8,10 +8,7 @@ import (
 	"testing"
 
 	"github.com/474420502/focus/compare"
-	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/emirpasic/gods/trees/avltree"
-	"github.com/emirpasic/gods/trees/redblacktree"
 )
 
 func loadTestData() []int {
@@ -226,32 +223,32 @@ func TestPutStable(t *testing.T) {
 	// t.Error(tree.debugString(), tree.TraversalBreadth(), "\n", "-----------")
 }
 
-func TestPutComparatorRandom(t *testing.T) {
+// func TestPutComparatorRandom(t *testing.T) {
 
-	for n := 0; n < 300000; n++ {
-		tree := New(compare.Int)
-		godsavl := avltree.NewWithIntComparator()
+// 	for n := 0; n < 300000; n++ {
+// 		tree := New(compare.Int)
+// 		godsavl := avltree.NewWithIntComparator()
 
-		content := ""
-		m := make(map[int]int)
-		for i := 0; len(m) < 10; i++ {
-			v := randomdata.Number(0, 65535)
-			if _, ok := m[v]; !ok {
-				m[v] = v
-				content += spew.Sprint(v) + ","
-				tree.Put(v, v)
-				godsavl.Put(v, v)
-			}
-		}
+// 		content := ""
+// 		m := make(map[int]int)
+// 		for i := 0; len(m) < 10; i++ {
+// 			v := randomdata.Number(0, 65535)
+// 			if _, ok := m[v]; !ok {
+// 				m[v] = v
+// 				content += spew.Sprint(v) + ","
+// 				tree.Put(v, v)
+// 				godsavl.Put(v, v)
+// 			}
+// 		}
 
-		if tree.String() != godsavl.String() {
-			t.Error(godsavl.String())
-			t.Error(tree.debugString())
-			t.Error(content, n)
-			break
-		}
-	}
-}
+// 		if tree.String() != godsavl.String() {
+// 			t.Error(godsavl.String())
+// 			t.Error(tree.debugString())
+// 			t.Error(content, n)
+// 			break
+// 		}
+// 	}
+// }
 
 func TestGet(t *testing.T) {
 	tree := New(compare.Int)
@@ -291,230 +288,230 @@ func TestGet(t *testing.T) {
 
 }
 
-func TestRemoveAll(t *testing.T) {
+// func TestRemoveAll(t *testing.T) {
 
-ALL:
-	for c := 0; c < 50000; c++ {
-		tree := New(compare.Int)
-		gods := avltree.NewWithIntComparator()
-		var l []int
-		m := make(map[int]int)
+// ALL:
+// 	for c := 0; c < 50000; c++ {
+// 		tree := New(compare.Int)
+// 		gods := avltree.NewWithIntComparator()
+// 		var l []int
+// 		m := make(map[int]int)
 
-		for i := 0; len(l) < 50; i++ {
-			v := randomdata.Number(0, 100000)
-			if _, ok := m[v]; !ok {
-				m[v] = v
-				l = append(l, v)
-				tree.Put(v, v)
-				gods.Put(v, v)
-			}
-		}
+// 		for i := 0; len(l) < 50; i++ {
+// 			v := randomdata.Number(0, 100000)
+// 			if _, ok := m[v]; !ok {
+// 				m[v] = v
+// 				l = append(l, v)
+// 				tree.Put(v, v)
+// 				gods.Put(v, v)
+// 			}
+// 		}
 
-		for i := 0; i < 50; i++ {
-			tree.Remove(l[i])
-			gods.Remove(l[i])
-			s1 := spew.Sprint(tree.Values())
-			s2 := spew.Sprint(gods.Values())
-			if s1 != s2 {
-				t.Error("avl remove error", "avlsize = ", tree.Size())
-				t.Error(s1)
-				t.Error(s2)
-				break ALL
-			}
-		}
-	}
+// 		for i := 0; i < 50; i++ {
+// 			tree.Remove(l[i])
+// 			gods.Remove(l[i])
+// 			s1 := spew.Sprint(tree.Values())
+// 			s2 := spew.Sprint(gods.Values())
+// 			if s1 != s2 {
+// 				t.Error("avl remove error", "avlsize = ", tree.Size())
+// 				t.Error(s1)
+// 				t.Error(s2)
+// 				break ALL
+// 			}
+// 		}
+// 	}
 
-}
+// }
 
-func TestRemove(t *testing.T) {
+// func TestRemove(t *testing.T) {
 
-ALL:
-	for N := 0; N < 500000; N++ {
-		tree := New(compare.Int)
-		gods := avltree.NewWithIntComparator()
+// ALL:
+// 	for N := 0; N < 500000; N++ {
+// 		tree := New(compare.Int)
+// 		gods := avltree.NewWithIntComparator()
 
-		var l []int
-		m := make(map[int]int)
+// 		var l []int
+// 		m := make(map[int]int)
 
-		for i := 0; len(l) < 10; i++ {
-			v := randomdata.Number(0, 100)
-			if _, ok := m[v]; !ok {
-				l = append(l, v)
-				m[v] = v
-				tree.Put(v, v)
-				gods.Put(v, v)
-			}
-		}
+// 		for i := 0; len(l) < 10; i++ {
+// 			v := randomdata.Number(0, 100)
+// 			if _, ok := m[v]; !ok {
+// 				l = append(l, v)
+// 				m[v] = v
+// 				tree.Put(v, v)
+// 				gods.Put(v, v)
+// 			}
+// 		}
 
-		src1 := tree.String()
-		src2 := gods.String()
+// 		src1 := tree.String()
+// 		src2 := gods.String()
 
-		for i := 0; i < 10; i++ {
-			tree.Remove(l[i])
-			gods.Remove(l[i])
-			if spew.Sprint(gods.Values()) != spew.Sprint(tree.Values()) && tree.size != 0 {
-				// if gods.String() != tree.String() && gods.Size() != 0 && tree.size != 0 {
-				t.Error(src1)
-				t.Error(src2)
-				t.Error(tree.debugString())
-				t.Error(gods.String())
-				t.Error(l[i])
-				// t.Error(tree.TraversalDepth(-1))
-				// t.Error(gods.Values())
-				break ALL
-			}
-		}
-	}
-}
+// 		for i := 0; i < 10; i++ {
+// 			tree.Remove(l[i])
+// 			gods.Remove(l[i])
+// 			if spew.Sprint(gods.Values()) != spew.Sprint(tree.Values()) && tree.size != 0 {
+// 				// if gods.String() != tree.String() && gods.Size() != 0 && tree.size != 0 {
+// 				t.Error(src1)
+// 				t.Error(src2)
+// 				t.Error(tree.debugString())
+// 				t.Error(gods.String())
+// 				t.Error(l[i])
+// 				// t.Error(tree.TraversalDepth(-1))
+// 				// t.Error(gods.Values())
+// 				break ALL
+// 			}
+// 		}
+// 	}
+// }
 
-func BenchmarkIterator(b *testing.B) {
-	tree := New(compare.Int)
+// func BenchmarkIterator(b *testing.B) {
+// 	tree := New(compare.Int)
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	for _, v := range l {
-		tree.Put(v, v)
-	}
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
-	b.N = 0
-	iter := tree.Iterator()
-	for iter.Next() {
-		b.N++
-	}
-	for iter.Prev() {
-		b.N++
-	}
-	for iter.Next() {
-		b.N++
-	}
-	for iter.Prev() {
-		b.N++
-	}
+// 	b.ResetTimer()
+// 	b.StartTimer()
+// 	b.N = 0
+// 	iter := tree.Iterator()
+// 	for iter.Next() {
+// 		b.N++
+// 	}
+// 	for iter.Prev() {
+// 		b.N++
+// 	}
+// 	for iter.Next() {
+// 		b.N++
+// 	}
+// 	for iter.Prev() {
+// 		b.N++
+// 	}
 
-}
+// }
 
-func BenchmarkRemove(b *testing.B) {
-	tree := New(compare.Int)
+// func BenchmarkRemove(b *testing.B) {
+// 	tree := New(compare.Int)
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.N = len(l)
-	for _, v := range l {
-		tree.Put(v, v)
-	}
+// 	b.N = len(l)
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < len(l); i++ {
-		tree.Remove(l[i])
-	}
-}
+// 	for i := 0; i < len(l); i++ {
+// 		tree.Remove(l[i])
+// 	}
+// }
 
-func BenchmarkGodsRemove(b *testing.B) {
-	tree := avltree.NewWithIntComparator()
+// func BenchmarkGodsRemove(b *testing.B) {
+// 	tree := avltree.NewWithIntComparator()
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.N = len(l)
-	for _, v := range l {
-		tree.Put(v, v)
-	}
+// 	b.N = len(l)
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < len(l); i++ {
-		tree.Remove(l[i])
-	}
-}
+// 	for i := 0; i < len(l); i++ {
+// 		tree.Remove(l[i])
+// 	}
+// }
 
-func BenchmarkGodsRBRemove(b *testing.B) {
-	tree := redblacktree.NewWithIntComparator()
+// func BenchmarkGodsRBRemove(b *testing.B) {
+// 	tree := redblacktree.NewWithIntComparator()
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.N = len(l)
-	for _, v := range l {
-		tree.Put(v, v)
-	}
+// 	b.N = len(l)
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < len(l); i++ {
-		tree.Remove(l[i])
-	}
-}
+// 	for i := 0; i < len(l); i++ {
+// 		tree.Remove(l[i])
+// 	}
+// }
 
-func BenchmarkGet(b *testing.B) {
+// func BenchmarkGet(b *testing.B) {
 
-	tree := New(compare.Int)
+// 	tree := New(compare.Int)
 
-	l := loadTestData()
-	b.N = len(l)
-	for i := 0; i < b.N; i++ {
-		tree.Put(l[i], l[i])
-	}
+// 	l := loadTestData()
+// 	b.N = len(l)
+// 	for i := 0; i < b.N; i++ {
+// 		tree.Put(l[i], l[i])
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	execCount := 10
-	b.N = len(l) * execCount
+// 	execCount := 10
+// 	b.N = len(l) * execCount
 
-	for i := 0; i < execCount; i++ {
-		for _, v := range l {
-			tree.Get(v)
-		}
-	}
-}
+// 	for i := 0; i < execCount; i++ {
+// 		for _, v := range l {
+// 			tree.Get(v)
+// 		}
+// 	}
+// }
 
-func BenchmarkGodsRBGet(b *testing.B) {
-	tree := redblacktree.NewWithIntComparator()
+// func BenchmarkGodsRBGet(b *testing.B) {
+// 	tree := redblacktree.NewWithIntComparator()
 
-	l := loadTestData()
-	b.N = len(l)
-	for i := 0; i < b.N; i++ {
-		tree.Put(l[i], l[i])
-	}
+// 	l := loadTestData()
+// 	b.N = len(l)
+// 	for i := 0; i < b.N; i++ {
+// 		tree.Put(l[i], l[i])
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	execCount := 10
-	b.N = len(l) * execCount
+// 	execCount := 10
+// 	b.N = len(l) * execCount
 
-	for i := 0; i < execCount; i++ {
-		for _, v := range l {
-			tree.Get(v)
-		}
-	}
-}
+// 	for i := 0; i < execCount; i++ {
+// 		for _, v := range l {
+// 			tree.Get(v)
+// 		}
+// 	}
+// }
 
-func BenchmarkGodsAvlGet(b *testing.B) {
-	tree := avltree.NewWithIntComparator()
+// func BenchmarkGodsAvlGet(b *testing.B) {
+// 	tree := avltree.NewWithIntComparator()
 
-	l := loadTestData()
-	b.N = len(l)
-	for i := 0; i < b.N; i++ {
-		tree.Put(l[i], l[i])
-	}
+// 	l := loadTestData()
+// 	b.N = len(l)
+// 	for i := 0; i < b.N; i++ {
+// 		tree.Put(l[i], l[i])
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	execCount := 10
-	b.N = len(l) * execCount
+// 	execCount := 10
+// 	b.N = len(l) * execCount
 
-	for i := 0; i < execCount; i++ {
-		for _, v := range l {
-			tree.Get(v)
-		}
-	}
-}
+// 	for i := 0; i < execCount; i++ {
+// 		for _, v := range l {
+// 			tree.Get(v)
+// 		}
+// 	}
+// }
 
 func BenchmarkPut(b *testing.B) {
 
@@ -534,30 +531,30 @@ func BenchmarkPut(b *testing.B) {
 	// b.Log(tree.count)
 }
 
-func BenchmarkGodsRBPut(b *testing.B) {
-	tree := redblacktree.NewWithIntComparator()
+// func BenchmarkGodsRBPut(b *testing.B) {
+// 	tree := redblacktree.NewWithIntComparator()
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	b.N = len(l)
-	for _, v := range l {
-		tree.Put(v, v)
-	}
-}
+// 	b.N = len(l)
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
+// }
 
-func BenchmarkGodsPut(b *testing.B) {
-	tree := avltree.NewWithIntComparator()
+// func BenchmarkGodsPut(b *testing.B) {
+// 	tree := avltree.NewWithIntComparator()
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	b.N = len(l)
-	for _, v := range l {
-		tree.Put(v, v)
-	}
-}
+// 	b.N = len(l)
+// 	for _, v := range l {
+// 		tree.Put(v, v)
+// 	}
+// }

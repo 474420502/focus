@@ -31,50 +31,50 @@ func TestCount(t *testing.T) {
 	// t.Error(hm.Get(4))
 }
 
-var executeCount = 5
-var compareSize = 100000
+// var executeCount = 5
+// var compareSize = 100000
 
-func BenchmarkPut(b *testing.B) {
-	b.StopTimer()
+// func BenchmarkPut(b *testing.B) {
+// 	b.StopTimer()
 
-	l := loadTestData()
-	hm := New()
-	b.N = len(l) * executeCount
+// 	l := loadTestData()
+// 	hm := New()
+// 	b.N = len(l) * executeCount
 
-	// for i := 0; i < len(l); i++ {
-	// 	v := l[i]
-	// 	hm.Put(v, v)
-	// }
+// 	// for i := 0; i < len(l); i++ {
+// 	// 	v := l[i]
+// 	// 	hm.Put(v, v)
+// 	// }
 
-	b.StartTimer()
+// 	b.StartTimer()
 
-	for c := 0; c < executeCount; c++ {
-		for i := 0; i < len(l); i++ {
-			v := l[i]
-			hm.Put(v, v)
-		}
-	}
+// 	for c := 0; c < executeCount; c++ {
+// 		for i := 0; i < len(l); i++ {
+// 			v := l[i]
+// 			hm.Put(v, v)
+// 		}
+// 	}
 
-	//b.Log(len(hm.table), hm.size)
-	//PrintMemUsage()
-}
+// 	//b.Log(len(hm.table), hm.size)
+// 	//PrintMemUsage()
+// }
 
-func BenchmarkGoPut(b *testing.B) {
+// func BenchmarkGoPut(b *testing.B) {
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	hm := make(map[int]int)
-	b.N = len(l) * executeCount
-	for c := 0; c < executeCount; c++ {
-		for i := 0; i < len(l); i++ {
-			v := l[i]
-			hm[v] = v
-		}
-	}
+// 	hm := make(map[int]int)
+// 	b.N = len(l) * executeCount
+// 	for c := 0; c < executeCount; c++ {
+// 		for i := 0; i < len(l); i++ {
+// 			v := l[i]
+// 			hm[v] = v
+// 		}
+// 	}
 
-	//b.Log(len(m))
-	//PrintMemUsage()
-}
+// 	//b.Log(len(m))
+// 	//PrintMemUsage()
+// }
 
 // func BenchmarkGet(b *testing.B) {
 

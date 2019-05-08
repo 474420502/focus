@@ -4,10 +4,6 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-
-	"github.com/emirpasic/gods/stacks/arraystack"
-
-	"github.com/Pallinder/go-randomdata"
 )
 
 func TestPush(t *testing.T) {
@@ -73,101 +69,138 @@ func TestPush(t *testing.T) {
 
 }
 
-func BenchmarkGet(b *testing.B) {
+func TestGet(t *testing.T) {
 	s := New()
-	b.N = 20000000
 
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
+	l := []int{10, 7, 3, 4, 5, 15}
+	for _, v := range l {
 		s.Push(v)
 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+	if v, isfound := s.Get(0); isfound {
+		if v != 15 {
+			t.Error("15 is not equal to 15")
+		}
+	} else {
+		t.Error("index 0 is not exists")
+	}
 
-	for i := 0; i < b.N; i++ {
-		s.Get(i)
+	for i, tv := range l {
+		if v, isfound := s.Get(len(l) - 1 - i); isfound {
+			if v != tv {
+				t.Error(v, "is not equal to", tv)
+			}
+		} else {
+			t.Error("index 0 is not exists")
+		}
+	}
+
+	for i, tv := range l[0 : len(l)-1] {
+		if v, isfound := s.Get(len(l) - 1 - i); isfound {
+			if v != tv {
+				t.Error(v, "is not equal to", tv)
+			}
+		} else {
+			t.Error("index 0 is not exists")
+		}
 	}
 }
 
-func BenchmarkPush(b *testing.B) {
-	s := New()
-	b.N = 20000000
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
-}
+// func BenchmarkGet(b *testing.B) {
+// 	s := New()
+// 	b.N = 20000000
 
-func BenchmarkGodsPush(b *testing.B) {
-	s := arraystack.New()
-	b.N = 2000000
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-func BenchmarkPop(b *testing.B) {
-	s := New()
-	b.N = 2000000
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		s.Get(i)
+// 	}
+// }
 
-	b.ResetTimer()
-	b.StartTimer()
+// func BenchmarkPush(b *testing.B) {
+// 	s := New()
+// 	b.N = 20000000
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
+// }
 
-	for i := 0; i < b.N; i++ {
-		s.Pop()
-	}
-}
+// func BenchmarkGodsPush(b *testing.B) {
+// 	s := arraystack.New()
+// 	b.N = 2000000
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
+// }
 
-func BenchmarkGodsPop(b *testing.B) {
-	s := arraystack.New()
-	b.N = 2000000
+// func BenchmarkPop(b *testing.B) {
+// 	s := New()
+// 	b.N = 2000000
 
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		s.Pop()
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		s.Pop()
+// 	}
+// }
 
-func BenchmarkValues(b *testing.B) {
-	s := New()
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// func BenchmarkGodsPop(b *testing.B) {
+// 	s := arraystack.New()
+// 	b.N = 2000000
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	for i := 0; i < b.N; i++ {
-		s.Values()
-	}
-}
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-func BenchmarkGodsValues(b *testing.B) {
-	s := arraystack.New()
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		s.Pop()
+// 	}
+// }
 
-	b.ResetTimer()
-	b.StartTimer()
+// func BenchmarkValues(b *testing.B) {
+// 	s := New()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	for i := 0; i < b.N; i++ {
-		s.Values()
-	}
-}
+// 	b.ResetTimer()
+// 	b.StartTimer()
+
+// 	for i := 0; i < b.N; i++ {
+// 		s.Values()
+// 	}
+// }
+
+// func BenchmarkGodsValues(b *testing.B) {
+// 	s := arraystack.New()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
+
+// 	b.ResetTimer()
+// 	b.StartTimer()
+
+// 	for i := 0; i < b.N; i++ {
+// 		s.Values()
+// 	}
+// }

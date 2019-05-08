@@ -1,91 +1,83 @@
 package lastack
 
-import (
-	"testing"
+// func BenchmarkPush(b *testing.B) {
+// 	s := New()
+// 	b.N = 200000
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
+// }
 
-	"github.com/emirpasic/gods/stacks/arraystack"
+// func BenchmarkGodsPush(b *testing.B) {
+// 	s := arraystack.New()
+// 	b.N = 200000
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
+// }
 
-	"github.com/Pallinder/go-randomdata"
-)
+// func BenchmarkPop(b *testing.B) {
+// 	s := New()
+// 	b.N = 200000
 
-func BenchmarkPush(b *testing.B) {
-	s := New()
-	b.N = 200000
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-func BenchmarkGodsPush(b *testing.B) {
-	s := arraystack.New()
-	b.N = 200000
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
-}
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-func BenchmarkPop(b *testing.B) {
-	s := New()
-	b.N = 200000
+// 	for i := 0; i < b.N; i++ {
+// 		s.Pop()
+// 	}
+// }
 
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// func BenchmarkGodsPop(b *testing.B) {
+// 	s := arraystack.New()
+// 	b.N = 200000
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	for i := 0; i < b.N; i++ {
-		s.Pop()
-	}
-}
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-func BenchmarkGodsPop(b *testing.B) {
-	s := arraystack.New()
-	b.N = 200000
+// 	for i := 0; i < b.N; i++ {
+// 		s.Pop()
+// 	}
+// }
 
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// func BenchmarkValues(b *testing.B) {
+// 	s := New()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		s.Pop()
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		s.Values()
+// 	}
+// }
 
-func BenchmarkValues(b *testing.B) {
-	s := New()
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
+// func BenchmarkGodsValues(b *testing.B) {
+// 	s := arraystack.New()
+// 	for i := 0; i < b.N; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		s.Push(v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		s.Values()
-	}
-}
-
-func BenchmarkGodsValues(b *testing.B) {
-	s := arraystack.New()
-	for i := 0; i < b.N; i++ {
-		v := randomdata.Number(0, 65535)
-		s.Push(v)
-	}
-
-	b.ResetTimer()
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		s.Values()
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		s.Values()
+// 	}
+// }

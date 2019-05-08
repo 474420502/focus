@@ -222,39 +222,39 @@ func TestRemove(t *testing.T) {
 
 }
 
-func BenchmarkGet(b *testing.B) {
-	pl := New(compare.Int)
+// func BenchmarkGet(b *testing.B) {
+// 	pl := New(compare.Int)
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	for _, v := range l {
-		pl.Push(v)
-	}
+// 	for _, v := range l {
+// 		pl.Push(v)
+// 	}
 
-	b.ResetTimer()
-	b.StartTimer()
-	b.N = len(l)
+// 	b.ResetTimer()
+// 	b.StartTimer()
+// 	b.N = len(l)
 
-	for i := 0; i < b.N; i++ {
-		if i%2 == 0 {
-			pl.Get(i)
-		}
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		if i%2 == 0 {
+// 			pl.Get(i)
+// 		}
+// 	}
 
-}
-func BenchmarkInsert(b *testing.B) {
+// }
+// func BenchmarkInsert(b *testing.B) {
 
-	l := loadTestData()
+// 	l := loadTestData()
 
-	b.ResetTimer()
-	b.StartTimer()
+// 	b.ResetTimer()
+// 	b.StartTimer()
 
-	execCount := 1
-	b.N = len(l) * execCount
-	for i := 0; i < execCount; i++ {
-		pl := New(compare.Int)
-		for _, v := range l {
-			pl.Push(v)
-		}
-	}
-}
+// 	execCount := 1
+// 	b.N = len(l) * execCount
+// 	for i := 0; i < execCount; i++ {
+// 		pl := New(compare.Int)
+// 		for _, v := range l {
+// 			pl.Push(v)
+// 		}
+// 	}
+// }

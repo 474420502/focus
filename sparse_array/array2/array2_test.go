@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-
-	"github.com/Pallinder/go-randomdata"
 )
 
 func testSet1(t *testing.T) {
@@ -191,58 +189,58 @@ func TestArray2Grow(t *testing.T) {
 	}
 }
 
-func BenchmarkArray2Set(b *testing.B) {
+// func BenchmarkArray2Set(b *testing.B) {
 
-	arr := NewWithCap(1000, 100)
-	b.N = 500000000
+// 	arr := NewWithCap(1000, 100)
+// 	b.N = 500000000
 
-	b.StopTimer()
-	var l []int
-	for i := 0; i < b.N/10; i++ {
-		l = append(l, randomdata.Number(0, 65535))
-	}
-	b.StartTimer()
-	for c := 0; c < 10; c++ {
-		for i := 0; i < b.N/10; i++ {
-			arr.Set(l[i], i)
-		}
-	}
+// 	b.StopTimer()
+// 	var l []int
+// 	for i := 0; i < b.N/10; i++ {
+// 		l = append(l, randomdata.Number(0, 65535))
+// 	}
+// 	b.StartTimer()
+// 	for c := 0; c < 10; c++ {
+// 		for i := 0; i < b.N/10; i++ {
+// 			arr.Set(l[i], i)
+// 		}
+// 	}
 
-}
+// }
 
-func BenchmarkArray2Get(b *testing.B) {
+// func BenchmarkArray2Get(b *testing.B) {
 
-	arr := NewWithCap(1000, 100)
-	b.N = 500000000
+// 	arr := NewWithCap(1000, 100)
+// 	b.N = 500000000
 
-	b.StopTimer()
+// 	b.StopTimer()
 
-	for i := 0; i < 105535; i++ {
-		v := randomdata.Number(0, 65535)
-		arr.Set(v, v)
-	}
-	b.StartTimer()
+// 	for i := 0; i < 105535; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		arr.Set(v, v)
+// 	}
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		arr.Get(i % 65535)
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		arr.Get(i % 65535)
+// 	}
 
-}
+// }
 
-func BenchmarkArray2Del(b *testing.B) {
+// func BenchmarkArray2Del(b *testing.B) {
 
-	arr := NewWithCap(1000, 100)
-	b.N = 500000000
+// 	arr := NewWithCap(1000, 100)
+// 	b.N = 500000000
 
-	b.StopTimer()
-	for i := 0; i < 105535; i++ {
-		v := randomdata.Number(0, 65535)
-		arr.Set(v, v)
-	}
-	b.StartTimer()
+// 	b.StopTimer()
+// 	for i := 0; i < 105535; i++ {
+// 		v := randomdata.Number(0, 65535)
+// 		arr.Set(v, v)
+// 	}
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		arr.Del(i % 65535)
-	}
+// 	for i := 0; i < b.N; i++ {
+// 		arr.Del(i % 65535)
+// 	}
 
-}
+// }
