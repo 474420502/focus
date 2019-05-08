@@ -95,13 +95,17 @@ func TestGet(t *testing.T) {
 		}
 	}
 
-	for i, tv := range l[0 : len(l)-1] {
-		if v, isfound := s.Get(len(l) - 1 - i); isfound {
+	s.Pop()
+
+	l = l[0 : len(l)-1]
+	for i, tv := range l {
+		index := len(l) - 1 - i
+		if v, isfound := s.Get(index); isfound {
 			if v != tv {
 				t.Error(v, "is not equal to", tv)
 			}
 		} else {
-			t.Error("index 0 is not exists")
+			t.Error("index is", index, "is not exists", v, tv)
 		}
 	}
 }
