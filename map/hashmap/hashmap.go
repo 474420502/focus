@@ -58,6 +58,6 @@ func (hm *HashMap) Clear() {
 }
 
 func (hm *HashMap) String() string {
-	str := fmt.Sprintf("%v", hm.hm)
-	return str
+	content := fmt.Sprintf("%v", hm.hm)
+	return content
 }

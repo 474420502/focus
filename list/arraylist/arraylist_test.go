@@ -1,4 +1,4 @@
-package list
+package arraylist
 
 import (
 	"testing"
@@ -73,7 +73,7 @@ func TestRemove(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		if n, ok := l.Remove(0); ok {
-			if n.Value() != 4-i {
+			if n != 4-i {
 				t.Error(n)
 			}
 		} else {
