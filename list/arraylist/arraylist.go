@@ -33,12 +33,14 @@ func (l *ArrayList) Size() uint {
 func (l *ArrayList) grow() {
 	newsize := uint(len(l.data)) << 1
 
-	l.reserveHead = al.reserveHead << 1
+	if l.reserveHead < l.reserveLimit {
+		l.reserveHead = l.reserveHead << 1
+	}
 
-	l.headIndex = al.reserveHead
-	l.nextIndex = al.headIndex
+	l.headIndex = l.reserveHead
+	l.nextIndex = l.headIndex
 
-	l.data = make([]interface{}, 8, 8)
+	l.data = make([]interface{}, newsize, newsize)
 }
 
 // Add add value to the tail of list
@@ -50,7 +52,6 @@ func (l *ArrayList) Add(v interface{}) {
 
 	l.size++
 	l.data[l.nextIndex] = v
-
 	// grow
 }
 
