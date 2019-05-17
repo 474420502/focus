@@ -1,6 +1,9 @@
 package linkedlist
 
+import "fmt"
+
 type Node struct {
+	prev  *Node
 	next  *Node
 	value interface{}
 }
@@ -11,97 +14,228 @@ func (node *Node) Value() interface{} {
 
 type LinkedList struct {
 	head *Node
+	tail *Node
 	size uint
 }
 
+// var nodePool *sync.Pool = &sync.Pool{
+// 	New: func() interface{} {
+// 		return &Node{}
+// 	},
+// }
+
 func New() *LinkedList {
-	return &LinkedList{}
+	l := &LinkedList{}
+	l.head = &Node{}
+	l.head.prev = nil
+
+	l.tail = &Node{}
+	l.tail.next = nil
+
+	l.head.next = l.tail
+	l.tail.prev = l.head
+	return l
 }
 
 func (l *LinkedList) Size() uint {
 	return l.size
 }
 
-func (l *LinkedList) Push(v interface{}) {
-	l.size++
-	if l.head == nil {
-		l.head = &Node{value: v}
-		return
+func (l *LinkedList) PushFront(values ...interface{}) {
+
+	var node *Node
+	l.size += uint(len(values))
+	for _, v := range values {
+		node = &Node{}
+		node.value = v
+
+		hnext := l.head.next
+		hnext.prev = node
+
+		node.next = hnext
+		node.prev = l.head
+		l.head.next = node
 	}
-	l.head = &Node{value: v, next: l.head}
 }
 
-func (l *LinkedList) PushNode(n *Node) {
-	l.size++
-	if l.head == nil {
-		l.head = n
-		return
-	}
+func (l *LinkedList) PushBack(values ...interface{}) {
 
-	n.next = l.head
-	l.head = n
+	var node *Node
+	l.size += uint(len(values))
+	for _, v := range values {
+		node = &Node{}
+		node.value = v
+
+		tprev := l.tail.prev
+		tprev.next = node
+
+		node.prev = tprev
+		node.next = l.tail
+		l.tail.prev = node
+	}
 }
 
-func (l *LinkedList) Pop() (result interface{}, found bool) {
-	if n, ok := l.PopNode(); ok {
-		return n.value, ok
+func (l *LinkedList) PopFront() (result interface{}, found bool) {
+	if l.size != 0 {
+		l.size--
+
+		temp := l.head.next
+		hnext := temp.next
+		hnext.prev = l.head
+		l.head.next = hnext
+
+		result = temp.value
+		found = true
+		return
 	}
 	return nil, false
 }
 
-func (l *LinkedList) PopNode() (result *Node, found bool) {
-	if l.head == nil {
-		return nil, false
+func (l *LinkedList) PopBack() (result interface{}, found bool) {
+	if l.size != 0 {
+		l.size--
+
+		temp := l.tail.prev
+		tprev := temp.prev
+		tprev.next = l.tail
+		l.tail.prev = tprev
+
+		result = temp.value
+		found = true
+		return
+	}
+	return nil, false
+}
+
+func (l *LinkedList) Front() (result interface{}, found bool) {
+	if l.size != 0 {
+		return l.head.next.value, true
+	}
+	return nil, false
+}
+
+func (l *LinkedList) Back() (result interface{}, found bool) {
+	if l.size != 0 {
+		return l.tail.prev.value, true
+	}
+	return nil, false
+}
+
+func (l *LinkedList) Insert(idx uint, values ...interface{}) {
+	if idx > l.size {
+		return
 	}
 
-	result = l.head
-	found = true
-	l.head = result.next
-	result.next = nil
-	l.size--
+	if idx > l.size/2 {
+		idx = l.size - idx
+		// 尾部
+		for cur := l.tail.prev; cur != nil; cur = cur.prev {
+
+			if idx == 0 {
+
+				var start *Node
+				var end *Node
+
+				start = &Node{value: values[0]}
+				end = start
+
+				for _, value := range values[1:] {
+					node := &Node{value: value}
+					end.next = node
+					node.prev = end
+					end = node
+				}
+
+				cnext := cur.next
+
+				cur.next = start
+				start.prev = cur
+
+				end.next = cnext
+				cnext.prev = end
+
+				break
+			}
+
+			idx--
+		}
+
+	} else {
+		// 头部
+		for cur := l.head.next; cur != nil; cur = cur.next {
+			if idx == 0 {
+
+				var start *Node
+				var end *Node
+
+				start = &Node{value: values[0]}
+				end = start
+
+				for _, value := range values[1:] {
+					node := &Node{value: value}
+					end.next = node
+					node.prev = end
+					end = node
+				}
+
+				cprev := cur.prev
+
+				cprev.next = start
+				start.prev = cprev
+
+				end.next = cur
+				cur.prev = end
+
+				break
+			}
+
+			idx--
+		}
+	}
+
+	l.size += uint(len(values))
+}
+
+func (l *LinkedList) Remove(idx uint) {
+	if idx >= l.size {
+		panic(fmt.Sprintf("out of list range, size is %d, idx is %d", l.size, idx))
+	}
+	if l.head != nil {
+		if idx == 0 {
+			l.size--
+			temp := l.head
+			l.head = l.head.next
+			nodePool.Put(temp)
+			return
+		}
+
+		for cur := l.head; cur.next != nil; cur = cur.next {
+			if idx == 1 {
+				l.size--
+				result := cur.next
+				cur.next = result.next
+				result.next = nil
+				nodePool.Put(result)
+				return
+			}
+			idx--
+		}
+	}
+
 	return
 }
 
-func (l *LinkedList) Remove(idx uint) (result *Node, found bool) {
-	if l.size == 0 {
-		return nil, false
-	}
-
-	if idx == 0 {
-		result = l.head
-		found = true
-		l.head = result.next
-		result.next = nil
-		l.size--
-		return
-	}
-
-	for cur := l.head; cur.next != nil; cur = cur.next {
-		if idx == 1 {
-			l.size--
-			result = cur.next
-			found = true
-			cur.next = result.next
-			result.next = nil
-			return
-		}
-		idx--
-	}
-
-	return nil, false
-}
-
 func (l *LinkedList) Values() (result []interface{}) {
-	l.Traversal(func(cur *Node) bool {
-		result = append(result, cur.value)
+	l.Traversal(func(value interface{}) bool {
+		result = append(result, value)
 		return true
 	})
 	return
 }
 
-func (l *LinkedList) Traversal(every func(*Node) bool) {
-	for cur := l.head; cur != nil; cur = cur.next {
-		if !every(cur) {
+func (l *LinkedList) Traversal(every func(interface{}) bool) {
+	for cur := l.head.next; cur != l.tail; cur = cur.next {
+		if !every(cur.value) {
 			break
 		}
 	}
