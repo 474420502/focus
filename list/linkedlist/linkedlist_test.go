@@ -45,7 +45,7 @@ func TestPushBack(t *testing.T) {
 
 func TestPopFront(t *testing.T) {
 	l := New()
-	// "[0 1 2 3 4]"
+	// "[4 3 2 1 0]"
 	for i := 0; i < 5; i++ {
 		l.PushFront(i)
 	}
@@ -68,7 +68,7 @@ func TestPopFront(t *testing.T) {
 
 func TestPopBack(t *testing.T) {
 	l := New()
-	// "[0 1 2 3 4]"
+	// "[4 3 2 1 0]"
 	for i := 0; i < 5; i++ {
 		l.PushFront(i)
 	}
@@ -127,6 +127,58 @@ func TestInsert(t *testing.T) {
 	if result1 != "[4 99 3 2 1 0 0 1 2 3 4]" {
 		t.Error("[4 3 2 1 0 0 1 2 3 4] insert with index 1, should be [4 99 3 2 1 0 0 1 2 3 4]\n but result is", result1)
 	}
+
+	l1.Insert(9, 99)
+	result1 = spew.Sprint(l1.Values())
+	if result1 != "[4 99 3 2 1 0 0 1 2 99 3 4]" {
+		t.Error("[4 99 3 2 1 0 0 1 2 3 4] insert with index 9, should be [4 99 3 2 1 0 0 1 2 99 3 4]\n but result is", result1)
+	}
+
+	l1.Insert(12, 99)
+	result1 = spew.Sprint(l1.Values())
+	if result1 != "[4 99 3 2 1 0 0 1 2 99 3 4 99]" {
+		t.Error("[4 99 3 2 1 0 0 1 2 99 3 4] insert with index 12, should be [4 99 3 2 1 0 0 1 2 99 3 4 99]\n but result is", result1)
+	}
+}
+
+func TestIndex(t *testing.T) {
+	l := New()
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.PushFront(i)
+	}
+
+	if v, ok := l.Index(4); ok {
+		if v != 0 {
+			t.Error("[4 3 2 1 0] Index 4 value is 0, but v is ", v)
+		}
+	} else {
+		t.Error("not ok is error")
+	}
+
+	if v, ok := l.Index(1); ok {
+		if v != 3 {
+			t.Error("[4 3 2 1 0] Index 1 value is 3, but v is ", v)
+		}
+	} else {
+		t.Error("not ok is error")
+	}
+
+	if v, ok := l.Index(0); ok {
+		if v != 4 {
+			t.Error("[4 3 2 1 0] Index 1 value is 4, but v is ", v)
+		}
+	} else {
+		t.Error("not ok is error")
+	}
+
+	if _, ok := l.Index(5); ok {
+		t.Error("[4 3 2 1 0] Index 5, out of range,ok = true is error")
+	}
+}
+
+func TestRemove(t *testing.T) {
+
 }
 
 func BenchmarkPushBack(b *testing.B) {

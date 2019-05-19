@@ -121,6 +121,34 @@ func (l *LinkedList) Back() (result interface{}, found bool) {
 	return nil, false
 }
 
+func (l *LinkedList) Index(idx uint) (interface{}, bool) {
+	if idx >= l.size {
+		return nil, false
+	}
+
+	if idx > l.size/2 {
+		idx = l.size - 1 - idx
+		// 尾部
+		for cur := l.tail.prev; cur != nil; cur = cur.prev {
+			if idx == 0 {
+				return cur.value, true
+			}
+			idx--
+		}
+
+	} else {
+		// 头部
+		for cur := l.head.next; cur != nil; cur = cur.next {
+			if idx == 0 {
+				return cur.value, true
+			}
+			idx--
+		}
+	}
+
+	return nil, false
+}
+
 func (l *LinkedList) Insert(idx uint, values ...interface{}) {
 	if idx > l.size {
 		return
@@ -196,33 +224,81 @@ func (l *LinkedList) Insert(idx uint, values ...interface{}) {
 	l.size += uint(len(values))
 }
 
-func (l *LinkedList) Remove(idx uint) {
+func (l *LinkedList) InsertIf(every func(idx uint, cur *Node) int, values ...interface{}) {
+
+	idx := uint(0)
+	// 头部
+	for cur := l.head.next; cur != nil; cur = cur.next {
+
+		if every(idx, cur) != 0 { // 1 为前 -1 为后
+
+			var start *Node
+			var end *Node
+
+			start = &Node{value: values[0]}
+			end = start
+
+			for _, value := range values[1:] {
+				node := &Node{value: value}
+				end.next = node
+				node.prev = end
+				end = node
+			}
+
+			cprev := cur.prev
+
+			cprev.next = start
+			start.prev = cprev
+
+			end.next = cur
+			cur.prev = end
+
+		}
+
+	}
+
+	l.size += uint(len(values))
+}
+
+func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	if idx >= l.size {
 		panic(fmt.Sprintf("out of list range, size is %d, idx is %d", l.size, idx))
 	}
-	if l.head != nil {
-		if idx == 0 {
-			l.size--
-			temp := l.head
-			l.head = l.head.next
-			nodePool.Put(temp)
-			return
+
+	if idx > l.size/2 {
+		idx = l.size - 1 - idx
+		// 尾部
+		for cur := l.tail.prev; cur != nil; cur = cur.prev {
+			if idx == 0 {
+				curPrev := cur.prev
+				curNext := cur.next
+				curPrev.next = curNext
+				curNext.prev = curPrev
+				cur.prev = nil
+				cur.next = nil
+				return cur.value, true
+			}
+			idx--
 		}
 
-		for cur := l.head; cur.next != nil; cur = cur.next {
-			if idx == 1 {
-				l.size--
-				result := cur.next
-				cur.next = result.next
-				result.next = nil
-				nodePool.Put(result)
-				return
+	} else {
+		// 头部
+		for cur := l.head.next; cur != nil; cur = cur.next {
+			if idx == 0 {
+				curPrev := cur.prev
+				curNext := cur.next
+				curPrev.next = curNext
+				curNext.prev = curPrev
+				cur.prev = nil
+				cur.next = nil
+				return cur.value, true
+
 			}
 			idx--
 		}
 	}
 
-	return
+	panic(fmt.Sprintf("unknown error"))
 }
 
 func (l *LinkedList) Values() (result []interface{}) {
