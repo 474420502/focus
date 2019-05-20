@@ -265,8 +265,9 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 		panic(fmt.Sprintf("out of list range, size is %d, idx is %d", l.size, idx))
 	}
 
+	l.size--
 	if idx > l.size/2 {
-		idx = l.size - 1 - idx
+		idx = l.size - idx // l.size - 1 - idx
 		// 尾部
 		for cur := l.tail.prev; cur != nil; cur = cur.prev {
 			if idx == 0 {

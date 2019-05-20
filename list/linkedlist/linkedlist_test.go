@@ -175,10 +175,36 @@ func TestIndex(t *testing.T) {
 	if _, ok := l.Index(5); ok {
 		t.Error("[4 3 2 1 0] Index 5, out of range,ok = true is error")
 	}
+
 }
 
 func TestRemove(t *testing.T) {
+	l := New()
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.PushFront(i)
+	}
 
+	l.Remove(0)
+	var result string
+	result = spew.Sprint(l.Values())
+	if result != "[3 2 1 0]" {
+		t.Error("should be [3 2 1 0] but result is", result)
+	}
+
+	l.Remove(3)
+	result = spew.Sprint(l.Values())
+	if result != "[3 2 1]" {
+		t.Error("should be [3 2 1] but result is", result)
+	}
+
+	defer func() {
+		if err := recover(); err == nil {
+			t.Error("should be out of range but is not")
+		}
+	}()
+
+	l.Remove(3)
 }
 
 func BenchmarkPushBack(b *testing.B) {
