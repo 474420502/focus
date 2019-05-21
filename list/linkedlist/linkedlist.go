@@ -224,14 +224,13 @@ func (l *LinkedList) Insert(idx uint, values ...interface{}) {
 	l.size += uint(len(values))
 }
 
-func (l *LinkedList) InsertIf(every func(idx uint, cur *Node) int, values ...interface{}) {
+func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) int, values ...interface{}) {
 
 	idx := uint(0)
 	// 头部
 	for cur := l.head.next; cur != nil; cur = cur.next {
-
-		if every(idx, cur) != 0 { // 1 为前 -1 为后
-
+		isInsert := every(idx, cur.value)
+		if isInsert != 0 { // 1 为前 -1 为后 insert here(-1) ->cur-> insert here(1)
 			var start *Node
 			var end *Node
 
@@ -245,19 +244,34 @@ func (l *LinkedList) InsertIf(every func(idx uint, cur *Node) int, values ...int
 				end = node
 			}
 
-			cprev := cur.prev
+			if isInsert < 0 {
+				cprev := cur.prev
+				cprev.next = start
+				start.prev = cprev
+				end.next = cur
+				cur.prev = end
+			} else {
+				cnext := cur.next
+				cnext.prev = end
+				start.prev = cur
+				cur.next = start
+				end.next = cnext
+			}
 
-			cprev.next = start
-			start.prev = cprev
-
-			end.next = cur
-			cur.prev = end
-
+			break
 		}
-
 	}
 
 	l.size += uint(len(values))
+}
+
+func remove(cur *Node) {
+	curPrev := cur.prev
+	curNext := cur.next
+	curPrev.next = curNext
+	curNext.prev = curPrev
+	cur.prev = nil
+	cur.next = nil
 }
 
 func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
@@ -267,16 +281,11 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 
 	l.size--
 	if idx > l.size/2 {
-		idx = l.size - idx // l.size - 1 - idx
+		idx = l.size - idx // l.size - 1 - idx,  先减size
 		// 尾部
 		for cur := l.tail.prev; cur != nil; cur = cur.prev {
 			if idx == 0 {
-				curPrev := cur.prev
-				curNext := cur.next
-				curPrev.next = curNext
-				curNext.prev = curPrev
-				cur.prev = nil
-				cur.next = nil
+				remove(cur)
 				return cur.value, true
 			}
 			idx--
@@ -286,12 +295,7 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 		// 头部
 		for cur := l.head.next; cur != nil; cur = cur.next {
 			if idx == 0 {
-				curPrev := cur.prev
-				curNext := cur.next
-				curPrev.next = curNext
-				curNext.prev = curPrev
-				cur.prev = nil
-				cur.next = nil
+				remove(cur)
 				return cur.value, true
 
 			}
@@ -300,6 +304,18 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	}
 
 	panic(fmt.Sprintf("unknown error"))
+}
+
+func (l *LinkedList) RemoveIf(every func(value interface{}) bool) (interface{}, bool) {
+	// 头部
+	for cur := l.head.next; cur != nil; cur = cur.next {
+		if every(cur.value) {
+			remove(cur)
+			return cur.value, true
+		}
+	}
+
+	return nil, false
 }
 
 func (l *LinkedList) Values() (result []interface{}) {

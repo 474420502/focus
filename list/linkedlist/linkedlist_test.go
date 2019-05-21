@@ -141,6 +141,64 @@ func TestInsert(t *testing.T) {
 	}
 }
 
+func TestInsertIf(t *testing.T) {
+	l := New()
+
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.Insert(0, i)
+	}
+
+	// "[4 3 2 1 0]"
+	for i := 0; i < 2; i++ {
+		l.InsertIf(func(idx uint, value interface{}) int {
+			if value == 3 {
+				return 1
+			}
+			return 0
+		}, 11)
+	}
+
+	var result string
+
+	result = spew.Sprint(l.Values())
+	if result != "[4 3 11 11 2 1 0]" {
+		t.Error("result should be [4 3 11 11 2 1 0], reuslt is", result)
+	}
+
+	// "[4 3 2 1 0]"
+	for i := 0; i < 2; i++ {
+		l.InsertIf(func(idx uint, value interface{}) int {
+			if value == 0 {
+				return -1
+			}
+			return 0
+		}, 11)
+	}
+
+	result = spew.Sprint(l.Values())
+	if result != "[4 3 11 11 2 1 11 11 0]" {
+		t.Error("result should be [4 3 11 11 2 1 11 11 0], reuslt is", result)
+	}
+
+	// "[4 3 2 1 0]"
+	for i := 0; i < 2; i++ {
+		l.InsertIf(func(idx uint, value interface{}) int {
+			if value == 0 {
+				return 1
+			}
+			return 0
+		}, 11)
+	}
+
+	result = spew.Sprint(l.Values())
+	if result != "[4 3 11 11 2 1 11 11 0 11 11]" {
+		t.Error("result should be [4 3 11 11 2 1 11 11 0 11 11], reuslt is", result)
+	}
+
+	// t.Error(l.Values())
+}
+
 func TestIndex(t *testing.T) {
 	l := New()
 	// "[4 3 2 1 0]"
@@ -198,6 +256,24 @@ func TestRemove(t *testing.T) {
 		t.Error("should be [3 2 1] but result is", result)
 	}
 
+	l.Remove(2)
+	result = spew.Sprint(l.Values())
+	if result != "[3 2]" {
+		t.Error("should be [3 2 1] but result is", result)
+	}
+
+	l.Remove(1)
+	result = spew.Sprint(l.Values())
+	if result != "[3]" {
+		t.Error("should be [3 2 1] but result is", result)
+	}
+
+	l.Remove(0)
+	result = spew.Sprint(l.Values())
+	if result != "<nil>" && l.Size() == 0 && len(l.Values()) == 0 {
+		t.Error("should be [3 2 1] but result is", result, "Size is", l.Size())
+	}
+
 	defer func() {
 		if err := recover(); err == nil {
 			t.Error("should be out of range but is not")
@@ -205,6 +281,78 @@ func TestRemove(t *testing.T) {
 	}()
 
 	l.Remove(3)
+}
+
+func TestRemoveIf(t *testing.T) {
+	l := New()
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.PushFront(i)
+	}
+
+	if r, ok := l.RemoveIf(func(value interface{}) bool {
+		if value == 0 {
+			return true
+		}
+		return false
+	}); ok {
+		if r != 0 {
+			t.Error("result should is", 0)
+		}
+	} else {
+		t.Error("should be ok")
+	}
+
+	if r, ok := l.RemoveIf(func(value interface{}) bool {
+		if value == 4 {
+			return true
+		}
+		return false
+	}); ok {
+		if r != 4 {
+			t.Error("result should is", 4)
+		}
+	} else {
+		t.Error("should be ok")
+	}
+
+	var result string
+	result = spew.Sprint(l.Values())
+	if result != "[3 2 1]" {
+		t.Error("should be [3 2 1] but result is", result)
+	}
+
+	if r, ok := l.RemoveIf(func(value interface{}) bool {
+		if value == 4 {
+			return true
+		}
+		return false
+	}); ok {
+		t.Error("should not be ok and result is nil")
+	} else {
+		if r != nil {
+			t.Error("should be nil")
+		}
+	}
+
+	result = spew.Sprint(l.Values())
+	if result != "[3 2 1]" {
+		t.Error("should be [3 2 1] but result is", result)
+	}
+
+	for _, v := range l.Values() {
+		l.RemoveIf(func(value interface{}) bool {
+			if value == v {
+				return true
+			}
+			return false
+		})
+	}
+
+	result = spew.Sprint(l.Values())
+	if result != "<nil>" {
+		t.Error("result should be <nil>, but now result is", result)
+	}
 }
 
 func BenchmarkPushBack(b *testing.B) {
