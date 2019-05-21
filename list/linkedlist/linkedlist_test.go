@@ -199,6 +199,117 @@ func TestInsertIf(t *testing.T) {
 	// t.Error(l.Values())
 }
 
+func TestFind(t *testing.T) {
+	l := New()
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.PushFront(i)
+	}
+
+	if v, isfound := l.Find(func(idx uint, value interface{}) bool {
+		if idx == 1 {
+			return true
+		}
+		return false
+	}); isfound {
+		if v != 3 {
+			t.Error("[4 3 2 1 0] index 1 shoud be 3 but value is", v)
+		}
+	} else {
+		t.Error("should be found")
+	}
+
+	if v, isfound := l.Find(func(idx uint, value interface{}) bool {
+		if idx == 5 {
+			return true
+		}
+		return false
+	}); isfound {
+		t.Error("should not be found, but v is found, ", v)
+	}
+}
+
+func TestFindMany(t *testing.T) {
+	l := New()
+	// "[4 3 2 1 0]"
+	for i := 0; i < 5; i++ {
+		l.PushFront(i)
+	}
+
+	if values, isfound := l.FindMany(func(idx uint, value interface{}) int {
+		if idx >= 1 {
+			return 1
+		}
+		return 0
+	}); isfound {
+		var result string
+		result = spew.Sprint(values)
+		if result != "[3 2 1 0]" {
+			t.Error("result should be [3 2 1 0], reuslt is", result)
+		}
+	} else {
+		t.Error("should be found")
+	}
+
+	if values, isfound := l.FindMany(func(idx uint, value interface{}) int {
+		if idx%2 == 0 {
+			return 1
+		}
+		return 0
+	}); isfound {
+		var result string
+		result = spew.Sprint(values)
+		if result != "[4 2 0]" {
+			t.Error("result should be [3 2 1 0], reuslt is", result)
+		}
+	} else {
+		t.Error("should be found")
+	}
+
+	if values, isfound := l.FindMany(func(idx uint, value interface{}) int {
+		if value == 0 || value == 2 || value == 4 || value == 7 {
+			return 1
+		}
+		return 0
+	}); isfound {
+		var result string
+		result = spew.Sprint(values)
+		if result != "[4 2 0]" {
+			t.Error("result should be [4 2 0], reuslt is", result)
+		}
+	} else {
+		t.Error("should be found")
+	}
+
+	if values, isfound := l.FindMany(func(idx uint, value interface{}) int {
+		if value.(int) <= 2 {
+			return -1
+		}
+
+		if value.(int) <= 4 && value.(int) > 2 {
+			return 1
+		}
+
+		return 0
+	}); isfound {
+		var result string
+		result = spew.Sprint(values)
+		if result != "[4 3]" {
+			t.Error("result should be [4 2 0], reuslt is", result)
+		}
+	} else {
+		t.Error("should be found")
+	}
+	// if v, isfound := l.Find(func(idx uint, value interface{}) bool {
+	// 	if idx == 5 {
+	// 		return true
+	// 	}
+	// 	return false
+	// }); isfound {
+	// 	t.Error("should not be found, but v is found, ", v)
+	// }
+}
+
 func TestIndex(t *testing.T) {
 	l := New()
 	// "[4 3 2 1 0]"
@@ -290,26 +401,26 @@ func TestRemoveIf(t *testing.T) {
 		l.PushFront(i)
 	}
 
-	if r, ok := l.RemoveIf(func(value interface{}) bool {
+	if result, ok := l.RemoveIf(func(idx uint, value interface{}) int {
 		if value == 0 {
-			return true
+			return 1
 		}
-		return false
+		return 0
 	}); ok {
-		if r != 0 {
+		if result[0] != 0 {
 			t.Error("result should is", 0)
 		}
 	} else {
 		t.Error("should be ok")
 	}
 
-	if r, ok := l.RemoveIf(func(value interface{}) bool {
+	if result, ok := l.RemoveIf(func(idx uint, value interface{}) int {
 		if value == 4 {
-			return true
+			return 1
 		}
-		return false
+		return 0
 	}); ok {
-		if r != 4 {
+		if result[0] != 4 {
 			t.Error("result should is", 4)
 		}
 	} else {
@@ -322,15 +433,15 @@ func TestRemoveIf(t *testing.T) {
 		t.Error("should be [3 2 1] but result is", result)
 	}
 
-	if r, ok := l.RemoveIf(func(value interface{}) bool {
+	if result, ok := l.RemoveIf(func(idx uint, value interface{}) int {
 		if value == 4 {
-			return true
+			return 1
 		}
-		return false
+		return 0
 	}); ok {
 		t.Error("should not be ok and result is nil")
 	} else {
-		if r != nil {
+		if result != nil {
 			t.Error("should be nil")
 		}
 	}
@@ -340,14 +451,12 @@ func TestRemoveIf(t *testing.T) {
 		t.Error("should be [3 2 1] but result is", result)
 	}
 
-	for _, v := range l.Values() {
-		l.RemoveIf(func(value interface{}) bool {
-			if value == v {
-				return true
-			}
-			return false
-		})
-	}
+	l.RemoveIf(func(idx uint, value interface{}) int {
+		if value == 3 || value == 2 || value == 1 {
+			return 1
+		}
+		return 0
+	})
 
 	result = spew.Sprint(l.Values())
 	if result != "<nil>" {

@@ -121,6 +121,37 @@ func (l *LinkedList) Back() (result interface{}, found bool) {
 	return nil, false
 }
 
+func (l *LinkedList) Find(every func(idx uint, value interface{}) bool) (interface{}, bool) {
+
+	idx := uint(0)
+	// 头部
+	for cur := l.head.next; cur != l.tail; cur = cur.next {
+		if every(idx, cur.value) {
+			return cur.value, true
+		}
+		idx++
+	}
+	return nil, false
+}
+
+func (l *LinkedList) FindMany(every func(idx uint, value interface{}) int) (result []interface{}, isfound bool) {
+	// the default of isfould  is  false
+	idx := uint(0)
+	// 头部
+	for cur := l.head.next; cur != l.tail; cur = cur.next {
+		j := every(idx, cur.value)
+		switch {
+		case j > 0:
+			result = append(result, cur.value)
+			isfound = true
+		case j < 0:
+			return result, isfound
+		}
+		idx++
+	}
+	return result, isfound
+}
+
 func (l *LinkedList) Index(idx uint) (interface{}, bool) {
 	if idx >= l.size {
 		return nil, false
@@ -129,7 +160,7 @@ func (l *LinkedList) Index(idx uint) (interface{}, bool) {
 	if idx > l.size/2 {
 		idx = l.size - 1 - idx
 		// 尾部
-		for cur := l.tail.prev; cur != nil; cur = cur.prev {
+		for cur := l.tail.prev; cur != l.head; cur = cur.prev {
 			if idx == 0 {
 				return cur.value, true
 			}
@@ -138,7 +169,7 @@ func (l *LinkedList) Index(idx uint) (interface{}, bool) {
 
 	} else {
 		// 头部
-		for cur := l.head.next; cur != nil; cur = cur.next {
+		for cur := l.head.next; cur != l.tail; cur = cur.next {
 			if idx == 0 {
 				return cur.value, true
 			}
@@ -258,11 +289,10 @@ func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) int, value
 				end.next = cnext
 			}
 
+			l.size += uint(len(values))
 			break
 		}
 	}
-
-	l.size += uint(len(values))
 }
 
 func remove(cur *Node) {
@@ -283,7 +313,7 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	if idx > l.size/2 {
 		idx = l.size - idx // l.size - 1 - idx,  先减size
 		// 尾部
-		for cur := l.tail.prev; cur != nil; cur = cur.prev {
+		for cur := l.tail.prev; cur != l.head; cur = cur.prev {
 			if idx == 0 {
 				remove(cur)
 				return cur.value, true
@@ -293,7 +323,7 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 
 	} else {
 		// 头部
-		for cur := l.head.next; cur != nil; cur = cur.next {
+		for cur := l.head.next; cur != l.tail; cur = cur.next {
 			if idx == 0 {
 				remove(cur)
 				return cur.value, true
@@ -306,16 +336,27 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	panic(fmt.Sprintf("unknown error"))
 }
 
-func (l *LinkedList) RemoveIf(every func(value interface{}) bool) (interface{}, bool) {
+func (l *LinkedList) RemoveIf(every func(idx uint, value interface{}) int) (result []interface{}, isRemoved bool) {
 	// 头部
-	for cur := l.head.next; cur != nil; cur = cur.next {
-		if every(cur.value) {
+	idx := uint(0)
+	for cur := l.head.next; cur != l.tail; idx++ {
+		j := every(idx, cur.value)
+		switch {
+		case j > 0:
+			result = append(result, cur.value)
+			isRemoved = true
+			temp := cur.next
 			remove(cur)
-			return cur.value, true
+			cur = temp
+			l.size--
+			continue
+		case j < 0:
+			return
 		}
-	}
 
-	return nil, false
+		cur = cur.next
+	}
+	return
 }
 
 func (l *LinkedList) Values() (result []interface{}) {
