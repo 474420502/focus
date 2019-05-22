@@ -8,80 +8,90 @@ import (
 
 func TestPush(t *testing.T) {
 	l := New()
-	for i := 0; i < 5; i++ {
-		l.Push(i)
+	for i := 0; i < 2; i++ {
+		l.PushFront(1)
 	}
 	var result string
 	result = spew.Sprint(l.Values())
-	if result != "[4 3 2 1 0]" {
+	if result != "[1 1]" {
 		t.Error(result)
 	}
 
-	l.Push(0)
+	for i := 0; i < 2; i++ {
+		l.PushBack(2)
+	}
 	result = spew.Sprint(l.Values())
-	if result != "[0 4 3 2 1 0]" {
+	if result != "[1 1 2 2]" {
 		t.Error(result)
 	}
+}
+
+func TestGrowth(t *testing.T) {
+	l := New()
+	for i := 0; i < 5; i++ {
+		l.PushFront(1)
+	}
+
+	var result string
+	result = spew.Sprint(l.Values())
+	if result != "[1 1]" {
+		t.Error(result)
+	}
+
+	l = New()
+	for i := 0; i < 7; i++ {
+		l.PushBack(1)
+	}
+
+	result = spew.Sprint(l.Values())
+	if result != "[1 1]" {
+		t.Error(result)
+	}
+
+	// for i := 0; i < 2; i++ {
+	// 	l.PushBack(2)
+	// }
+	// result = spew.Sprint(l.Values())
+	// if result != "[1 1 2 2]" {
+	// 	t.Error(result)
+	// }
 }
 
 func TestPop(t *testing.T) {
 	l := New()
 	for i := 0; i < 5; i++ {
-		l.Push(i)
+		l.PushFront(i)
 	}
 
-	if v, ok := l.Pop(); ok {
-		if v != 4 {
-			t.Error(v)
-		}
-	} else {
-		t.Error("Pop should ok, but is not ok")
-	}
-
-	var result string
-	result = spew.Sprint(l.Values())
-	if result != "[3 2 1 0]" {
-		t.Error(result)
-	}
-
-	for i := 3; l.Size() != 0; i-- {
-		if v, ok := l.Pop(); ok {
+	for i := 4; i >= 0; i-- {
+		if v, ok := l.PopFront(); ok {
 			if v != i {
-				t.Error(i, v, "is not equals")
+				t.Error("should be ", v)
 			}
 		} else {
-			t.Error("Pop should ok, but is not ok", i)
+			t.Error("should be ok, value is", v)
 		}
 	}
 
-	l.Push(0)
-	result = spew.Sprint(l.Values())
-	if result != "[0]" {
-		t.Error(result)
-	}
-
-	if l.Size() != 1 {
-		t.Error("l.Size() == 1, but is error, size = ", l.Size())
-	}
-}
-
-func TestRemove(t *testing.T) {
-	l := New()
-	for i := 0; i < 5; i++ {
-		l.Push(i)
+	if v, ok := l.PopFront(); ok {
+		t.Error("should not be ok, v = ", v)
 	}
 
 	for i := 0; i < 5; i++ {
-		if n, ok := l.Remove(0); ok {
-			if n != 4-i {
-				t.Error(n)
+		l.PushFront(i)
+	}
+
+	for i := 0; i < 5; i++ {
+		if v, ok := l.PopBack(); ok {
+			if v != i {
+				t.Error("should be ", v)
 			}
 		} else {
-			t.Error("Pop should ok, but is not ok", i)
+			t.Error("should be ok, value is", v)
 		}
 	}
 
-	if l.Size() != 0 {
-		t.Error("l.Size() == 0, but is error, size = ", l.Size())
+	if v, ok := l.PopBack(); ok {
+		t.Error("should not be ok, v = ", v)
 	}
 }

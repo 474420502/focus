@@ -37,6 +37,16 @@ func New() *LinkedList {
 	return l
 }
 
+func (l *LinkedList) Clear() {
+	l.head.next = nil
+	l.tail.prev = nil
+	l.size = 0
+}
+
+func (l *LinkedList) Empty() bool {
+	return l.size == 0
+}
+
 func (l *LinkedList) Size() uint {
 	return l.size
 }
