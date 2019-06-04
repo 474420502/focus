@@ -34,7 +34,7 @@ func TestGrowth(t *testing.T) {
 
 	var result string
 	result = spew.Sprint(l.Values())
-	if result != "[1 1]" {
+	if result != "[1 1 1 1 1]" {
 		t.Error(result)
 	}
 
@@ -44,7 +44,7 @@ func TestGrowth(t *testing.T) {
 	}
 
 	result = spew.Sprint(l.Values())
-	if result != "[1 1]" {
+	if result != "[1 1 1 1 1 1 1]" {
 		t.Error(result)
 	}
 

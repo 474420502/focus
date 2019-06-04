@@ -3,15 +3,18 @@ package arraylist
 import "log"
 
 type ArrayList struct {
-	data          []interface{}
-	hidx          uint
-	tidx          uint
-	size          uint
-	growSizePoint uint
+	data []interface{}
+	hidx uint // [ nil(hdix) 1 nil(tidx) ]
+	tidx uint
+	size uint
+
+	growthSize uint
+	shrinkSize uint
 }
 
 const (
-	listLimit    = uint(1) << 63
+	listMaxLimit = uint(1) << 63
+	listMinLimit = uint(8)
 	initCap      = uint(8)
 	growthFactor = float32(2.0)  // growth by 100%
 	shrinkFactor = float32(0.25) // shrink when size is 25% of capacity (0 means never shrink)
@@ -43,53 +46,47 @@ func (l *ArrayList) Size() uint {
 
 func (l *ArrayList) shrink() {
 
+	if l.size <= listMinLimit {
+		log.Panic("list size is over listMaxLimit", listMinLimit)
+	}
+
+	if l.size <= l.shrinkSize {
+		nSize := l.shrinkSize - l.shrinkSize>>1
+		temp := make([]interface{}, nSize, nSize)
+
+		ghidx := l.size / 2
+		gtidx := ghidx + l.size + 1
+		copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
+		l.data = temp
+		l.hidx = ghidx
+		l.tidx = gtidx
+	}
+
 }
 
 // 后续需要优化 growth 策略
-func (l *ArrayList) growth(flag int) {
+func (l *ArrayList) growth() {
 
-	if l.size >= listLimit {
-		log.Panic("list size is over limit", listLimit)
+	if l.size >= listMaxLimit {
+		log.Panic("list size is over listMaxLimit", listMaxLimit)
 	}
 
-	switch flag {
-	case -1:
-		growthsize := l.size << 1
-		temp := make([]interface{}, growthsize, growthsize)
+	nSize := l.size << 1
+	temp := make([]interface{}, nSize, nSize)
 
-		ghidx := l.size / 2
-		gtidx := ghidx + l.size + 1
-		copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
-		l.data = temp
-		l.hidx = ghidx
-		l.tidx = gtidx
-	case 1:
-		growthsize := l.size << 1
-		temp := make([]interface{}, growthsize, growthsize)
+	ghidx := l.size / 2
+	gtidx := ghidx + l.size + 1
+	copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
+	l.data = temp
+	l.hidx = ghidx
+	l.tidx = gtidx
 
-		ghidx := l.size / 2
-		gtidx := ghidx + l.size + 1
-		copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
-		l.data = temp
-		l.hidx = ghidx
-		l.tidx = gtidx
-	case 0:
-		growthsize := l.size << 1
-		temp := make([]interface{}, growthsize, growthsize)
-
-		ghidx := l.size / 2
-		gtidx := ghidx + l.size + 1
-		copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
-		l.data = temp
-		l.hidx = ghidx
-		l.tidx = gtidx
-	}
 }
 
 func (l *ArrayList) PushFront(values ...interface{}) {
 	psize := uint(len(values))
-	if l.hidx+1-psize > listLimit {
-		l.growth(-1)
+	for l.hidx+1-psize > listMaxLimit {
+		l.growth()
 		// panic("growth -1")
 	}
 
@@ -102,8 +99,8 @@ func (l *ArrayList) PushFront(values ...interface{}) {
 
 func (l *ArrayList) PushBack(values ...interface{}) {
 	psize := uint(len(values))
-	if l.tidx+psize >= uint(len(l.data)) {
-		l.growth(1)
+	for l.tidx+psize > uint(len(l.data)) {
+		l.growth()
 	}
 
 	for _, v := range values {
