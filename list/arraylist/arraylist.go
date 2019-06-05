@@ -47,7 +47,7 @@ func (l *ArrayList) Size() uint {
 func (l *ArrayList) shrink() {
 
 	if l.size <= listMinLimit {
-		log.Panic("list size is over listMaxLimit", listMinLimit)
+		return
 	}
 
 	if l.size <= l.shrinkSize {
@@ -137,7 +137,7 @@ func (l *ArrayList) Index(idx uint) (interface{}, bool) {
 
 func (l *ArrayList) Remove(idx uint) (result interface{}, isfound bool) {
 
-	if idx < l.size {
+	if idx >= l.size {
 		return nil, false
 	}
 
@@ -145,9 +145,16 @@ func (l *ArrayList) Remove(idx uint) (result interface{}, isfound bool) {
 
 	isfound = true
 	result = l.data[offset]
-	l.data[offset] = nil // cleanup reference
+	// l.data[offset] = nil // cleanup reference
 
-	copy(l.data[offset:], l.data[idx+1:l.size]) // shift to the left by one (slow operation, need ways to optimize this)
+	if l.size-l.tidx > l.hidx {
+		copy(l.data[offset:], l.data[offset+1:l.tidx]) // shift to the left by one (slow operation, need ways to optimize this)
+		l.tidx--
+	} else {
+		copy(l.data[l.hidx+2:], l.data[l.hidx+1:offset])
+		l.hidx++
+	}
+
 	l.size--
 	l.shrink()
 
