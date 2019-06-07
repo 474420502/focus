@@ -16,11 +16,10 @@ const (
 	listMaxLimit = uint(1) << 63
 	listMinLimit = uint(8)
 	initCap      = uint(8)
-	growthFactor = float32(2.0)  // growth by 100%
-	shrinkFactor = float32(0.25) // shrink when size is 25% of capacity (0 means never shrink)
+	//growthFactor = float32(2.0)  // growth by 100%
+	//shrinkFactor = float32(0.25) // shrink when size is 25% of capacity (0 means never shrink)
 )
 
-// New instantiates a new list and adds the passed values, if any, to the list
 func New() *ArrayList {
 	l := &ArrayList{}
 	l.data = make([]interface{}, initCap, initCap)
@@ -161,146 +160,25 @@ func (l *ArrayList) Remove(idx uint) (result interface{}, isfound bool) {
 	return
 }
 
-// func (list *ArrayList) Contains(values ...interface{}) bool {
+func (l *ArrayList) Contains(values ...interface{}) bool {
 
-// 	for _, searchValue := range values {
-// 		found := false
-// 		for _, element := range list.data {
-// 			if element == searchValue {
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 		if !found {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }
+	for _, searchValue := range values {
+		found := false
+		for _, element := range l.data[l.hidx+1 : l.tidx] {
+			if element == searchValue {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
 
 func (l *ArrayList) Values() []interface{} {
 	newElements := make([]interface{}, l.size, l.size)
 	copy(newElements, l.data[l.hidx+1:l.tidx])
 	return newElements
 }
-
-// func (list *ArrayList) IndexOf(value interface{}) int {
-// 	if list.size == 0 {
-// 		return -1
-// 	}
-// 	for index, element := range list.data {
-// 		if element == value {
-// 			return index
-// 		}
-// 	}
-// 	return -1
-// }
-
-// func (list *ArrayList) Empty() bool {
-// 	return list.size == 0
-// }
-
-// func (list *ArrayList) Size() int {
-// 	return list.size
-// }
-
-// // Clear removes all elements from the list.
-// func (list *ArrayList) Clear() {
-// 	list.size = 0
-// 	list.data = []interface{}{}
-// }
-
-// // Sort sorts values (in-place) using.
-// func (list *ArrayList) Sort(comparator utils.Comparator) {
-// 	if len(list.data) < 2 {
-// 		return
-// 	}
-// 	utils.Sort(list.data[:list.size], comparator)
-// }
-
-// // Swap swaps the two values at the specified positions.
-// func (list *ArrayList) Swap(i, j int) {
-// 	if list.withinRange(i) && list.withinRange(j) {
-// 		list.data[i], list.data[j] = list.data[j], list.data[i]
-// 	}
-// }
-
-// // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// // Does not do anything if position is negative or bigger than list's size
-// // Note: position equal to list's size is valid, i.e. append.
-// func (list *ArrayList) Insert(index int, values ...interface{}) {
-
-// 	if !list.withinRange(index) {
-// 		// Append
-// 		if index == list.size {
-// 			list.Add(values...)
-// 		}
-// 		return
-// 	}
-
-// 	l := len(values)
-// 	list.growBy(l)
-// 	list.size += l
-// 	copy(list.data[index+l:], list.data[index:list.size-l])
-// 	copy(list.data[index:], values)
-// }
-
-// // Set the value at specified index
-// // Does not do anything if position is negative or bigger than list's size
-// // Note: position equal to list's size is valid, i.e. append.
-// func (list *ArrayList) Set(index int, value interface{}) {
-
-// 	if !list.withinRange(index) {
-// 		// Append
-// 		if index == list.size {
-// 			list.Add(value)
-// 		}
-// 		return
-// 	}
-
-// 	list.data[index] = value
-// }
-
-// // String returns a string representation of container
-// func (list *ArrayList) String() string {
-// 	str := "ArrayList\n"
-// 	values := []string{}
-// 	for _, value := range list.data[:list.size] {
-// 		values = append(values, fmt.Sprintf("%v", value))
-// 	}
-// 	str += strings.Join(values, ", ")
-// 	return str
-// }
-
-// // Check that the index is within bounds of the list
-// func (list *ArrayList) withinRange(index int) bool {
-// 	return index >= 0 && index < list.size
-// }
-
-// func (list *ArrayList) resize(cap int) {
-// 	newElements := make([]interface{}, cap, cap)
-// 	copy(newElements, list.data)
-// 	list.data = newElements
-// }
-
-// // Expand the array if necessary, i.e. capacity will be reached if we add n elements
-// func (list *ArrayList) growBy(n int) {
-// 	// When capacity is reached, grow by a factor of growthFactor and add number of elements
-// 	currentCapacity := cap(list.data)
-// 	if list.size+n >= currentCapacity {
-// 		newCapacity := int(growthFactor * float32(currentCapacity+n))
-// 		list.resize(newCapacity)
-// 	}
-// }
-
-// // Shrink the array if necessary, i.e. when size is shrinkFactor percent of current capacity
-// func (list *ArrayList) shrink() {
-// 	if shrinkFactor == 0.0 {
-// 		return
-// 	}
-// 	// Shrink when size is at shrinkFactor * capacity
-// 	currentCapacity := cap(list.data)
-// 	if list.size <= int(float32(currentCapacity)*shrinkFactor) {
-// 		list.resize(list.size)
-// 	}
-// }
