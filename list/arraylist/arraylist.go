@@ -70,10 +70,11 @@ func (l *ArrayList) growth() {
 		log.Panic("list size is over listMaxLimit", listMaxLimit)
 	}
 
-	nSize := l.size << 1
+	lcap := uint(len(l.data))
+	nSize := lcap << 1
 	temp := make([]interface{}, nSize, nSize)
 
-	ghidx := l.size / 2
+	ghidx := lcap / 2
 	gtidx := ghidx + l.size + 1
 	copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
 	l.data = temp
@@ -98,7 +99,7 @@ func (l *ArrayList) PushFront(values ...interface{}) {
 
 func (l *ArrayList) PushBack(values ...interface{}) {
 	psize := uint(len(values))
-	for l.tidx+psize > uint(len(l.data)) {
+	for l.tidx+psize > uint(len(l.data)) { // [0 1 2 3 4 5 6]
 		l.growth()
 	}
 

@@ -1,6 +1,10 @@
 package arraylist
 
 import (
+	"bytes"
+	"encoding/gob"
+	"io/ioutil"
+	"log"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -8,6 +12,7 @@ import (
 
 func TestPush(t *testing.T) {
 	l := New()
+
 	for i := 0; i < 2; i++ {
 		l.PushFront(1)
 	}
@@ -24,6 +29,7 @@ func TestPush(t *testing.T) {
 	if result != "[1 1 2 2]" {
 		t.Error(result)
 	}
+
 }
 
 func TestGrowth(t *testing.T) {
@@ -140,4 +146,26 @@ func TestRemove(t *testing.T) {
 		t.Error(v, "size = ", l.Size())
 	}
 
+}
+
+func loadTestData() []int {
+	data, err := ioutil.ReadFile("../../l.log")
+	if err != nil {
+		log.Println(err)
+	}
+	var l []int
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	decoder.Decode(&l)
+	return l
+}
+
+func BenchmarkPush(b *testing.B) {
+	l := loadTestData()
+	b.N = len(l)
+
+	arr := New()
+
+	for i := 0; i < b.N; i++ {
+		arr.PushBack(l[i])
+	}
 }
