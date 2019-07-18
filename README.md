@@ -17,5 +17,6 @@ value, _ = pq.Get(0)        // value = nil , Get equal to Seach Key
 value, _ = pq.Index(0)      // value = 5, compare.Int the order from big to small
 values := pq.GetRange(2, 5) // values = [2 4 5]
 values = pq.GetRange(5, 2)  // values = [5 4 2]
+values = pq.GetRange(100, 2) // values = [5 4 2]
 values3 := pq.GetAround(5) //  values3 = [<nil>, 5, 4]
 ```
