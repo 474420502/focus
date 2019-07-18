@@ -12,7 +12,6 @@ pq.Push(5, 5)
 pq.Push(6, 6)
 pq.Push(2, 2)        // pq.Values() = [6 5 4 2 1]
 value, _ := pq.Pop() // value = 6
-t.Error(value)
 value, _ = pq.Get(1)        // value = 1 pq.Values() = [5 4 2 1]
 value, _ = pq.Get(0)        // value = nil , Get equal to Seach Key
 value, _ = pq.Index(0)      // value = 5, compare.Int the order from big to small
