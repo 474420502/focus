@@ -30,7 +30,11 @@ func NewIteratorWithCap(n *Node, cap int) *Iterator {
 	return iter
 }
 
-func (iter *Iterator) SeNode(n *Node) {
+func (iter *Iterator) GetNode() *Node {
+	return iter.cur
+}
+
+func (iter *Iterator) SetNode(n *Node) {
 	iter.up = n
 	iter.dir = 0
 	iter.tstack.Clear()
@@ -61,7 +65,7 @@ func (iter *Iterator) Right() bool {
 func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
 
 	// iter := NewIterator(cur)
-	iter.SeNode(cur)
+	iter.SetNode(cur)
 	iter.curPushNextStack(iter.up)
 	iter.up = iter.getNextUp(iter.up)
 
@@ -120,7 +124,7 @@ func (iter *Iterator) Next() (result bool) {
 func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
 
 	// iter := NewIterator(cur)
-	iter.SeNode(cur)
+	iter.SetNode(cur)
 	iter.curPushPrevStack(iter.up)
 	iter.up = iter.getPrevUp(iter.up)
 

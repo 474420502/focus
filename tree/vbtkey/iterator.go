@@ -30,6 +30,10 @@ func NewIteratorWithCap(n *Node, cap int) *Iterator {
 	return iter
 }
 
+func (iter *Iterator) GetNode() *Node {
+	return iter.cur
+}
+
 func (iter *Iterator) SetNode(n *Node) {
 	iter.up = n
 	iter.dir = 0

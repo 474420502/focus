@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/474420502/focus/avldup"
+	"github.com/474420502/focus/tree/avldup"
 	"github.com/474420502/focus/compare"
 )
 
