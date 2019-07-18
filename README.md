@@ -41,11 +41,11 @@ func main() {
 
     iter := pq.Iterator() // Next 小到大
     // log.Println(iter.Value()) 直接使用会报错,
-    iter.Next()
-    log.Println(iter.Value()) // 起始最大值 5
+    iter.Next() // Next 从小到大
+    log.Println(iter.Value()) // 起始最大值. true 5
 
-    log.Println(iter.Next(), iter.Value()) // 5
-    // 大到小
-    log.Println(iter.Prev(), iter.Value()) // 4
+    log.Println(iter.Next(), iter.Value()) // false 5
+    // Prev 大到小
+    log.Println(iter.Prev(), iter.Value()) // true 4
 }
 ```
