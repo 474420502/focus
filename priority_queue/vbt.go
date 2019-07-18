@@ -114,7 +114,7 @@ func (tree *vbTree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) {
 		}
 
 		n := tree.indexNode(idx1)
-		tree.iter.SeNode(n)
+		tree.iter.SetNode(n)
 		iter := tree.iter
 		result = make([]interface{}, 0, idx1-idx2)
 		for i := idx2; i <= idx1; i++ {
@@ -136,7 +136,7 @@ func (tree *vbTree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) {
 		}
 
 		if n := tree.indexNode(idx1); n != nil {
-			tree.iter.SeNode(n)
+			tree.iter.SetNode(n)
 			iter := tree.iter
 			result = make([]interface{}, 0, idx2-idx1)
 			for i := idx1; i <= idx2; i++ {
@@ -276,7 +276,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 		result = make([]interface{}, 0, 8)
 
 		// iter := NewIterator(min)
-		tree.iter.SeNode(min)
+		tree.iter.SetNode(min)
 		iter := tree.iter
 		for iter.Next() {
 			result = append(result, iter.Value())
@@ -303,7 +303,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 		result = make([]interface{}, 0, 8)
 
 		// iter := NewIterator(max)
-		tree.iter.SeNode(max)
+		tree.iter.SetNode(max)
 		iter := tree.iter
 		for iter.Prev() {
 			result = append(result, iter.Value())
@@ -356,7 +356,7 @@ func (tree *vbTree) getArounNode(key interface{}) (result [3]*Node) {
 			lastc = c
 		case 0:
 
-			tree.iter.SeNode(n)
+			tree.iter.SetNode(n)
 			iter := tree.iter
 			iter.Prev()
 			for iter.Prev() {
@@ -416,7 +416,7 @@ func (tree *vbTree) GetNode(value interface{}) (*Node, bool) {
 			n = n.children[1]
 		case 0:
 
-			tree.iter.SeNode(n)
+			tree.iter.SetNode(n)
 			iter := tree.iter
 			iter.Prev()
 			for iter.Prev() {
