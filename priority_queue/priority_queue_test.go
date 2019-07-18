@@ -165,7 +165,7 @@ func TestQueueRemove(t *testing.T) {
 		content += spew.Sprint(pq.Values())
 	}
 
-	if content != "[1 4 10 53 78 90][1 4 53 78 90][1 4 78 90][1 4 90][1 4][4][]" {
+	if content != "[90 78 53 10 4 1][90 78 53 4 1][90 78 4 1][90 4 1][4 1][4][]" {
 		t.Error(content)
 	}
 }
@@ -183,7 +183,7 @@ func TestQueueRemoveIndex(t *testing.T) {
 		content += spew.Sprint(pq.Values())
 	}
 
-	if content != "[1 4 10 32 53 78][1 4 10 32 53][1 4 10 32][1 4 10][1 4][1][]" {
+	if content != "[78 53 32 10 4 1][53 32 10 4 1][32 10 4 1][10 4 1][4 1][1][]" {
 		t.Error(content)
 	}
 

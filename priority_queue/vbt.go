@@ -249,7 +249,7 @@ func (tree *vbTree) Values() []interface{} {
 	tree.Traversal(func(v interface{}) bool {
 		result = append(result, v)
 		return true
-	}, LDR)
+	}, RDL)
 	return result
 }
 
