@@ -93,56 +93,56 @@ func TestGetAround(t *testing.T) {
 	var Result string
 
 	Result = spew.Sprint(tree.GetAround(17))
-	if Result != "[16 17 20]" {
+	if Result != "[20 17 16]" {
 		t.Error(tree.Values())
 		t.Error("17 is root, tree.GetAround(17)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(3))
-	if Result != "[<nil> 3 7]" {
+	if Result != "[7 3 <nil>]" {
 		t.Error(tree.Values())
 		t.Error("tree.GetAround(3)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(40))
-	if Result != "[30 40 40]" {
+	if Result != "[40 40 30]" {
 		t.Error(tree.Values())
 		t.Error("tree.GetAround(40)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(50))
-	if Result != "[40 50 <nil>]" {
+	if Result != "[<nil> 50 40]" {
 		t.Error(tree.Values())
 		t.Error("tree.GetAround(50)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(18))
-	if Result != "[17 <nil> 20]" {
+	if Result != "[20 <nil> 17]" {
 		t.Error(tree.Values())
 		t.Error("18 is not in list, tree.GetAround(18)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(5))
-	if Result != "[3 <nil> 7]" {
+	if Result != "[7 <nil> 3]" {
 		t.Error(tree.Values())
 		t.Error("5 is not in list, tree.GetAround(5)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(2))
-	if Result != "[<nil> <nil> 3]" {
+	if Result != "[3 <nil> <nil>]" {
 		t.Error(tree.Values())
 		t.Error("2 is not in list, tree.GetAround(2)) is error", Result)
 		t.Error(tree.debugString())
 	}
 
 	Result = spew.Sprint(tree.GetAround(100))
-	if Result != "[50 <nil> <nil>]" {
+	if Result != "[<nil> <nil> 50]" {
 		t.Error(tree.Values())
 		t.Error("50 is not in list, tree.GetAround(50)) is error", Result)
 		t.Error(tree.debugString())

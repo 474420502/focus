@@ -273,7 +273,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 			return []interface{}{}
 		}
 
-		result = make([]interface{}, 0, 16)
+		result = make([]interface{}, 0, 8)
 
 		// iter := NewIterator(min)
 		tree.iter.SeNode(min)
@@ -300,7 +300,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 			return []interface{}{}
 		}
 
-		result = make([]interface{}, 0, 16)
+		result = make([]interface{}, 0, 8)
 
 		// iter := NewIterator(max)
 		tree.iter.SeNode(max)
@@ -329,11 +329,12 @@ func (tree *vbTree) Get(key interface{}) (interface{}, bool) {
 	return n, false
 }
 
+// GetAround 改成Big To Small
 func (tree *vbTree) GetAround(key interface{}) (result [3]interface{}) {
 	an := tree.getArounNode(key)
 	for i, n := range an {
 		if n != nil {
-			result[i] = n.value
+			result[2-i] = n.value
 		}
 	}
 	return

@@ -122,32 +122,32 @@ func TestQueueGetAround(t *testing.T) {
 
 	var result string
 	result = spew.Sprint(pq.GetAround(53))
-	if result != "[32 53 78]" {
+	if result != "[78 53 32]" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(pq.GetAround(52))
-	if result != "[32 <nil> 53]" {
+	if result != "[53 <nil> 32]" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(pq.GetAround(1))
-	if result != "[<nil> 1 4]" {
+	if result != "[4 1 <nil>]" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(pq.GetAround(90))
-	if result != "[78 90 <nil>]" {
+	if result != "[<nil> 90 78]" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(pq.GetAround(0))
-	if result != "[<nil> <nil> 1]" {
+	if result != "[1 <nil> <nil>]" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(pq.GetAround(100))
-	if result != "[90 <nil> <nil>]" {
+	if result != "[<nil> <nil> 90]" {
 		t.Error(result)
 	}
 }
