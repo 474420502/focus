@@ -103,7 +103,9 @@ func TestInsert2(t *testing.T) {
 		t.Error(l.String())
 	}
 
-	l.Insert(l.Size(), 5)
+	if !l.Insert(l.Size(), 5) {
+		t.Error("should be true")
+	}
 
 	// step1: [0 0] -> step2: [4 0 3 0 2 0 1 0 0 0] front size is 10, but you can insert 11. equal to PushBack [4 0 3 0 2 0 1 0 0 0 5]
 	if l.String() != "[4 0 3 0 2 0 1 0 0 0 5]" {

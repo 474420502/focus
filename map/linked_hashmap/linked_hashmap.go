@@ -1,8 +1,6 @@
 package linkedhashmap
 
 import (
-	"fmt"
-
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -19,7 +17,15 @@ func New() *LinkedHashmap {
 	return lhmap
 }
 
-// PushBack if key exists, push value replace the value is exists. size is unchanging
+// Put equal to PushBack
+func (lhmap *LinkedHashmap) Put(key interface{}, value interface{}) {
+	if _, ok := lhmap.hmap[key]; !ok {
+		lhmap.list.PushBack(key)
+	}
+	lhmap.hmap[key] = value
+}
+
+// PushBack equal to Put, if key exists, push value replace the value is exists. size is unchanging
 func (lhmap *LinkedHashmap) PushBack(key interface{}, value interface{}) {
 	if _, ok := lhmap.hmap[key]; !ok {
 		lhmap.list.PushBack(key)
@@ -35,10 +41,11 @@ func (lhmap *LinkedHashmap) PushFront(key interface{}, value interface{}) {
 	lhmap.hmap[key] = value
 }
 
-// Insert 如果成功在该位置返回True, 否则返回false
+// Insert 如果成功在该位置返回True, 否则返回false 类似 linkedlist Size 可以 等于 idx
 func (lhmap *LinkedHashmap) Insert(idx uint, key interface{}, value interface{}) bool {
 	if _, ok := lhmap.hmap[key]; !ok {
-
+		lhmap.list.Insert(idx, key)
+		lhmap.hmap[key] = value
 		return true
 	}
 	return false
@@ -73,20 +80,21 @@ func (lhmap *LinkedHashmap) Remove(key interface{}) (interface{}, bool) {
 
 // RemoveIndex
 func (lhmap *LinkedHashmap) RemoveIndex(idx uint) (interface{}, bool) {
-	if lhmap.list.Size() <= idx {
-		panic(fmt.Sprintf("out of list range, size is %d, idx is %d", lhmap.list.Size(), idx))
+	if lhmap.list.Size() >= idx {
+		// log.Printf("warn: out of list range, size is %d, idx is %d\n", lhmap.list.Size(), idx)
+		if key, ok := lhmap.list.Remove(idx); ok {
+			result := lhmap.hmap[key]
+			delete(lhmap.hmap, key)
+			return result, true
+		}
 	}
-
-	if _, ok := lhmap.hmap[key]; ok {
-		delete(lhmap.hmap, key)
-		lhmap.list.RemoveIf(func(idx uint, lkey interface{}) linkedlist.RemoveState {
-			if lkey == key {
-				return linkedlist.RemoveAndBreak
-			}
-			return linkedlist.UnremoveAndContinue
-		})
-	}
+	return nil, false
 }
+
+// RemoveIf 不是必须不实现这个
+// func (lhmap *LinkedHashmap) RemoveIf(every func(idx uint, key interface{}) RemoveState) (interface{}, bool) {
+
+// }
 
 // Empty returns true if map does not contain any elements
 func (lhmap *LinkedHashmap) Empty() bool {

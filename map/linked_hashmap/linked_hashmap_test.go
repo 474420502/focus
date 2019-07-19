@@ -29,6 +29,11 @@ func TestPush(t *testing.T) {
 	if lhm.String() != "[4 1 2 3]" {
 		t.Error(lhm.String())
 	}
+
+	lhm.Put(5, 5)
+	if lhm.String() != "[4 1 2 3 5]" {
+		t.Error(lhm.String())
+	}
 }
 
 func TestBase(t *testing.T) {
@@ -76,6 +81,33 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestInsert(t *testing.T) {
+	lhm := New()
+	for i := 0; i < 5; i++ {
+		lhm.Insert(0, i, i)
+	}
+
+	if lhm.String() != "[4 3 2 1 0]" {
+		t.Error(lhm.String())
+	}
+
+	if !lhm.Insert(2, 5, 5) {
+		t.Error("Insert 2 5 5 error check it")
+	}
+
+	if lhm.String() != "[4 3 5 2 1 0]" {
+		t.Error(lhm.String())
+	}
+
+	if !lhm.Insert(lhm.Size(), 6, 6) {
+		t.Error("Insert Size()   error check it")
+	}
+
+	if lhm.String() != "[4 3 5 2 1 0 6]" {
+		t.Error(lhm.String())
+	}
+}
+
 func TestRemove(t *testing.T) {
 	lhm := New()
 	for i := 0; i < 10; i++ {
@@ -94,5 +126,49 @@ func TestRemove(t *testing.T) {
 		}
 
 		resultStr = resultStr[0:1] + resultStr[3:]
+	}
+
+	if lhm.Size() != 0 {
+		t.Error(lhm.Size())
+	}
+
+	for i := 0; i < 10; i++ {
+		lhm.PushFront(i, i)
+	}
+
+	for i := 0; i < 10; i++ {
+		if i >= 5 {
+			lhm.Remove(i)
+		}
+	}
+
+	if lhm.String() != "[4 3 2 1 0]" {
+		t.Error(lhm.String())
+	}
+
+	// RemoveIndex [4 3 2 1 0]
+
+	if value, _ := lhm.RemoveIndex(2); value != 2 {
+		t.Error("[4 3 2 1 0] remove index 2, value is 2, but now is", value)
+	}
+
+	// [4 3 1 0]
+	if value, _ := lhm.RemoveIndex(2); value != 1 {
+		t.Error("[4 3 1 0] remove index 2, value is 1, but now is", value)
+	}
+
+	// [4 3 0]
+	if value, _ := lhm.RemoveIndex(2); value != 0 {
+		t.Error("[4 3 0] remove index 2, value is 0, but now is", value)
+	}
+
+	// [4 3]
+	if value, _ := lhm.RemoveIndex(2); value != nil {
+		t.Error("[4 3] remove index 2, value is nil, but now is", value)
+	}
+
+	// [4 3]
+	if value, _ := lhm.RemoveIndex(0); value != 4 {
+		t.Error("[4 3] remove index 0, value is 4, but now is", value)
 	}
 }

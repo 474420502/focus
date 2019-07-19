@@ -2,7 +2,6 @@ package linkedlist
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -197,9 +196,9 @@ func (l *LinkedList) Index(idx uint) (interface{}, bool) {
 	return nil, false
 }
 
-func (l *LinkedList) Insert(idx uint, values ...interface{}) {
+func (l *LinkedList) Insert(idx uint, values ...interface{}) bool {
 	if idx > l.size { // 插入的方式 可能导致size的范围判断不一样
-		return
+		return false
 	}
 
 	if idx > l.size/2 {
@@ -270,6 +269,7 @@ func (l *LinkedList) Insert(idx uint, values ...interface{}) {
 	}
 
 	l.size += uint(len(values))
+	return true
 }
 
 // InsertState InsertIf的every函数的枚举  从左到右 1 为前 2 为后 insert here(2) ->cur-> insert here(1)
@@ -350,7 +350,7 @@ func remove(cur *Node) {
 
 func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	if l.size <= idx {
-		log.Printf("out of list range, size is %d, idx is %d\n", l.size, idx)
+		// log.Printf("out of list range, size is %d, idx is %d\n", l.size, idx)
 		return nil, false
 	}
 
