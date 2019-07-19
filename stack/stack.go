@@ -33,6 +33,7 @@ func (as *Stack) Size() int {
 	return as.size
 }
 
+// String 从左到右 左边第一个表示Top 如链表 a(top)->b->c
 func (as *Stack) String() string {
 	content := ""
 	cur := as.top
@@ -50,6 +51,11 @@ func (as *Stack) String() string {
 }
 
 func (as *Stack) Values() []interface{} {
+
+	if as.size == 0 {
+		return nil
+	}
+
 	result := make([]interface{}, as.size, as.size)
 
 	cur := as.top
