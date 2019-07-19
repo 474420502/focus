@@ -1,6 +1,10 @@
 package linkedlist
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/davecgh/go-spew/spew"
+)
 
 type Node struct {
 	prev  *Node
@@ -18,12 +22,6 @@ type LinkedList struct {
 	size uint
 }
 
-// var nodePool *sync.Pool = &sync.Pool{
-// 	New: func() interface{} {
-// 		return &Node{}
-// 	},
-// }
-
 func New() *LinkedList {
 	l := &LinkedList{}
 	l.head = &Node{}
@@ -35,6 +33,14 @@ func New() *LinkedList {
 	l.head.next = l.tail
 	l.tail.prev = l.head
 	return l
+}
+
+func (l *LinkedList) Iterator() *Iterator {
+	return &Iterator{ll: l, cur: l.head}
+}
+
+func (l *LinkedList) CircularIterator() *CircularIterator {
+	return &CircularIterator{pl: l, cur: l.head}
 }
 
 func (l *LinkedList) Clear() {
@@ -190,9 +196,9 @@ func (l *LinkedList) Index(idx uint) (interface{}, bool) {
 	return nil, false
 }
 
-func (l *LinkedList) Insert(idx uint, values ...interface{}) {
-	if idx > l.size {
-		return
+func (l *LinkedList) Insert(idx uint, values ...interface{}) bool {
+	if idx > l.size { // 插入的方式 可能导致size的范围判断不一样
+		return false
 	}
 
 	if idx > l.size/2 {
@@ -263,15 +269,40 @@ func (l *LinkedList) Insert(idx uint, values ...interface{}) {
 	}
 
 	l.size += uint(len(values))
+	return true
 }
 
-func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) int, values ...interface{}) {
+// InsertState InsertIf的every函数的枚举  从左到右 1 为前 2 为后 insert here(2) ->cur-> insert here(1)
+// UninsertAndContinue 不插入并且继续
+// UninsertAndBreak 不插入并且停止
+// InsertBack cur后插入并且停止
+// InsertFront cur前插入并且停止
+type InsertState int
+
+const (
+	// UninsertAndContinue 不插入并且继续
+	UninsertAndContinue InsertState = 0
+	// UninsertAndBreak 不插入并且停止
+	UninsertAndBreak InsertState = -1
+	// InsertBack cur后插入并且停止
+	InsertBack InsertState = 2
+	// InsertFront cur前插入并且停止
+	InsertFront InsertState = 1
+)
+
+// InsertIf  every函数的枚举  从左到右遍历 1 为前 2 为后 insert here(2) ->cur-> insert here(1)
+func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) InsertState, values ...interface{}) {
 
 	idx := uint(0)
 	// 头部
 	for cur := l.head.next; cur != nil; cur = cur.next {
-		isInsert := every(idx, cur.value)
-		if isInsert != 0 { // 1 为前 -1 为后 insert here(-1) ->cur-> insert here(1)
+		insertState := every(idx, cur.value)
+
+		if insertState == UninsertAndContinue {
+			continue
+		}
+
+		if insertState > 0 { // 1 为前 2 为后 insert here(2) ->cur-> insert here(1)
 			var start *Node
 			var end *Node
 
@@ -285,13 +316,13 @@ func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) int, value
 				end = node
 			}
 
-			if isInsert < 0 {
+			if insertState == InsertBack {
 				cprev := cur.prev
 				cprev.next = start
 				start.prev = cprev
 				end.next = cur
 				cur.prev = end
-			} else {
+			} else { // InsertFront
 				cnext := cur.next
 				cnext.prev = end
 				start.prev = cur
@@ -300,8 +331,11 @@ func (l *LinkedList) InsertIf(every func(idx uint, value interface{}) int, value
 			}
 
 			l.size += uint(len(values))
-			break
+			return
 		}
+
+		// 必然 等于 UninsertAndBreak
+		return
 	}
 }
 
@@ -315,8 +349,9 @@ func remove(cur *Node) {
 }
 
 func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
-	if idx >= l.size {
-		panic(fmt.Sprintf("out of list range, size is %d, idx is %d", l.size, idx))
+	if l.size <= idx {
+		// log.Printf("out of list range, size is %d, idx is %d\n", l.size, idx)
+		return nil, false
 	}
 
 	l.size--
@@ -346,21 +381,50 @@ func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
 	panic(fmt.Sprintf("unknown error"))
 }
 
-func (l *LinkedList) RemoveIf(every func(idx uint, value interface{}) int) (result []interface{}, isRemoved bool) {
+// RemoveState RemoveIf的every函数的枚举
+// RemoveAndContinue 删除并且继续
+// RemoveAndBreak 删除并且停止
+// UnremoveAndBreak 不删除并且停止遍历
+// UnremoveAndContinue 不删除并且继续遍历
+type RemoveState int
+
+const (
+	// RemoveAndContinue 删除并且继续
+	RemoveAndContinue RemoveState = iota
+	// RemoveAndBreak 删除并且停止
+	RemoveAndBreak
+	// UnremoveAndBreak 不删除并且停止遍历
+	UnremoveAndBreak
+	// UnremoveAndContinue 不删除并且继续遍历
+	UnremoveAndContinue
+)
+
+// RemoveIf every的遍历函数操作remove过程 如果没删除result 返回nil, isRemoved = false
+func (l *LinkedList) RemoveIf(every func(idx uint, value interface{}) RemoveState) (result []interface{}, isRemoved bool) {
 	// 头部
 	idx := uint(0)
+TOPFOR:
 	for cur := l.head.next; cur != l.tail; idx++ {
-		j := every(idx, cur.value)
-		switch {
-		case j > 0:
+		removeState := every(idx, cur.value)
+		switch removeState {
+		case RemoveAndContinue:
 			result = append(result, cur.value)
 			isRemoved = true
 			temp := cur.next
 			remove(cur)
 			cur = temp
 			l.size--
-			continue
-		case j < 0:
+			continue TOPFOR
+		case RemoveAndBreak:
+			result = append(result, cur.value)
+			isRemoved = true
+			temp := cur.next
+			remove(cur)
+			cur = temp
+			l.size--
+			return
+		case UnremoveAndContinue:
+		case UnremoveAndBreak:
 			return
 		}
 
@@ -375,6 +439,10 @@ func (l *LinkedList) Values() (result []interface{}) {
 		return true
 	})
 	return
+}
+
+func (l *LinkedList) String() string {
+	return spew.Sprint(l.Values())
 }
 
 func (l *LinkedList) Traversal(every func(interface{}) bool) {
