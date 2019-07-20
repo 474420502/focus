@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/474420502/focus/tree/avldup"
 	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree/avldup"
 )
 
 // TreeSet
@@ -70,9 +70,15 @@ func (set *TreeSet) Size() int {
 	return set.tree.Size()
 }
 
+// Iterator avl Iterator
+func (set *TreeSet) Iterator() *avldup.Iterator {
+	return set.tree.Iterator()
+}
+
 // String
 func (set *TreeSet) String() string {
-	content := "HashSet\n"
+	// content := "HashSet\n"
+	var content = ""
 	items := []string{}
 
 	set.tree.Traversal(func(k interface{}) bool {
@@ -80,6 +86,6 @@ func (set *TreeSet) String() string {
 		return true
 	})
 
-	content += strings.Join(items, ", ")
+	content += "(" + strings.Join(items, ", ") + ")"
 	return content
 }
