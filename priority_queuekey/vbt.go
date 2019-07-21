@@ -24,6 +24,7 @@ func (n *Node) String() string {
 	return spew.Sprint(n.value) + "(" + p + "|" + spew.Sprint(n.size) + ")"
 }
 
+// 已经修改过GetNext GetPrev逻辑与avl相反
 type vbTree struct {
 	root    *Node
 	Compare compare.Compare
@@ -118,7 +119,7 @@ func (tree *vbTree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) {
 		iter := tree.iter
 		result = make([]interface{}, 0, idx1-idx2)
 		for i := idx2; i <= idx1; i++ {
-			if iter.Next() {
+			if iter.Prev() {
 				result = append(result, iter.Value())
 			} else {
 				ok = false
@@ -140,7 +141,7 @@ func (tree *vbTree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) {
 			iter := tree.iter
 			result = make([]interface{}, 0, idx2-idx1)
 			for i := idx1; i <= idx2; i++ {
-				if iter.Prev() {
+				if iter.Next() {
 					result = append(result, iter.Value())
 				} else {
 					ok = false
@@ -174,7 +175,7 @@ func (tree *vbTree) removeNode(n *Node) {
 	}
 
 	if tree.top == n {
-		tree.top = tree.iter.GetPrev(n, 1)
+		tree.top = tree.iter.GetNext(n, 1) // 最大值 Next一位后为下个最大值
 	}
 
 	ls, rs := getChildrenSize(n)
@@ -278,7 +279,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 		// iter := NewIterator(min)
 		tree.iter.SetNode(min)
 		iter := tree.iter
-		for iter.Next() {
+		for iter.Prev() {
 			result = append(result, iter.Value())
 			if iter.cur == max {
 				break
@@ -305,7 +306,7 @@ func (tree *vbTree) GetRange(k1, k2 interface{}) (result []interface{}) {
 		// iter := NewIterator(max)
 		tree.iter.SetNode(max)
 		iter := tree.iter
-		for iter.Prev() {
+		for iter.Next() {
 			result = append(result, iter.Value())
 			if iter.cur == min {
 				break
@@ -357,8 +358,8 @@ func (tree *vbTree) getArounNode(key interface{}) (result [3]*Node) {
 
 			tree.iter.SetNode(n)
 			iter := tree.iter
-			iter.Prev()
-			for iter.Prev() {
+			iter.Next()
+			for iter.Next() {
 				if tree.Compare(iter.cur.key, n.key) == 0 {
 					n = iter.cur
 				} else {
@@ -377,21 +378,21 @@ func (tree *vbTree) getArounNode(key interface{}) (result [3]*Node) {
 
 		if result[1] != nil {
 
-			result[0] = tree.iter.GetPrev(result[1], 1)
-			result[2] = tree.iter.GetNext(result[1], 1)
+			result[0] = tree.iter.GetNext(result[1], 1)
+			result[2] = tree.iter.GetPrev(result[1], 1)
 		} else {
 			result[0] = last
-			result[2] = tree.iter.GetNext(last, 1)
+			result[2] = tree.iter.GetPrev(last, 1)
 		}
 
 	case -1:
 
 		if result[1] != nil {
-			result[0] = tree.iter.GetPrev(result[1], 1)
-			result[2] = tree.iter.GetNext(result[1], 1)
+			result[0] = tree.iter.GetNext(result[1], 1)
+			result[2] = tree.iter.GetPrev(result[1], 1)
 		} else {
 			result[2] = last
-			result[0] = tree.iter.GetPrev(last, 1)
+			result[0] = tree.iter.GetNext(last, 1)
 		}
 
 	case 0:
@@ -399,8 +400,8 @@ func (tree *vbTree) getArounNode(key interface{}) (result [3]*Node) {
 		if result[1] == nil {
 			return
 		}
-		result[0] = tree.iter.GetPrev(result[1], 1)
-		result[2] = tree.iter.GetNext(result[1], 1)
+		result[0] = tree.iter.GetNext(result[1], 1)
+		result[2] = tree.iter.GetPrev(result[1], 1)
 	}
 	return
 }
@@ -417,8 +418,8 @@ func (tree *vbTree) GetNode(key interface{}) (*Node, bool) {
 
 			tree.iter.SetNode(n)
 			iter := tree.iter
-			iter.Prev()
-			for iter.Prev() {
+			iter.Next()
+			for iter.Next() {
 				if tree.Compare(iter.cur.key, n.key) == 0 {
 					n = iter.cur
 				} else {

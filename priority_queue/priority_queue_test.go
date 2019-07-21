@@ -242,6 +242,90 @@ func TestQueueIndex(t *testing.T) {
 	}
 }
 
+func TestPriorityQueue_Iterator(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i)
+	}
+
+	pq.Push(-1)
+	pq.Push(10)
+
+	result := pq.String()
+	if result != "[10 4 3 2 1 0 -1]" {
+		t.Error("should be [10 4 3 2 1 0 -1]")
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	values := pq.Values()
+	for i := 0; ; i++ {
+		if values[i] != iter.Value() {
+			t.Error(values[i], " != ", iter.Value())
+		}
+
+		if !iter.Prev() {
+			break
+		}
+	}
+}
+
+func TestPriorityQueue_Iterator2(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i)
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	n, _ := pq.IndexNode(0)
+	if n.value != 4 {
+		t.Error(n)
+	}
+
+	if v, _ := pq.Top(); v != 4 {
+		t.Error("Top != 4, and is ", v)
+	}
+
+	if v := iter.GetNext(n, 2).value; v != 2 {
+		t.Error("iter.GetNext(n, 2) != 2, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 100; i >= 0; i-- {
+		pq.Push(i)
+	}
+	if v, _ := pq.Top(); v != 100 {
+		t.Error("Top != 100, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 48, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 0; i < 100; i++ {
+		pq.Push(i)
+	}
+	if v, _ := pq.Top(); v != 99 {
+		t.Error("Top != 99, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 49, and is ", v)
+	}
+}
+
 // func BenchmarkQueueGet(b *testing.B) {
 
 // 	l := loadTestData()

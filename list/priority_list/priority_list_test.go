@@ -102,7 +102,7 @@ func TestCircularIterator(t *testing.T) {
 		}
 	}
 
-	iter.MoveToTail()
+	iter.ToTail()
 	for i := 0; i != 10; i++ {
 		iter.Prev()
 		if iter.Value() != i {
