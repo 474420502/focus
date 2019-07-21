@@ -375,6 +375,61 @@ func TestPriorityQueue_Iterator(t *testing.T) {
 	}
 }
 
+func TestPriorityQueue_Iterator2(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i, i)
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	n, _ := pq.IndexNode(0)
+	if n.value != 4 {
+		t.Error(n)
+	}
+
+	if v, _ := pq.Top(); v != 4 {
+		t.Error("Top != 4, and is ", v)
+	}
+
+	if v := iter.GetNext(n, 2).value; v != 2 {
+		t.Error("iter.GetNext(n, 2) != 2, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 100; i >= 0; i-- {
+		pq.Push(i, i)
+	}
+	if v, _ := pq.Top(); v != 100 {
+		t.Error("Top != 100, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 48, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 0; i < 100; i++ {
+		pq.Push(i, i)
+	}
+	if v, _ := pq.Top(); v != 99 {
+		t.Error("Top != 99, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 49, and is ", v)
+	}
+}
+
 func TestMain(t *testing.T) {
 	pq := New(compare.Int)
 	pq.Push(1, 1)

@@ -175,7 +175,7 @@ func (tree *vbTree) removeNode(n *Node) {
 	}
 
 	if tree.top == n {
-		tree.top = tree.iter.GetNext(n, 1)
+		tree.top = tree.iter.GetNext(n, 1) // 最大值 Next一位后为下个最大值
 	}
 
 	ls, rs := getChildrenSize(n)
