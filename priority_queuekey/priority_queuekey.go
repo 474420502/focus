@@ -1,6 +1,9 @@
 package pqueuekey
 
-import "github.com/474420502/focus/compare"
+import (
+	"github.com/474420502/focus/compare"
+	"github.com/davecgh/go-spew/spew"
+)
 
 type PriorityQueue struct {
 	queue *vbTree
@@ -77,4 +80,8 @@ func (pq *PriorityQueue) Remove(key interface{}) (interface{}, bool) {
 
 func (pq *PriorityQueue) Values() []interface{} {
 	return pq.queue.Values()
+}
+
+func (pq *PriorityQueue) String() string {
+	return spew.Sprint(pq.queue.Values())
 }

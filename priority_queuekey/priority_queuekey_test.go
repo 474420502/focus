@@ -1,11 +1,11 @@
 package pqueuekey
 
 import (
+	"log"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/474420502/focus/compare"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestQueuePush(t *testing.T) {
@@ -345,3 +345,124 @@ func TestQueueIndex(t *testing.T) {
 // 		pq.Pop()
 // 	}
 // }
+
+func TestPriorityQueue_Iterator(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i, i)
+	}
+
+	pq.Push(-1, -1)
+	pq.Push(10, 10)
+
+	result := pq.String()
+	if result != "[10 4 3 2 1 0 -1]" {
+		t.Error("should be [10 4 3 2 1 0 -1]")
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	values := pq.Values()
+	for i := 0; ; i++ {
+		if values[i] != iter.Value() {
+			t.Error(values[i], " != ", iter.Value())
+		}
+
+		if !iter.Next() {
+			break
+		}
+	}
+}
+
+func TestPriorityQueue_Iterator2(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i, i)
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	n, _ := pq.IndexNode(0)
+	if n.value != 4 {
+		t.Error(n)
+	}
+
+	if v, _ := pq.Top(); v != 4 {
+		t.Error("Top != 4, and is ", v)
+	}
+
+	if v := iter.GetNext(n, 2).value; v != 2 {
+		t.Error("iter.GetNext(n, 2) != 2, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 100; i >= 0; i-- {
+		pq.Push(i, i)
+	}
+	if v, _ := pq.Top(); v != 100 {
+		t.Error("Top != 100, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 48, and is ", v)
+	}
+
+	pq = New(compare.Int)
+	for i := 0; i < 100; i++ {
+		pq.Push(i, i)
+	}
+	if v, _ := pq.Top(); v != 99 {
+		t.Error("Top != 99, and is ", v)
+	}
+
+	for pq.Size() >= 50 {
+		pq.Pop()
+	}
+
+	if v, _ := pq.Top(); v != 48 {
+		t.Error("Top != 49, and is ", v)
+	}
+}
+
+func TestMain(t *testing.T) {
+	pq := New(compare.Int)
+	pq.Push(1, 1)
+	pq.Push(4, 4)
+	pq.Push(5, 5)
+	pq.Push(6, 6)
+	pq.Push(2, 2) // pq.Values() = [6 5 4 2 1]
+	log.Println(pq.Values())
+	value, _ := pq.Pop() // value = 6
+	log.Println(value)
+	value, _ = pq.Get(1) // value = 1 pq.Values() = [5 4 2 1]
+	log.Println(value)
+	value, _ = pq.Get(0) // value = nil , Get equal to Seach Key
+	log.Println(value)
+	value, _ = pq.Index(0) // value = 5, compare.Int the order from big to small
+	log.Println(value)
+	values := pq.GetRange(2, 5) // values = [2 4 5]
+	log.Println(values)
+	values = pq.GetRange(5, 2) // values = [5 4 2]
+	log.Println(values)
+	values = pq.GetRange(100, 2) // values = [5 4 2]
+	log.Println(values)
+	values3 := pq.GetAround(5) // values3 = [<nil>, 5, 4]
+	log.Println(values3)
+
+	iter := pq.Iterator() // Next 大到小 从root节点起始
+	log.Println(pq.String())
+	// log.Println(iter.Value()) 直接使用会报错,
+	iter.ToHead()
+	log.Println(iter.Value())              // 起始最大值. true 5
+	log.Println(iter.Prev(), iter.Value()) // false 5
+
+	// Prev 大到小
+	log.Println(iter.Next(), iter.Value()) // true 4
+
+}

@@ -25,11 +25,11 @@ func (iter *Iterator) Next() bool {
 	return iter.cur != iter.pl.tail
 }
 
-func (iter *Iterator) MoveToHead() {
+func (iter *Iterator) ToHead() {
 	iter.cur = iter.pl.head
 }
 
-func (iter *Iterator) MoveToTail() {
+func (iter *Iterator) ToTail() {
 	iter.cur = iter.pl.tail
 }
 
@@ -78,10 +78,10 @@ func (iter *CircularIterator) Next() bool {
 	return true
 }
 
-func (iter *CircularIterator) MoveToHead() {
+func (iter *CircularIterator) ToHead() {
 	iter.cur = iter.pl.head
 }
 
-func (iter *CircularIterator) MoveToTail() {
+func (iter *CircularIterator) ToTail() {
 	iter.cur = iter.pl.tail
 }

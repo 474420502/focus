@@ -46,12 +46,12 @@ func (tree *Tree) String() string {
 	return str
 }
 
-func (tree *Tree) Iterator() *Iterator {
-	return initIterator(tree)
-}
-
 func (tree *Tree) Size() int {
 	return tree.size
+}
+
+func (tree *Tree) Iterator() *Iterator {
+	return initIterator(tree)
 }
 
 func (tree *Tree) Remove(key interface{}) (interface{}, bool) {

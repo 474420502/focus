@@ -25,11 +25,11 @@ func (iter *Iterator) Next() bool {
 	return iter.cur != iter.ll.tail
 }
 
-func (iter *Iterator) MoveToHead() {
+func (iter *Iterator) ToHead() {
 	iter.cur = iter.ll.head
 }
 
-func (iter *Iterator) MoveToTail() {
+func (iter *Iterator) ToTail() {
 	iter.cur = iter.ll.tail
 }
 
