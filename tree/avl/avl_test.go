@@ -22,6 +22,43 @@ func loadTestData() []int {
 	return l
 }
 
+func TestIteratorHeadTail(t *testing.T) {
+	tree := New(compare.Int)
+	for _, v := range []int{1, 2, 7, 4, 5, 6, 7, 14, 15, 20, 30, 21, 3} {
+		tree.Put(v)
+	}
+	// ` AVLTree
+	// │       ┌── 30
+	// │       │   └── 21
+	// │   ┌── 20
+	// │   │   └── 15
+	// └── 14
+	// 	   │       ┌── 7
+	// 	   │   ┌── 7
+	// 	   │   │   └── 6
+	// 	   └── 5
+	// 		   │   ┌── 4
+	// 		   │   │   └── 3
+	// 		   └── 2
+	// 			   └── 1`
+
+	iter := tree.Iterator()
+	iter.Prev()
+	if iter.Value() != 14 {
+		t.Error("iter.Value() != ", 14, " value =", iter.Value())
+	}
+
+	iter.ToHead()
+	if iter.Value() != 1 {
+		t.Error("iter.Value() != ", 14, " value =", iter.Value())
+	}
+
+	iter.ToTail()
+	if iter.Value() != 30 {
+		t.Error("iter.Value() != ", 30, " value =", iter.Value())
+	}
+}
+
 func TestIterator(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{1, 2, 7, 4, 5, 6, 7, 14, 15, 20, 30, 21, 3} {

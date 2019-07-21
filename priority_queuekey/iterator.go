@@ -30,6 +30,16 @@ func NewIteratorWithCap(n *Node, cap int) *Iterator {
 	return iter
 }
 
+func (iter *Iterator) ToHead() {
+	for iter.Prev() {
+	}
+}
+
+func (iter *Iterator) ToTail() {
+	for iter.Next() {
+	}
+}
+
 func (iter *Iterator) GetNode() *Node {
 	return iter.cur
 }
@@ -44,25 +54,7 @@ func (iter *Iterator) Value() interface{} {
 	return iter.cur.value
 }
 
-func (iter *Iterator) Left() bool {
-	if iter.cur.children[0] != nil {
-		iter.dir = 0
-		iter.cur = iter.cur.children[0]
-		return true
-	}
-	return false
-}
-
-func (iter *Iterator) Right() bool {
-	if iter.cur.children[1] != nil {
-		iter.dir = 0
-		iter.cur = iter.cur.children[1]
-		return true
-	}
-	return false
-}
-
-func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
+func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
 
 	// iter := NewIterator(cur)
 	iter.SetNode(cur)
@@ -93,7 +85,7 @@ func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
 	return cur
 }
 
-func (iter *Iterator) Next() (result bool) {
+func (iter *Iterator) Prev() (result bool) {
 
 	if iter.dir > -1 {
 		if iter.dir == 1 && iter.cur != nil {
@@ -121,7 +113,7 @@ func (iter *Iterator) Next() (result bool) {
 	return false
 }
 
-func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
+func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
 
 	// iter := NewIterator(cur)
 	iter.SetNode(cur)
@@ -152,7 +144,7 @@ func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
 	return cur
 }
 
-func (iter *Iterator) Prev() (result bool) {
+func (iter *Iterator) Next() (result bool) {
 
 	if iter.dir < 1 { // 非 1(next 方向定义 -1 为 prev)
 		if iter.dir == -1 && iter.cur != nil { // 如果上次为prev方向, 则清空辅助计算的栈

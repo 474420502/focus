@@ -242,6 +242,35 @@ func TestQueueIndex(t *testing.T) {
 	}
 }
 
+func TestPriorityQueue_Iterator(t *testing.T) {
+	pq := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		pq.Push(i)
+	}
+
+	pq.Push(-1)
+	pq.Push(10)
+
+	result := pq.String()
+	if result != "[10 4 3 2 1 0 -1]" {
+		t.Error("should be [10 4 3 2 1 0 -1]")
+	}
+
+	iter := pq.Iterator()
+	iter.ToHead()
+
+	values := pq.Values()
+	for i := 0; ; i++ {
+		if values[i] != iter.Value() {
+			t.Error(values[i], " != ", iter.Value())
+		}
+
+		if !iter.Next() {
+			break
+		}
+	}
+}
+
 // func BenchmarkQueueGet(b *testing.B) {
 
 // 	l := loadTestData()
