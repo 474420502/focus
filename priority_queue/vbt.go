@@ -174,7 +174,7 @@ func (tree *vbTree) removeNode(n *Node) {
 	}
 
 	if tree.top == n {
-		tree.top = tree.iter.GetPrev(n, 1)
+		tree.top = tree.iter.GetNext(n, 1)
 	}
 
 	ls, rs := getChildrenSize(n)

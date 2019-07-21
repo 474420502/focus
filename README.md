@@ -39,7 +39,7 @@ func main() {
     values3 := pq.GetAround(5) // values3 = [<nil>, 5, 4]
     log.Println(values3)
 
-    iter := pq.Iterator() // Next 小到大 从root节点起始
+    iter := pq.Iterator() // Next 大到小 从root节点起始
     // log.Println(iter.Value()) 直接使用会报错,
     iter.ToHead()
     log.Println(iter.Value()) // 起始最大值. true 5
