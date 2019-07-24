@@ -7,6 +7,24 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+func TestPush(t *testing.T) {
+	l := New()
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+	var result string
+	result = spew.Sprint(l.Values())
+	if result != "[0 1 2 3 4]" {
+		t.Error(result)
+	}
+
+	l.Push(0)
+	result = spew.Sprint(l.Values())
+	if result != "[0 1 2 3 4 0]" {
+		t.Error(result)
+	}
+}
+
 func TestPushFront(t *testing.T) {
 	l := New()
 	for i := 0; i < 5; i++ {
@@ -602,7 +620,7 @@ func TestCircularIterator(t *testing.T) {
 		}
 	}
 
-	iter.MoveToTail()
+	iter.ToTail()
 	for i := 0; i != 10; i++ {
 		iter.Prev()
 		if iter.Value() != i {

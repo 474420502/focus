@@ -1,4 +1,4 @@
-package structure
+package focus
 
 import (
 	"bytes"

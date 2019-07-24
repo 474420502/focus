@@ -1,6 +1,10 @@
 package arraylist
 
-import "log"
+import (
+	"log"
+
+	"github.com/474420502/focus/list"
+)
 
 type ArrayList struct {
 	data []interface{}
@@ -10,6 +14,10 @@ type ArrayList struct {
 
 	growthSize uint
 	shrinkSize uint
+}
+
+func assertImplementation() {
+	var _ list.IList = (*ArrayList)(nil)
 }
 
 const (
@@ -26,6 +34,14 @@ func New() *ArrayList {
 	l.tidx = initCap / 2
 	l.hidx = l.tidx - 1
 	return l
+}
+
+func (l *ArrayList) Iterator() *Iterator {
+	return &Iterator{al: l, cur: 0, isInit: false}
+}
+
+func (l *ArrayList) CircularIterator() *CircularIterator {
+	return &CircularIterator{al: l, cur: 0, isInit: false}
 }
 
 func (l *ArrayList) Clear() {
@@ -81,6 +97,15 @@ func (l *ArrayList) growth() {
 	l.hidx = ghidx
 	l.tidx = gtidx
 
+}
+
+func (l *ArrayList) Push(value interface{}) {
+	for l.tidx+1 > uint(len(l.data)) {
+		l.growth()
+	}
+	l.data[l.tidx] = value
+	l.tidx++
+	l.size += 1
 }
 
 func (l *ArrayList) PushFront(values ...interface{}) {

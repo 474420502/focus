@@ -57,6 +57,21 @@ func (l *LinkedList) Size() uint {
 	return l.size
 }
 
+func (l *LinkedList) Push(value interface{}) {
+	var node *Node
+	l.size++
+
+	node = &Node{}
+	node.value = value
+
+	tprev := l.tail.prev
+	tprev.next = node
+
+	node.prev = tprev
+	node.next = l.tail
+	l.tail.prev = node
+}
+
 func (l *LinkedList) PushFront(values ...interface{}) {
 
 	var node *Node

@@ -10,6 +10,67 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+func TestIterator(t *testing.T) {
+	l := New()
+
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+
+	iter := l.Iterator()
+
+	var result []int
+	for iter.Next() {
+		result = append(result, iter.Value().(int))
+	}
+
+	if spew.Sprint(result) != "[0 1 2 3 4]" {
+		t.Error(result)
+	}
+
+	iter = l.Iterator()
+	result = nil
+	for iter.Prev() {
+		result = append(result, iter.Value().(int))
+	}
+
+	if spew.Sprint(result) != "[4 3 2 1 0]" {
+		t.Error(result)
+	}
+
+	citer := l.CircularIterator()
+	result = nil
+	for i := 0; i < 11; i++ {
+		if citer.Next() {
+			result = append(result, citer.Value().(int))
+		}
+	}
+
+	if len(result) != 11 {
+		t.Error("len(result) != 11, is ", len(result))
+	}
+
+	if spew.Sprint(result) != "[0 1 2 3 4 0 1 2 3 4 0]" {
+		t.Error(result)
+	}
+
+	citer = l.CircularIterator()
+	result = nil
+	for i := 0; i < 11; i++ {
+		if citer.Prev() {
+			result = append(result, citer.Value().(int))
+		}
+	}
+
+	if len(result) != 11 {
+		t.Error("len(result) != 11, is ", len(result))
+	}
+
+	if spew.Sprint(result) != "[4 3 2 1 0 4 3 2 1 0 4]" {
+		t.Error(result)
+	}
+}
+
 func TestPush(t *testing.T) {
 	l := New()
 
@@ -27,6 +88,12 @@ func TestPush(t *testing.T) {
 	}
 	result = spew.Sprint(l.Values())
 	if result != "[1 1 2 2]" {
+		t.Error(result)
+	}
+
+	l.Push(3)
+	result = spew.Sprint(l.Values())
+	if result != "[1 1 2 2 3]" {
 		t.Error(result)
 	}
 
