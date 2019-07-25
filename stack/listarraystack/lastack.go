@@ -1,6 +1,7 @@
 package lastack
 
 import (
+	"github.com/474420502/focus/stack"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -13,7 +14,11 @@ type Node struct {
 type Stack struct {
 	top   *Node
 	cache *Node
-	size  int
+	size  uint
+}
+
+func assertImplementation() {
+	var _ stack.IStack = (*Stack)(nil)
 }
 
 func (as *Stack) grow() bool {
@@ -25,7 +30,7 @@ func (as *Stack) grow() bool {
 			grownode.cur = -1
 			as.cache = nil
 		} else {
-			var growsize int
+			var growsize uint
 			if as.size <= 256 {
 				growsize = as.size << 1
 			} else {
@@ -78,10 +83,11 @@ func (as *Stack) Empty() bool {
 	return as.size == 0
 }
 
-func (as *Stack) Size() int {
+func (as *Stack) Size() uint {
 	return as.size
 }
 
+// String 左为Top
 func (as *Stack) String() string {
 	content := ""
 	cur := as.top
@@ -119,7 +125,7 @@ func (as *Stack) Values() []interface{} {
 	return result
 }
 
-func (as *Stack) Get(idx int) (interface{}, bool) {
+func (as *Stack) Index(idx int) (interface{}, bool) {
 	if idx < 0 {
 		return nil, false
 	}

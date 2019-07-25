@@ -1,7 +1,7 @@
 package vbt
 
 import (
-	"github.com/474420502/focus/lastack"
+	"github.com/474420502/focus/stack/listarraystack"
 )
 
 type Iterator struct {
