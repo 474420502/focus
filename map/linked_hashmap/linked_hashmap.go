@@ -82,7 +82,7 @@ func (lhmap *LinkedHashmap) Remove(key interface{}) (interface{}, bool) {
 func (lhmap *LinkedHashmap) RemoveIndex(idx uint) (interface{}, bool) {
 	if lhmap.list.Size() >= idx {
 		// log.Printf("warn: out of list range, size is %d, idx is %d\n", lhmap.list.Size(), idx)
-		if key, ok := lhmap.list.Remove(idx); ok {
+		if key, ok := lhmap.list.Remove((int)(idx)); ok {
 			result := lhmap.hmap[key]
 			delete(lhmap.hmap, key)
 			return result, true

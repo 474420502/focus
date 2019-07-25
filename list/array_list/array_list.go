@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/474420502/focus/list"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type ArrayList struct {
@@ -34,6 +35,7 @@ func New() *ArrayList {
 	l.data = make([]interface{}, initCap, initCap)
 	l.tidx = initCap / 2
 	l.hidx = l.tidx - 1
+	// l.shrinkSize = listMinLimit
 	return l
 }
 
@@ -67,15 +69,19 @@ func (l *ArrayList) shrink() {
 	}
 
 	if l.size <= l.shrinkSize {
-		nSize := l.shrinkSize - l.shrinkSize>>1
+		lcap := uint(len(l.data))
+		nSize := lcap - lcap>>2
 		temp := make([]interface{}, nSize, nSize)
 
-		ghidx := l.size / 2
+		ghidx := l.size >> 2
 		gtidx := ghidx + l.size + 1
 		copy(temp[ghidx+1:], l.data[l.hidx+1:l.tidx])
 		l.data = temp
 		l.hidx = ghidx
 		l.tidx = gtidx
+
+		// l.shrinkSize = l.shrinkSize - lcap>>2
+		l.shrinkSize = l.size - l.size>>2
 	}
 
 }
@@ -98,6 +104,7 @@ func (l *ArrayList) growth() {
 	l.hidx = ghidx
 	l.tidx = gtidx
 
+	l.shrinkSize = l.size - l.size>>2
 }
 
 func (l *ArrayList) Push(value interface{}) {
@@ -140,6 +147,7 @@ func (l *ArrayList) PopFront() (result interface{}, found bool) {
 	if l.size != 0 {
 		l.size--
 		l.hidx++
+		l.shrink()
 		return l.data[l.hidx], true
 	}
 	return nil, false
@@ -149,25 +157,32 @@ func (l *ArrayList) PopBack() (result interface{}, found bool) {
 	if l.size != 0 {
 		l.size--
 		l.tidx--
+		l.shrink()
 		return l.data[l.tidx], true
 	}
 	return nil, false
 }
 
-func (l *ArrayList) Index(idx uint) (interface{}, bool) {
-	if idx < l.size {
-		return l.data[idx+l.hidx+1], true
+func (l *ArrayList) Index(idx int) (interface{}, bool) {
+	var uidx uint = (uint)(idx)
+	if uidx < l.size {
+		return l.data[uidx+l.hidx+1], true
 	}
 	return nil, false
 }
 
-func (l *ArrayList) Remove(idx uint) (result interface{}, isfound bool) {
+func (l *ArrayList) Remove(idx int) (result interface{}, isfound bool) {
 
-	if idx >= l.size {
+	if idx < 0 {
 		return nil, false
 	}
 
-	offset := l.hidx + 1 + idx
+	var uidx = (uint)(idx)
+	if uidx >= l.size {
+		return nil, false
+	}
+
+	offset := l.hidx + 1 + uidx
 
 	isfound = true
 	result = l.data[offset]
@@ -208,6 +223,10 @@ func (l *ArrayList) Values() []interface{} {
 	newElements := make([]interface{}, l.size, l.size)
 	copy(newElements, l.data[l.hidx+1:l.tidx])
 	return newElements
+}
+
+func (l *ArrayList) String() string {
+	return spew.Sprint(l.Values())
 }
 
 func (l *ArrayList) Traversal(every func(interface{}) bool) {

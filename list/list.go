@@ -4,10 +4,11 @@ package list
 type IList interface {
 	Push(value interface{})
 	Contains(values ...interface{}) bool
-	Index(idx uint) (interface{}, bool)
-	Remove(idx uint) (result interface{}, isfound bool)
+	Index(idx int) (interface{}, bool)
+	Remove(idx int) (result interface{}, isfound bool)
 	Values() []interface{}
 	Traversal(every func(interface{}) bool)
+	String() string
 
 	Clear()
 	Empty() bool

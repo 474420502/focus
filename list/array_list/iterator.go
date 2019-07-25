@@ -7,7 +7,7 @@ type Iterator struct {
 }
 
 func (iter *Iterator) Value() interface{} {
-	v, _ := iter.al.Index(iter.cur)
+	v, _ := iter.al.Index((int)(iter.cur))
 	return v
 }
 
@@ -64,7 +64,7 @@ type CircularIterator struct {
 }
 
 func (iter *CircularIterator) Value() interface{} {
-	v, _ := iter.al.Index(iter.cur)
+	v, _ := iter.al.Index((int)(iter.cur))
 	return v
 }
 

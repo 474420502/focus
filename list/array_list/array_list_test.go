@@ -1,10 +1,6 @@
 package arraylist
 
 import (
-	"bytes"
-	"encoding/gob"
-	"io/ioutil"
-	"log"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -178,8 +174,8 @@ func TestRemove(t *testing.T) {
 	var result string
 
 	for _, selval := range []uint{4, 3} {
-		last, _ := l.Index(selval)
-		if v, isfound := l.Remove(selval); isfound {
+		last, _ := l.Index((int)(selval))
+		if v, isfound := l.Remove((int)(selval)); isfound {
 			if v != last {
 				t.Error(v, " != ", last)
 			}
@@ -244,24 +240,56 @@ func TestTraversal(t *testing.T) {
 	}
 }
 
-func loadTestData() []int {
-	data, err := ioutil.ReadFile("../../l.log")
-	if err != nil {
-		log.Println(err)
+func TestRemain(t *testing.T) {
+	l := New()
+	for i := 0; i < 10; i++ {
+		l.Push(i)
+		if !l.Contains(i) {
+			t.Error("Contains", i)
+		}
 	}
-	var l []int
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	decoder.Decode(&l)
-	return l
+
+	if l.String() != "[0 1 2 3 4 5 6 7 8 9]" {
+		t.Error(l.String())
+	}
+
+	for i := 10; i < 100; i++ {
+		l.Push(i)
+	}
+
+	for !l.Empty() {
+		l.PopBack()
+	}
+
+	for i := 10; i < 100; i++ {
+		l.Push(i)
+	}
+
+	l.Clear()
+
+	if l.Size() != 0 {
+		t.Error("Size != 0")
+	}
 }
 
-func BenchmarkPush(b *testing.B) {
-	l := loadTestData()
-	b.N = len(l)
+// func loadTestData() []int {
+// 	data, err := ioutil.ReadFile("../../l.log")
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// 	var l []int
+// 	decoder := gob.NewDecoder(bytes.NewReader(data))
+// 	decoder.Decode(&l)
+// 	return l
+// }
 
-	arr := New()
+// func BenchmarkPush(b *testing.B) {
+// 	l := loadTestData()
+// 	b.N = len(l)
 
-	for i := 0; i < b.N; i++ {
-		arr.PushBack(l[i])
-	}
-}
+// 	arr := New()
+
+// 	for i := 0; i < b.N; i++ {
+// 		arr.PushBack(l[i])
+// 	}
+// }
