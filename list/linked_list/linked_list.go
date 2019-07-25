@@ -191,28 +191,34 @@ func (l *LinkedList) FindMany(every func(idx uint, value interface{}) int) (resu
 	return result, isfound
 }
 
-func (l *LinkedList) Index(idx uint) (interface{}, bool) {
-	if idx >= l.size {
+func (l *LinkedList) Index(idx int) (interface{}, bool) {
+
+	if idx < 0 {
+		return nil, false
+	}
+	var uidx = (uint)(idx)
+
+	if uidx >= l.size || idx < 0 {
 		return nil, false
 	}
 
-	if idx > l.size/2 {
-		idx = l.size - 1 - idx
+	if uidx > l.size/2 {
+		uidx = l.size - 1 - uidx
 		// 尾部
 		for cur := l.tail.prev; cur != l.head; cur = cur.prev {
-			if idx == 0 {
+			if uidx == 0 {
 				return cur.value, true
 			}
-			idx--
+			uidx--
 		}
 
 	} else {
 		// 头部
 		for cur := l.head.next; cur != l.tail; cur = cur.next {
-			if idx == 0 {
+			if uidx == 0 {
 				return cur.value, true
 			}
-			idx--
+			uidx--
 		}
 	}
 
@@ -371,33 +377,39 @@ func remove(cur *Node) {
 	cur.next = nil
 }
 
-func (l *LinkedList) Remove(idx uint) (interface{}, bool) {
-	if l.size <= idx {
+func (l *LinkedList) Remove(idx int) (interface{}, bool) {
+
+	if idx < 0 {
+		return nil, false
+	}
+
+	var uidx uint = (uint)(idx)
+	if l.size <= uidx {
 		// log.Printf("out of list range, size is %d, idx is %d\n", l.size, idx)
 		return nil, false
 	}
 
 	l.size--
-	if idx > l.size/2 {
-		idx = l.size - idx // l.size - 1 - idx,  先减size
+	if uidx > l.size/2 {
+		uidx = l.size - uidx // l.size - 1 - idx,  先减size
 		// 尾部
 		for cur := l.tail.prev; cur != l.head; cur = cur.prev {
-			if idx == 0 {
+			if uidx == 0 {
 				remove(cur)
 				return cur.value, true
 			}
-			idx--
+			uidx--
 		}
 
 	} else {
 		// 头部
 		for cur := l.head.next; cur != l.tail; cur = cur.next {
-			if idx == 0 {
+			if uidx == 0 {
 				remove(cur)
 				return cur.value, true
 
 			}
-			idx--
+			uidx--
 		}
 	}
 

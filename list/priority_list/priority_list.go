@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/list"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -20,7 +21,7 @@ type PriorityList struct {
 
 // 优先队列的Index 正负都有作用要定义一种新的接口类型
 func assertImplementation() {
-	// var _ list.IList = (*PriorityList)(nil)
+	var _ list.IList = (*PriorityList)(nil)
 }
 
 func New(Compare compare.Compare) *PriorityList {
@@ -173,11 +174,19 @@ func (pl *PriorityList) GetNode(idx int) (*Node, bool) {
 
 func (pl *PriorityList) RemoveWithIndex(idx int) {
 	if n, ok := pl.GetNode(idx); ok {
-		pl.Remove(n)
+		pl.RemoveNode(n)
 	}
 }
 
-func (pl *PriorityList) Remove(node *Node) {
+func (pl *PriorityList) Remove(idx int) (result interface{}, isfound bool) {
+	if n, ok := pl.GetNode(idx); ok {
+		pl.RemoveNode(n)
+		return n.value, true
+	}
+	return nil, false
+}
+
+func (pl *PriorityList) RemoveNode(node *Node) {
 
 	prev := node.prev
 	next := node.next
