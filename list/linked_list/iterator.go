@@ -78,10 +78,10 @@ func (iter *CircularIterator) Next() bool {
 	return true
 }
 
-func (iter *CircularIterator) MoveToHead() {
+func (iter *CircularIterator) ToHead() {
 	iter.cur = iter.pl.head
 }
 
-func (iter *CircularIterator) MoveToTail() {
+func (iter *CircularIterator) ToTail() {
 	iter.cur = iter.pl.tail
 }

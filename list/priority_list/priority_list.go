@@ -14,8 +14,13 @@ type Node struct {
 
 type PriorityList struct {
 	head, tail *Node
-	size       int
+	size       uint
 	Compare    compare.Compare
+}
+
+// 优先队列的Index 正负都有作用要定义一种新的接口类型
+func assertImplementation() {
+	// var _ list.IList = (*PriorityList)(nil)
 }
 
 func New(Compare compare.Compare) *PriorityList {
@@ -57,8 +62,18 @@ func (pl *PriorityList) CircularIterator() *CircularIterator {
 	return &CircularIterator{pl: pl, cur: pl.head}
 }
 
-func (pl *PriorityList) Size() int {
+func (pl *PriorityList) Size() uint {
 	return pl.size
+}
+
+func (pl *PriorityList) Empty() bool {
+	return pl.size == 0
+}
+
+func (pl *PriorityList) Clear() {
+	pl.head.next = pl.tail
+	pl.tail.prev = pl.head
+	pl.size = 0
 }
 
 func (pl *PriorityList) Push(value interface{}) {
@@ -110,11 +125,29 @@ func (pl *PriorityList) Pop() (result interface{}, ok bool) {
 	return nil, false
 }
 
-func (pl *PriorityList) Get(idx int) (interface{}, bool) {
+func (pl *PriorityList) Index(idx int) (interface{}, bool) {
 	if n, ok := pl.GetNode(idx); ok {
 		return n.value, true
 	}
 	return nil, false
+}
+
+func (l *PriorityList) Contains(values ...interface{}) bool {
+
+	for _, searchValue := range values {
+		found := false
+		for cur := l.head.next; cur != l.tail; cur = cur.next {
+			if cur.value == searchValue {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 
 func (pl *PriorityList) GetNode(idx int) (*Node, bool) {
@@ -162,4 +195,12 @@ func (pl *PriorityList) Values() []interface{} {
 		values[i] = cur.value
 	}
 	return values
+}
+
+func (l *PriorityList) Traversal(every func(interface{}) bool) {
+	for cur := l.head.next; cur != l.tail; cur = cur.next {
+		if !every(cur.value) {
+			break
+		}
+	}
 }
