@@ -8,7 +8,7 @@ import (
 
 func TestPush(t *testing.T) {
 	var result string
-	s := New()
+	s := NewWithCap(10)
 
 	result = spew.Sprint(s.Values())
 	if result != "[]" {
@@ -67,9 +67,24 @@ func TestPush(t *testing.T) {
 		t.Error(result)
 	}
 
+	for i := 0; i < 100; i++ {
+		s.Push(i)
+	}
+
+	if v, _ := s.Index(50); v != 49 {
+		t.Error(v)
+	}
+
+	for i := 0; i < 50; i++ {
+		s.Pop()
+	}
+
+	if v, _ := s.Peek(); v != 49 {
+		t.Error(s.Peek())
+	}
 }
 
-func TestGet(t *testing.T) {
+func TestBase(t *testing.T) {
 	s := New()
 
 	l := []int{10, 7, 3, 4, 5, 15}
@@ -77,7 +92,34 @@ func TestGet(t *testing.T) {
 		s.Push(v)
 	}
 
-	if v, isfound := s.Get(0); isfound {
+	if _, ok := s.Index(-1); ok {
+		t.Error("not ok")
+	}
+
+	if s.String() != "15 5 4 3 7 10" {
+		t.Error(s.String())
+	}
+
+	if s.Size() != 6 {
+		t.Error("Size error, is", s.Size())
+	}
+
+	s.Clear()
+	if !s.Empty() {
+		t.Error("Size should be Empty, is Clean.")
+	}
+
+}
+
+func TestIndex(t *testing.T) {
+	s := New()
+
+	l := []int{10, 7, 3, 4, 5, 15}
+	for _, v := range l {
+		s.Push(v)
+	}
+
+	if v, isfound := s.Index(0); isfound {
 		if v != 15 {
 			t.Error("15 is not equal to 15")
 		}
@@ -86,7 +128,7 @@ func TestGet(t *testing.T) {
 	}
 
 	for i, tv := range l {
-		if v, isfound := s.Get(len(l) - 1 - i); isfound {
+		if v, isfound := s.Index(len(l) - 1 - i); isfound {
 			if v != tv {
 				t.Error(v, "is not equal to", tv)
 			}
@@ -100,7 +142,7 @@ func TestGet(t *testing.T) {
 	l = l[0 : len(l)-1]
 	for i, tv := range l {
 		index := len(l) - 1 - i
-		if v, isfound := s.Get(index); isfound {
+		if v, isfound := s.Index(index); isfound {
 			if v != tv {
 				t.Error(v, "is not equal to", tv)
 			}
@@ -110,7 +152,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-// func BenchmarkGet(b *testing.B) {
+// func BenchmarkIndex(b *testing.B) {
 // 	s := New()
 // 	b.N = 20000000
 
@@ -123,7 +165,7 @@ func TestGet(t *testing.T) {
 // 	b.StartTimer()
 
 // 	for i := 0; i < b.N; i++ {
-// 		s.Get(i)
+// 		s.Index(i)
 // 	}
 // }
 
