@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/474420502/focus/compare"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func loadTestData() []int {
@@ -128,14 +129,14 @@ func TestGet(t *testing.T) {
 	}
 
 	for _, v := range []int{0, 9, 5, 7} {
-		if g, ok := pl.Get(v); ok {
+		if g, ok := pl.Index(v); ok {
 			if g != (9 - v) {
 				t.Error(v, "Get == ", g)
 			}
 		}
 	}
 
-	if n, ok := pl.Get(10); ok {
+	if n, ok := pl.Index(10); ok {
 		t.Error("index 10  is over size", n)
 	}
 }
@@ -207,17 +208,71 @@ func TestRemove(t *testing.T) {
 	}
 
 	pl.RemoveWithIndex(0)
-	if g, ok := pl.Get(0); ok {
+	if g, ok := pl.Index(0); ok {
 		if g != 8 {
 			t.Error(g)
 		}
 	}
 
 	pl.RemoveWithIndex(-1)
-	if g, ok := pl.Get(-1); ok {
+	if g, ok := pl.Index(-1); ok {
 		if g != 1 {
 			t.Error(g)
 		}
+	}
+
+}
+
+func TestTraversal(t *testing.T) {
+	l := New(compare.Int)
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+
+	var result []interface{}
+
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[4 3 2 1 0]" {
+		t.Error(result)
+	}
+
+	l.Push(7)
+	l.Push(6)
+	result = nil
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[7 6 4 3 2 1 0]" {
+		t.Error(result)
+	}
+}
+
+func TestContains(t *testing.T) {
+	ll := New(compare.Int)
+	for i := 0; i < 10; i++ {
+		ll.Push(i)
+	}
+
+	for i := 0; i < 10; i++ {
+		if !ll.Contains(i) {
+			t.Error(i)
+		}
+	}
+
+	for i := 10; i < 20; i++ {
+		if ll.Contains(i) {
+			t.Error(i)
+		}
+	}
+
+	if spew.Sprint(ll.Values()) != "[9 8 7 6 5 4 3 2 1 0]" {
+		t.Error(spew.Sprint(ll.Values()))
 	}
 
 }

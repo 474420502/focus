@@ -18,6 +18,7 @@ type ArrayList struct {
 
 func assertImplementation() {
 	var _ list.IList = (*ArrayList)(nil)
+	var _ list.ILinkedList = (*ArrayList)(nil)
 }
 
 const (
@@ -207,4 +208,12 @@ func (l *ArrayList) Values() []interface{} {
 	newElements := make([]interface{}, l.size, l.size)
 	copy(newElements, l.data[l.hidx+1:l.tidx])
 	return newElements
+}
+
+func (l *ArrayList) Traversal(every func(interface{}) bool) {
+	for i := uint(0); i < l.size; i++ {
+		if !every(l.data[i+l.hidx+1]) {
+			break
+		}
+	}
 }

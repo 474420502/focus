@@ -3,7 +3,6 @@ package linkedlist
 import (
 	"testing"
 
-	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -570,6 +569,35 @@ func TestRemoveIf2(t *testing.T) {
 	}
 }
 
+func TestTraversal(t *testing.T) {
+	l := New()
+	for i := 0; i < 5; i++ {
+		l.PushFront(uint(i))
+	}
+
+	var result []interface{}
+
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[4 3 2 1 0]" {
+		t.Error(result)
+	}
+
+	l.PushBack(7, 8)
+	result = nil
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[4 3 2 1 0 7 8]" {
+		t.Error(result)
+	}
+}
+
 func TestIterator(t *testing.T) {
 	ll := New()
 	for i := 0; i < 10; i++ {
@@ -639,46 +667,82 @@ func TestCircularIterator(t *testing.T) {
 	}
 }
 
-func BenchmarkPushBack(b *testing.B) {
-
-	ec := 5
-	cs := 2000000
-	b.N = cs * ec
-
-	for c := 0; c < ec; c++ {
-		l := New()
-		for i := 0; i < cs; i++ {
-			l.PushBack(i)
-		}
+func TestContains(t *testing.T) {
+	ll := New()
+	for i := 0; i < 10; i++ {
+		ll.Push(i)
 	}
-}
 
-func BenchmarkPushFront(b *testing.B) {
-
-	ec := 5
-	cs := 2000000
-	b.N = cs * ec
-
-	for c := 0; c < ec; c++ {
-		l := New()
-		for i := 0; i < cs; i++ {
-			l.PushFront(i)
+	for i := 0; i < 10; i++ {
+		if !ll.Contains(i) {
+			t.Error(i)
 		}
 	}
 
-}
-
-func BenchmarkInsert(b *testing.B) {
-
-	ec := 10
-	cs := 1000
-	b.N = cs * ec
-
-	for c := 0; c < ec; c++ {
-		l := New()
-		for i := 0; i < cs; i++ {
-			ridx := randomdata.Number(0, int(l.Size())+1)
-			l.Insert(uint(ridx), i)
+	for i := 10; i < 20; i++ {
+		if ll.Contains(i) {
+			t.Error(i)
 		}
 	}
+
+	if v, _ := ll.Front(); v != 0 {
+		t.Error(v)
+	}
+
+	if v, _ := ll.Back(); v != 9 {
+		t.Error(v)
+	}
+
+	ll.Clear()
+	if !ll.Empty() {
+		t.Error("not Empty?")
+	}
+
+	if v, ok := ll.Front(); ok {
+		t.Error(v)
+	}
 }
+
+// func BenchmarkPushBack(b *testing.B) {
+
+// 	ec := 5
+// 	cs := 2000000
+// 	b.N = cs * ec
+
+// 	for c := 0; c < ec; c++ {
+// 		l := New()
+// 		for i := 0; i < cs; i++ {
+// 			l.PushBack(i)
+// 		}
+// 	}
+// }
+
+// func BenchmarkPushFront(b *testing.B) {
+
+// 	ec := 5
+// 	cs := 2000000
+// 	b.N = cs * ec
+
+// 	for c := 0; c < ec; c++ {
+// 		l := New()
+// 		for i := 0; i < cs; i++ {
+// 			l.PushFront(i)
+// 		}
+// 	}
+
+// }
+
+// func BenchmarkInsert(b *testing.B) {
+
+// 	ec := 10
+// 	cs := 1000
+// 	b.N = cs * ec
+
+// 	for c := 0; c < ec; c++ {
+// 		l := New()
+// 		for i := 0; i < cs; i++ {
+// 			ridx := randomdata.Number(0, int(l.Size())+1)
+// 			l.Insert(uint(ridx), i)
+// 		}
+// 	}
+// }

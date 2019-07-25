@@ -7,6 +7,7 @@ type IList interface {
 	Index(idx uint) (interface{}, bool)
 	Remove(idx uint) (result interface{}, isfound bool)
 	Values() []interface{}
+	Traversal(every func(interface{}) bool)
 
 	Clear()
 	Empty() bool

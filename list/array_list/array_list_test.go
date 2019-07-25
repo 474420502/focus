@@ -215,6 +215,35 @@ func TestRemove(t *testing.T) {
 
 }
 
+func TestTraversal(t *testing.T) {
+	l := New()
+	for i := 0; i < 5; i++ {
+		l.PushFront(uint(i))
+	}
+
+	var result []interface{}
+
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[4 3 2 1 0]" {
+		t.Error(result)
+	}
+
+	l.PushBack(7, 8)
+	result = nil
+	l.Traversal(func(v interface{}) bool {
+		result = append(result, v)
+		return true
+	})
+
+	if spew.Sprint(result) != "[4 3 2 1 0 7 8]" {
+		t.Error(result)
+	}
+}
+
 func loadTestData() []int {
 	data, err := ioutil.ReadFile("../../l.log")
 	if err != nil {

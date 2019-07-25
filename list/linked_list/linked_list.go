@@ -3,6 +3,7 @@ package linkedlist
 import (
 	"fmt"
 
+	"github.com/474420502/focus/list"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -20,6 +21,11 @@ type LinkedList struct {
 	head *Node
 	tail *Node
 	size uint
+}
+
+func assertImplementation() {
+	var _ list.IList = (*LinkedList)(nil)
+	var _ list.ILinkedList = (*LinkedList)(nil)
 }
 
 func New() *LinkedList {
@@ -44,8 +50,10 @@ func (l *LinkedList) CircularIterator() *CircularIterator {
 }
 
 func (l *LinkedList) Clear() {
-	l.head.next = nil
-	l.tail.prev = nil
+
+	l.head.next = l.tail
+	l.tail.prev = l.head
+
 	l.size = 0
 }
 
@@ -446,6 +454,24 @@ TOPFOR:
 		cur = cur.next
 	}
 	return
+}
+
+func (l *LinkedList) Contains(values ...interface{}) bool {
+
+	for _, searchValue := range values {
+		found := false
+		for cur := l.head.next; cur != l.tail; cur = cur.next {
+			if cur.value == searchValue {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 
 func (l *LinkedList) Values() (result []interface{}) {
