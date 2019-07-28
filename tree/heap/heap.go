@@ -54,7 +54,7 @@ func (h *Heap) Top() (interface{}, bool) {
 	return nil, false
 }
 
-func (h *Heap) Push(v interface{}) {
+func (h *Heap) Put(v interface{}) {
 	if v == nil {
 		return
 	}

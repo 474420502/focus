@@ -1,8 +1,10 @@
 package avldup
 
 import (
-	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree"
 )
 
 type Node struct {
@@ -30,6 +32,10 @@ type Tree struct {
 	Compare compare.Compare
 
 	iter *Iterator
+}
+
+func assertImplementation() {
+	var _ tree.IBSTree = (*Tree)(nil)
 }
 
 func New(Compare compare.Compare) *Tree {
