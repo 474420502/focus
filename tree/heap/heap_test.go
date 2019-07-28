@@ -11,7 +11,7 @@ func TestHeapPushTopPop(t *testing.T) {
 	l := []int{9, 5, 15, 2, 3}
 	ol := []int{15, 9, 5, 3, 2}
 	for _, v := range l {
-		h.Push(v)
+		h.Put(v)
 	}
 
 	for _, tv := range ol {

@@ -7,9 +7,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/474420502/focus/compare"
-
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
 )
 
 func loadTestData() []int {
@@ -265,8 +265,8 @@ func TestTravalsal(t *testing.T) {
 
 	i := 0
 	var result []interface{}
-	tree.Traversal(func(v interface{}) bool {
-		result = append(result, v)
+	tree.Traversal(func(k, v interface{}) bool {
+		result = append(result, k)
 		i++
 		if i >= 10 {
 			return false

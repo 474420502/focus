@@ -1,8 +1,10 @@
 package vbt
 
 import (
-	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree"
 )
 
 type Node struct {
@@ -29,6 +31,10 @@ type Tree struct {
 	Compare compare.Compare
 
 	iter *Iterator
+}
+
+func assertImplementation() {
+	var _ tree.IBSTree = (*Tree)(nil)
 }
 
 func New(Compare compare.Compare) *Tree {
@@ -229,6 +235,11 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 	}
 	// return nil
 	return nil, false
+}
+
+func (tree *Tree) Clear() {
+	tree.root = nil
+	tree.iter = NewIteratorWithCap(nil, 16)
 }
 
 // Values 返回先序遍历的值

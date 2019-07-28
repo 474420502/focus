@@ -1,8 +1,10 @@
 package avlkey
 
 import (
-	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree"
 )
 
 type Node struct {
@@ -33,6 +35,10 @@ type Tree struct {
 
 func New(Compare compare.Compare) *Tree {
 	return &Tree{Compare: Compare, iter: NewIteratorWithCap(nil, 16)}
+}
+
+func assertImplementation() {
+	var _ tree.IBSTreeKey = (*Tree)(nil)
 }
 
 func (tree *Tree) String() string {

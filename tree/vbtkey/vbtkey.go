@@ -1,8 +1,10 @@
 package vbtkey
 
 import (
-	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree"
 )
 
 type Node struct {
@@ -30,6 +32,10 @@ type Tree struct {
 	Compare compare.Compare
 
 	iter *Iterator
+}
+
+func assertImplementation() {
+	var _ tree.IBSTreeKey = (*Tree)(nil)
 }
 
 func New(Compare compare.Compare) *Tree {
@@ -232,6 +238,11 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 	return nil, false
 }
 
+func (tree *Tree) Clear() {
+	tree.root = nil
+	tree.iter = NewIteratorWithCap(nil, 16)
+}
+
 // Values 返回先序遍历的值
 func (tree *Tree) Values() []interface{} {
 	mszie := 0
@@ -239,7 +250,7 @@ func (tree *Tree) Values() []interface{} {
 		mszie = tree.root.size
 	}
 	result := make([]interface{}, 0, mszie)
-	tree.Traversal(func(v interface{}) bool {
+	tree.Traversal(func(k, v interface{}) bool {
 		result = append(result, v)
 		return true
 	}, LDR)
@@ -500,8 +511,8 @@ const (
 	RLD
 )
 
-// Traversal 遍历的方法 默认是LDR 从小到大 comparator 为 l < r
-func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...interface{}) {
+// Traversal 遍历的方法 默认是LDR 从小到大 Compare 为 l < r
+func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod ...interface{}) {
 	if tree.root == nil {
 		return
 	}
@@ -518,7 +529,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if cur == nil {
 				return true
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -539,7 +550,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if !traverasl(cur.children[0]) {
 				return false
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[1]) {
@@ -560,7 +571,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			return true
@@ -572,7 +583,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if cur == nil {
 				return true
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -593,7 +604,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -614,7 +625,7 @@ func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...i
 			if !traverasl(cur.children[0]) {
 				return false
 			}
-			if !every(cur.value) {
+			if !every(cur.key, cur.value) {
 				return false
 			}
 			return true
