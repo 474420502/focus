@@ -9,48 +9,52 @@ import (
 )
 
 func TestHeapGrowSlimming(t *testing.T) {
-	h := New(compare.Int)
-	var results []int
-	for i := 0; i < 100; i++ {
-		v := randomdata.Number(0, 100)
-		results = append(results, v)
-		h.Put(v)
-	}
-	sort.Slice(results, func(i, j int) bool {
-		if results[i] > results[j] {
-			return true
+
+	for ii := 0; ii < 1000; ii++ {
+
+		h := New(compare.Int)
+		var results []int
+		for i := 0; i < 100; i++ {
+			v := randomdata.Number(0, 100)
+			results = append(results, v)
+			h.Put(v)
 		}
-		return false
-	})
+		sort.Slice(results, func(i, j int) bool {
+			if results[i] > results[j] {
+				return true
+			}
+			return false
+		})
 
-	if h.Size() != 100 || h.Empty() {
-		t.Error("size != 100")
-	}
-
-	for i := 0; !h.Empty(); i++ {
-		v, _ := h.Pop()
-		if results[i] != v {
-			t.Error("heap is error")
+		if h.Size() != 100 || h.Empty() {
+			t.Error("size != 100")
 		}
-	}
 
-	if h.Size() != 0 {
-		t.Error("size != 0")
-	}
+		for i := 0; !h.Empty(); i++ {
+			v, _ := h.Pop()
+			if results[i] != v {
+				t.Error("heap is error")
+			}
+		}
 
-	h.Put(1)
-	h.Put(5)
-	h.Put(2)
+		if h.Size() != 0 {
+			t.Error("size != 0")
+		}
 
-	if h.Values()[0] != 5 {
-		t.Error("top is not equal to 5")
-	}
+		h.Put(1)
+		h.Put(5)
+		h.Put(2)
 
-	h.Clear()
-	h.Reborn()
+		if h.Values()[0] != 5 {
+			t.Error("top is not equal to 5")
+		}
 
-	if !h.Empty() {
-		t.Error("clear reborn is error")
+		h.Clear()
+		h.Reborn()
+
+		if !h.Empty() {
+			t.Error("clear reborn is error")
+		}
 	}
 
 }
@@ -80,7 +84,43 @@ func TestHeapPushTopPop(t *testing.T) {
 	if h.Size() != 0 {
 		t.Error("heap size is not equals to zero")
 	}
+
+	h.Clear()
+
+	l = []int{3, 5, 2, 7, 1}
+
+	for _, v := range l {
+		h.Put(v)
+	}
+
+	sort.Slice(l, func(i, j int) bool {
+		if l[i] > l[j] {
+			return true
+		}
+		return false
+	})
+
+	for i := 0; !h.Empty(); i++ {
+		v, _ := h.Pop()
+		if l[i] != v {
+			t.Error("heap is error")
+		}
+	}
 }
+
+// func BenchmarkPush(b *testing.B) {
+// 	h := New(compare.Int)
+// 	b.N = 40000000
+// 	var results []int
+// 	for i := 0; i < b.N; i++ {
+// 		results = append(results, randomdata.Number(0, 1000000000))
+// 	}
+
+// 	b.ResetTimer()
+// 	for _, v := range results {
+// 		h.Put(v)
+// 	}
+// }
 
 // func Int(k1, k2 interface{}) int {
 // 	c1 := k1.(int)
