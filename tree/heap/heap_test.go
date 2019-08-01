@@ -80,6 +80,28 @@ func TestHeapPushTopPop(t *testing.T) {
 	if h.Size() != 0 {
 		t.Error("heap size is not equals to zero")
 	}
+
+	h.Clear()
+
+	l = []int{3, 5, 2, 7, 1}
+
+	for _, v := range l {
+		h.Put(v)
+	}
+
+	sort.Slice(l, func(i, j int) bool {
+		if l[i] > l[j] {
+			return true
+		}
+		return false
+	})
+
+	for i := 0; !h.Empty(); i++ {
+		v, _ := h.Pop()
+		if l[i] != v {
+			t.Error("heap is error")
+		}
+	}
 }
 
 // func Int(k1, k2 interface{}) int {

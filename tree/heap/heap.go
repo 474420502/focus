@@ -130,12 +130,9 @@ func (h *Heap) Pop() (interface{}, bool) {
 			}
 		} else {
 			cidx = c1
-			if c1 < h.size {
-				cvalue1 = h.elements[c1]
-			} else {
+			if c1 >= h.size {
 				break
 			}
-
 		}
 
 		if h.Compare(h.elements[cidx], downvalue) > 0 {
