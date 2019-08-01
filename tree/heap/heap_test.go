@@ -1,10 +1,59 @@
 package heap
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/474420502/focus/compare"
+	"github.com/Pallinder/go-randomdata"
 )
+
+func TestHeapGrowSlimming(t *testing.T) {
+	h := New(compare.Int)
+	var results []int
+	for i := 0; i < 100; i++ {
+		v := randomdata.Number(0, 100)
+		results = append(results, v)
+		h.Put(v)
+	}
+	sort.Slice(results, func(i, j int) bool {
+		if results[i] > results[j] {
+			return true
+		}
+		return false
+	})
+
+	if h.Size() != 100 || h.Empty() {
+		t.Error("size != 100")
+	}
+
+	for i := 0; !h.Empty(); i++ {
+		v, _ := h.Pop()
+		if results[i] != v {
+			t.Error("heap is error")
+		}
+	}
+
+	if h.Size() != 0 {
+		t.Error("size != 0")
+	}
+
+	h.Put(1)
+	h.Put(5)
+	h.Put(2)
+
+	if h.Values()[0] != 5 {
+		t.Error("top is not equal to 5")
+	}
+
+	h.Clear()
+	h.Reborn()
+
+	if !h.Empty() {
+		t.Error("clear reborn is error")
+	}
+
+}
 
 func TestHeapPushTopPop(t *testing.T) {
 	h := New(compare.Int)

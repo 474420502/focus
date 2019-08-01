@@ -110,40 +110,37 @@ func (h *Heap) Pop() (interface{}, bool) {
 
 	downvalue := h.elements[h.size]
 	var cidx, c1, c2 int
-	var cvalue1, cvalue2, cvalue interface{}
+	var cvalue1, cvalue2 interface{}
 	// down
 	for {
 		cidx = curidx << 1
 
+		c1 = cidx + 1
 		c2 = cidx + 2
-		if c2 < h.size {
-			cvalue2 = h.elements[c2]
 
-			c1 = cidx + 1
+		if c2 < h.size {
+
+			cvalue2 = h.elements[c2]
 			cvalue1 = h.elements[c1]
 
 			if h.Compare(cvalue1, cvalue2) >= 0 {
 				cidx = c1
-				cvalue = cvalue1
 			} else {
 				cidx = c2
-				cvalue = cvalue2
 			}
 		} else {
 
-			c1 = cidx + 1
 			if c1 < h.size {
 				cvalue1 = h.elements[c1]
 				cidx = c1
-				cvalue = cvalue1
 			} else {
 				break
 			}
 
 		}
 
-		if h.Compare(cvalue, downvalue) > 0 {
-			h.elements[curidx] = cvalue
+		if h.Compare(h.elements[cidx], downvalue) > 0 {
+			h.elements[curidx] = h.elements[cidx]
 			curidx = cidx
 		} else {
 			break
