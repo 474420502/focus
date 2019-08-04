@@ -5,11 +5,13 @@ import (
 	"encoding/gob"
 	"io/ioutil"
 	"log"
+	"sort"
 	"testing"
 
-	"github.com/474420502/focus/compare"
-
+	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/474420502/focus/compare"
 )
 
 func loadTestData() []int {
@@ -21,6 +23,98 @@ func loadTestData() []int {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	decoder.Decode(&l)
 	return l
+}
+
+func TestLargePushRemove(t *testing.T) {
+	for n := 0; n < 10; n++ {
+		tree := New(compare.Int)
+		var results []int
+		for i := 0; i < 50000; i++ {
+			v := randomdata.Number(0, 100000000)
+			tree.Put(v)
+			results = append(results, v)
+		}
+		if tree.Size() != 50000 {
+			t.Error("Szie error")
+		}
+		for i := 0; i < 49990; i++ {
+			tree.Remove(results[i])
+		}
+		results = results[49990:]
+		if tree.Size() != 10 {
+			t.Error("Szie error")
+		}
+		sort.Slice(results, func(i, j int) bool {
+			if results[i] < results[j] {
+				return true
+			}
+			return false
+		})
+		if spew.Sprint(results) != spew.Sprint(tree.Values()) {
+			t.Error("tree is error")
+		}
+
+		for i := 0; i < 10; i++ {
+			v1 := results[i]
+			v2, ok := tree.Index(i)
+			if !ok {
+				t.Error("not ok")
+			}
+			if v1 != v2 {
+				t.Error("v1(", v1, ") != v2(", v2, ")??")
+			}
+		}
+
+		tree.Clear()
+		if tree.String() != "AVLTree\nnil" {
+			t.Error("tree String is error")
+		}
+	}
+}
+
+func TestRemoveIndex(t *testing.T) {
+	tree := New(compare.Int)
+	l := []int{7, 14, 14, 14, 16, 1, 40, 15}
+	for _, v := range l {
+		tree.Put(v)
+	}
+
+	// [1 7 14 14 14 15 16 40]
+	var result string
+	result = spew.Sprint(tree.Values())
+	if result != "[1 7 14 14 14 15 16 40]" {
+		t.Error("result = ", result, " should be [1 7 14 14 14 15 16 40]")
+	}
+
+	tree.RemoveIndex(3)
+	result = spew.Sprint(tree.Values())
+	if result != "[1 7 14 14 15 16 40]" {
+		t.Error("result is error")
+	}
+
+	tree.RemoveIndex(-1)
+	result = spew.Sprint(tree.Values())
+	if result != "[1 7 14 14 15 16]" {
+		t.Error("result is error")
+	}
+
+	tree.RemoveIndex(0)
+	result = spew.Sprint(tree.Values())
+	if result != "[7 14 14 15 16]" {
+		t.Error("result is error")
+	}
+
+	if tree.Size() != 5 {
+		t.Error("size is error")
+	}
+
+	for tree.Size() != 0 {
+		tree.RemoveIndex(0)
+	}
+
+	if tree.root != nil {
+		t.Error("tree roor is not error")
+	}
 }
 
 func TestIndexRange(t *testing.T) {
@@ -80,6 +174,22 @@ func TestIndexRange(t *testing.T) {
 
 	result = spew.Sprint(tree.IndexRange(-5, -1)) // size = 16, index max = 0 - 15 (-1,-16)
 	if result != "[40 40 40 40 50] true" {
+		t.Error(result)
+	}
+
+	// [3 7 14 14 14 15 16 17 20 21 30 40 40 40 40 50]
+	result = spew.Sprint(tree.IndexRange(-5, 10)) //
+	if result != "[40 30] true" {
+		t.Error(result)
+	}
+
+	result = spew.Sprint(tree.IndexRange(10, -5)) //
+	if result != "[30 40] true" {
+		t.Error(result)
+	}
+
+	result = spew.Sprint(tree.IndexRange(-1, 8)) //
+	if result != "[50 40 40 40 40 30 21 20] true" {
 		t.Error(result)
 	}
 }

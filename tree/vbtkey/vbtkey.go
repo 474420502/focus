@@ -105,9 +105,9 @@ func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { /
 
 	if idx1^idx2 < 0 {
 		if idx1 < 0 {
-			idx1 = tree.root.size + idx1 - 1
+			idx1 = tree.root.size + idx1
 		} else {
-			idx2 = tree.root.size + idx2 - 1
+			idx2 = tree.root.size + idx2
 		}
 	}
 

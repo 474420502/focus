@@ -1,7 +1,7 @@
 package vbtkey
 
 import (
-	"github.com/474420502/focus/stack/listarraystack"
+	lastack "github.com/474420502/focus/stack/listarraystack"
 )
 
 type Iterator struct {
@@ -148,7 +148,7 @@ func (iter *Iterator) Prev() (result bool) {
 	if iter.dir < 1 { // 非 1(next 方向定义 -1 为 prev)
 		if iter.dir == -1 && iter.cur != nil { // 如果上次为prev方向, 则清空辅助计算的栈
 			iter.tstack.Clear()
-			iter.curPushPrevStack(iter.cur)    // 把当前cur计算的逆向回朔
+			iter.curPushPrevStack(iter.cur)    // 把当前cur计算的回朔
 			iter.up = iter.getPrevUp(iter.cur) // cur 寻找下个要计算up
 		}
 		iter.dir = 1
