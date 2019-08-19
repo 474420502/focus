@@ -67,7 +67,7 @@ func indexWordDigital(w uint) byte {
 //
 func wordIndexUpperLower(w byte) uint {
 	iw := uint(w)
-	if iw > 'a' {
+	if iw >= 'a' {
 		return iw - 'a'
 	}
 	return iw - 'A' + 26
@@ -84,7 +84,7 @@ func indexWordUpperLower(w uint) byte {
 //
 func wordIndexLowerDigital(w byte) uint {
 	iw := uint(w)
-	if iw > 'a' {
+	if iw >= 'a' {
 		return iw - 'a'
 	}
 	return iw - '0' + 26
@@ -100,7 +100,7 @@ func indexWordLowerDigital(w uint) byte {
 //
 func wordIndexUpperDigital(w byte) uint {
 	iw := uint(w)
-	if iw > 'A' {
+	if iw >= 'A' {
 		return iw - 'A'
 	}
 	return iw - '0' + 26
@@ -116,9 +116,9 @@ func indexWordUpperDigital(w uint) byte {
 //
 func wordIndexUpperLowerDigital(w byte) uint {
 	iw := uint(w)
-	if iw > 'a' {
+	if iw >= 'a' {
 		return iw - 'a'
-	} else if iw > 'A' {
+	} else if iw >= 'A' {
 		return iw - 'A' + 26
 	}
 	return iw - '0' + 52

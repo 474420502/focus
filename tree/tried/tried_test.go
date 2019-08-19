@@ -10,12 +10,9 @@ import (
 )
 
 func TestTried_NewWith(t *testing.T) {
-	tried := NewWithWordType(WordIndex32to126)
-	words := "~ 23fd "
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+
+	var tried *Tried
+	var words string
 
 	tried = NewWithWordType(WordIndexLower)
 	words = "az"
@@ -36,6 +33,63 @@ func TestTried_NewWith(t *testing.T) {
 	tried.Put(words)
 	if tried.Get(words) == nil {
 		t.Error("should be not nil")
+	}
+
+	tried = NewWithWordType(WordIndexUpperDigital)
+	words = "AZ021365546987"
+	tried.Put(words)
+	if tried.Get(words) == nil {
+		t.Error("should be not nil")
+	}
+
+	tried = NewWithWordType(WordIndexLowerDigital)
+	words = "azfdgyjmnbjhkpuizxasd021365546987"
+	tried.Put(words)
+	if tried.Get(words) == nil {
+		t.Error("should be not nil")
+	}
+
+	tried = NewWithWordType(WordIndexUpperLowerDigital)
+	words = "AZazsdfsd131209"
+	tried.Put(words)
+	if tried.Get(words) == nil {
+		t.Error("should be not nil")
+	}
+
+	tried = NewWithWordType(WordIndex256)
+	words = "21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**! 09-阿萨德发生的官方说的对符合规定"
+	tried.Put(words)
+	if tried.Get(words) == nil {
+		t.Error("should be not nil")
+	}
+
+	tried = NewWithWordType(WordIndex32to126)
+	words = " 21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  "
+	tried.Put(words)
+	if tried.Get(words) == nil {
+		t.Error("should be not nil")
+	}
+}
+
+func TestTried_String(t *testing.T) {
+	var tried *Tried
+	var wordsCollection []string
+	var wordsList [][]string
+	var triedList []*Tried
+
+	triedList = append(triedList, NewWithWordType(WordIndexLower))
+	wordsList = append(wordsList, []string{"adazx", "assdfhgnvb", "ewqyiouyasdfmzvxz"})
+
+	for i := 0; i < len(triedList); i++ {
+		tried = triedList[i]
+		wordsCollection = wordsList[i]
+		for _, words := range wordsCollection {
+			tried.Put(words)
+			if tried.Get(words) == nil {
+				t.Error("should be not nil")
+			}
+		}
+		t.Error(tried.WordsArray())
 	}
 }
 

@@ -1,5 +1,7 @@
 package tried
 
+import "github.com/davecgh/go-spew/spew"
+
 // func (ts TriedString) WordIndex(idx uint) uint {
 // 	w := ts[idx]
 // 	if w >= 'a' && w <= 'z' {
@@ -90,6 +92,10 @@ func (tried *Tried) Has(words string) bool {
 	return tried.Get(words) != nil
 }
 
+func (tried *Tried) HasPrefix(words string) bool {
+	return tried.Get(words) != nil
+}
+
 func (tried *Tried) Traversal(every func(cidx uint, value interface{}) bool) {
 
 	var traversal func(*Node)
@@ -112,10 +118,31 @@ func (tried *Tried) Traversal(every func(cidx uint, value interface{}) bool) {
 	traversal(root)
 }
 
-// func (tried *Tried) String() []string {
-// 	var result []string
-// 	tried.Traversal(func(cidx uint, value interface{}) bool {
-// 		result = append(result, spew.)
-// 	})
-// 	return result
-// }
+func (tried *Tried) WordsArray() []string {
+	var result []string
+
+	var traversal func([]rune, *Node)
+	traversal = func(prefix []rune, cur *Node) {
+
+		for i, n := range cur.data {
+			if n != nil {
+				prefix = append(prefix, rune(tried.wiStore.Index2Byte(uint(i))))
+				traversal(prefix, n)
+				if n.value != nil {
+					result = append(result, string(prefix))
+				}
+			}
+		}
+
+	}
+
+	if tried.root != nil {
+		traversal([]rune{}, tried.root)
+	}
+
+	return result
+}
+
+func (tried *Tried) String() string {
+	return spew.Sprint(tried.WordsArray())
+}
