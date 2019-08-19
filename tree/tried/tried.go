@@ -1,15 +1,5 @@
 package tried
 
-type TriedString string
-
-func (ts TriedString) Size() uint {
-	return uint(len(ts))
-}
-
-func (ts TriedString) WordIndex(idx uint) uint {
-	return uint(ts[idx]) - 'a'
-}
-
 // func (ts TriedString) WordIndex(idx uint) uint {
 // 	w := ts[idx]
 // 	if w >= 'a' && w <= 'z' {
@@ -21,14 +11,9 @@ func (ts TriedString) WordIndex(idx uint) uint {
 // 	}
 // }
 
-type ObjectIndex interface {
-	WordIndex(idx uint) uint
-	Size() uint
-}
-
 type Tried struct {
-	root     *Node
-	datasize uint
+	root    *Node
+	wiStore *wordIndexStore
 }
 
 type Node struct {
@@ -36,25 +21,34 @@ type Node struct {
 	value interface{}
 }
 
+// New 默认 WordIndexLower 意味着只支持小写
 func New() *Tried {
 	tried := &Tried{}
 	tried.root = new(Node)
-	tried.datasize = 62
+
+	tried.wiStore = WordIndexDict[WordIndexLower]
 	return tried
 }
 
-func (tried *Tried) wordIndex(w byte) uint {
-	return uint(w) - 'a'
+// NewWithWordType 选择单词的类型 WordIndexLower 意味着只支持小写
+func NewWithWordType(t WordIndexType) *Tried {
+	tried := &Tried{}
+	tried.root = new(Node)
+
+	tried.wiStore = WordIndexDict[t]
+
+	return tried
 }
 
 func (tried *Tried) Put(words string, values ...interface{}) {
 	cur := tried.root
 	var n *Node
+
 	for i := 0; i < len(words); i++ {
-		w := tried.wordIndex(words[i])
+		w := tried.wiStore.Byte2Index(words[i])
 
 		if cur.data == nil {
-			cur.data = make([]*Node, tried.datasize)
+			cur.data = make([]*Node, tried.wiStore.DataSize)
 		}
 
 		if n = cur.data[w]; n == nil {
@@ -81,8 +75,9 @@ func (tried *Tried) Put(words string, values ...interface{}) {
 func (tried *Tried) Get(words string) interface{} {
 	cur := tried.root
 	var n *Node
+
 	for i := 0; i < len(words); i++ {
-		w := tried.wordIndex(words[i]) //TODO: 升级Index 函数
+		w := tried.wiStore.Byte2Index(words[i]) //TODO: 升级Index 函数
 		if n = cur.data[w]; n == nil {
 			return nil
 		}
