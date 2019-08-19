@@ -9,33 +9,33 @@ import (
 func TestTried_PutAndGet1(t *testing.T) {
 	tried := New()
 
-	tried.Put(TriedString("asdf"))
-	tried.Put(TriedString("hehe"), "hehe")
-	tried.Put(TriedString("xixi"), 3)
+	tried.Put(("asdf"))
+	tried.Put(("hehe"), "hehe")
+	tried.Put(("xixi"), 3)
 
 	var result interface{}
 
-	result = tried.Get(TriedString("asdf"))
+	result = tried.Get("asdf")
 	if result != tried {
 		t.Error("result should be 3")
 	}
 
-	result = tried.Get(TriedString("xixi"))
+	result = tried.Get("xixi")
 	if result != 3 {
 		t.Error("result should be 3")
 	}
 
-	result = tried.Get(TriedString("hehe"))
+	result = tried.Get("hehe")
 	if result != "hehe" {
 		t.Error("result should be hehe")
 	}
 
-	result = tried.Get(TriedString("haha"))
+	result = tried.Get("haha")
 	if result != nil {
 		t.Error("result should be nil")
 	}
 
-	result = tried.Get(TriedString("b"))
+	result = tried.Get("b")
 	if result != nil {
 		t.Error("result should be nil")
 	}
@@ -43,10 +43,10 @@ func TestTried_PutAndGet1(t *testing.T) {
 
 func TestTried_Traversal(t *testing.T) {
 	tried := New()
-	tried.Put(TriedString("asdf"))
-	tried.Put(TriedString("abdf"), "ab")
-	tried.Put(TriedString("hehe"), "hehe")
-	tried.Put(TriedString("xixi"), 3)
+	tried.Put("asdf")
+	tried.Put(("abdf"), "ab")
+	tried.Put(("hehe"), "hehe")
+	tried.Put(("xixi"), 3)
 
 	var result []interface{}
 	tried.Traversal(func(idx uint, v interface{}) bool {
@@ -74,12 +74,12 @@ func TestTried_Traversal(t *testing.T) {
 
 func BenchmarkTried_Put(b *testing.B) {
 
-	var data []TriedString
-	b.N = 10000
-	count := 1000
+	var data []string
+	b.N = 100000
+	count := 50
 
 	for i := 0; i < b.N; i++ {
-		data = append(data, TriedString(randomdata.RandStringRunes(10)+randomdata.RandStringRunes(4)))
+		data = append(data, (randomdata.RandStringRunes(10) + randomdata.RandStringRunes(4)))
 	}
 
 	b.ResetTimer()
@@ -94,12 +94,12 @@ func BenchmarkTried_Put(b *testing.B) {
 
 func BenchmarkTried_Get(b *testing.B) {
 
-	var data []TriedString
-	b.N = 10000
-	count := 1000
+	var data []string
+	b.N = 100000
+	count := 50
 
 	for i := 0; i < b.N; i++ {
-		data = append(data, TriedString(randomdata.RandStringRunes(10)+randomdata.RandStringRunes(4)))
+		data = append(data, (randomdata.RandStringRunes(10) + randomdata.RandStringRunes(4)))
 	}
 
 	b.N = b.N * count

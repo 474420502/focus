@@ -49,11 +49,11 @@ func (tried *Tried) wordIndex(w byte) uint {
 	}
 }
 
-func (tried *Tried) Put(words ObjectIndex, values ...interface{}) {
+func (tried *Tried) Put(words string, values ...interface{}) {
 	cur := tried.root
 	var n *Node
-	for i := uint(0); i < words.Size(); i++ {
-		w := words.WordIndex(i)
+	for i := 0; i < len(words); i++ {
+		w := tried.wordIndex(words[i])
 
 		if cur.data == nil {
 			cur.data = make([]*Node, tried.datasize)
@@ -80,11 +80,11 @@ func (tried *Tried) Put(words ObjectIndex, values ...interface{}) {
 
 }
 
-func (tried *Tried) Get(words ObjectIndex) interface{} {
+func (tried *Tried) Get(words string) interface{} {
 	cur := tried.root
 	var n *Node
-	for i := uint(0); i < words.Size(); i++ {
-		w := words.WordIndex(i) //TODO: 升级Index 函数
+	for i := 0; i < len(words); i++ {
+		w := tried.wordIndex(words[i]) //TODO: 升级Index 函数
 		if n = cur.data[w]; n == nil {
 			return nil
 		}
@@ -93,7 +93,7 @@ func (tried *Tried) Get(words ObjectIndex) interface{} {
 	return n.value
 }
 
-func (tried *Tried) Has(words ObjectIndex) bool {
+func (tried *Tried) Has(words string) bool {
 	return tried.Get(words) != nil
 }
 
