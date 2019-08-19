@@ -7,15 +7,19 @@ func (ts TriedString) Size() uint {
 }
 
 func (ts TriedString) WordIndex(idx uint) uint {
-	w := ts[idx]
-	if w >= 'a' && w <= 'z' {
-		return uint(w) - 'a'
-	} else if w >= 'A' && w <= 'Z' {
-		return uint(w) - 'A' + 26
-	} else {
-		return uint(w) - '0' + 52
-	}
+	return uint(ts[idx]) - 'a'
 }
+
+// func (ts TriedString) WordIndex(idx uint) uint {
+// 	w := ts[idx]
+// 	if w >= 'a' && w <= 'z' {
+// 		return uint(w) - 'a'
+// 	} else if w >= 'A' && w <= 'Z' {
+// 		return uint(w) - 'A' + 26
+// 	} else {
+// 		return uint(w) - '0' + 52
+// 	}
+// }
 
 type ObjectIndex interface {
 	WordIndex(idx uint) uint
@@ -40,20 +44,14 @@ func New() *Tried {
 }
 
 func (tried *Tried) wordIndex(w byte) uint {
-	if w >= 'a' && w <= 'z' {
-		return uint(w) - 'a'
-	} else if w >= 'A' && w <= 'Z' {
-		return uint(w) - 'A' + 26
-	} else {
-		return uint(w) - '0' + 52
-	}
+	return uint(w) - 'a'
 }
 
-func (tried *Tried) Put(words string, values ...interface{}) {
+func (tried *Tried) Put(words ObjectIndex, values ...interface{}) {
 	cur := tried.root
 	var n *Node
-	for i := 0; i < len(words); i++ {
-		w := tried.wordIndex(words[i])
+	for i := uint(0); i < words.Size(); i++ {
+		w := words.WordIndex(i)
 
 		if cur.data == nil {
 			cur.data = make([]*Node, tried.datasize)
@@ -80,11 +78,11 @@ func (tried *Tried) Put(words string, values ...interface{}) {
 
 }
 
-func (tried *Tried) Get(words string) interface{} {
+func (tried *Tried) Get(words ObjectIndex) interface{} {
 	cur := tried.root
 	var n *Node
-	for i := 0; i < len(words); i++ {
-		w := tried.wordIndex(words[i]) //TODO: 升级Index 函数
+	for i := uint(0); i < words.Size(); i++ {
+		w := words.WordIndex(i) //TODO: 升级Index 函数
 		if n = cur.data[w]; n == nil {
 			return nil
 		}
@@ -93,7 +91,7 @@ func (tried *Tried) Get(words string) interface{} {
 	return n.value
 }
 
-func (tried *Tried) Has(words string) bool {
+func (tried *Tried) Has(words ObjectIndex) bool {
 	return tried.Get(words) != nil
 }
 
