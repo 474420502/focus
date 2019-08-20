@@ -133,7 +133,7 @@ func indexWordUpperLowerDigital(w uint) byte {
 	return byte(w) + 'a'
 }
 
-// wordIndex256 all byte 不支持中文
+// wordIndex256 all byte 支持中文
 func wordIndex256(w byte) uint {
 	return uint(w)
 }

@@ -84,7 +84,7 @@ func TestTried_String(t *testing.T) {
 	wordsList = append(wordsList, []string{"azAZ09", "aRGFDSFDSzAasdZ06789", "A28374JHFudfsu09qwzzdsw874FDSAZfer"})
 
 	triedList = append(triedList, NewWithWordType(WordIndex256))
-	wordsList = append(wordsList, []string{"21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!\x01 09-213", "!@$*#))(#*", `\/213dsfsdf`})
+	wordsList = append(wordsList, []string{"21`3tcdbxcf囉hyop打算8901zc[]\\'/?()#$%^&**!\x01 09-213", "的支持中文", "!@$*#)中文)(#*", `\/213dsfsdf`})
 
 	triedList = append(triedList, NewWithWordType(WordIndex32to126))
 	wordsList = append(wordsList, []string{" 21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  ", "AZaz09~ dys!@#$)(*^$#", "<>.,?/"})

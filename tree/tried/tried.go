@@ -46,8 +46,10 @@ func (tried *Tried) Put(words string, values ...interface{}) {
 	cur := tried.root
 	var n *Node
 
-	for i := 0; i < len(words); i++ {
-		w := tried.wiStore.Byte2Index(words[i])
+	bytes := []byte(words)
+
+	for i := 0; i < len(bytes); i++ {
+		w := tried.wiStore.Byte2Index(bytes[i])
 
 		if cur.data == nil {
 			cur.data = make([]*Node, tried.wiStore.DataSize)
@@ -121,12 +123,12 @@ func (tried *Tried) Traversal(every func(cidx uint, value interface{}) bool) {
 func (tried *Tried) WordsArray() []string {
 	var result []string
 
-	var traversal func([]rune, *Node)
-	traversal = func(prefix []rune, cur *Node) {
+	var traversal func([]byte, *Node)
+	traversal = func(prefix []byte, cur *Node) {
 
 		for i, n := range cur.data {
 			if n != nil {
-				nextPrefix := append(prefix, rune(tried.wiStore.Index2Byte(uint(i))))
+				nextPrefix := append(prefix, tried.wiStore.Index2Byte(uint(i)))
 				traversal(nextPrefix, n)
 				if n.value != nil {
 					result = append(result, string(nextPrefix))
@@ -137,7 +139,7 @@ func (tried *Tried) WordsArray() []string {
 	}
 
 	if tried.root != nil {
-		traversal([]rune{}, tried.root)
+		traversal([]byte{}, tried.root)
 	}
 
 	return result
