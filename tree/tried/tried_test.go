@@ -68,6 +68,9 @@ func TestTried_String(t *testing.T) {
 	triedList = append(triedList, NewWithWordType(WordIndexUpper))
 	wordsList = append(wordsList, []string{"ADFSZ", "DEFASEWRQWER", "GFHJERQWREWTNBVFGFH"})
 
+	triedList = append(triedList, NewWithWordType(WordIndexDigital))
+	wordsList = append(wordsList, []string{"093875239457", "09123406534", "0912340846"})
+
 	triedList = append(triedList, NewWithWordType(WordIndexUpperLower))
 	wordsList = append(wordsList, []string{"adazxAZDSAFASZRETHGFTUIPK", "assdfhgDSFGnvb", "yaXZLMPOIQsdGHFfmFBzvxz"})
 
