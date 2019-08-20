@@ -317,7 +317,10 @@ func TesStoreData(t *testing.T) {
 
 func Load() []string {
 	var result []string
-	f, _ := os.Open("tried.log")
+	f, err := os.Open("tried.log")
+	if err != nil {
+		panic("先执行TesStoreData 然后再测试Benchmark")
+	}
 	gob.NewDecoder(f).Decode(&result)
 	return result
 }

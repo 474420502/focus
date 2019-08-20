@@ -27,7 +27,6 @@ type Node struct {
 func New() *Tried {
 	tried := &Tried{}
 	tried.root = new(Node)
-
 	tried.wiStore = WordIndexDict[WordIndexLower]
 	return tried
 }
