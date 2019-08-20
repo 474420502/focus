@@ -4,70 +4,55 @@ import (
 	"bytes"
 	"encoding/gob"
 	"os"
+	"sort"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/Pallinder/go-randomdata"
 )
 
 func TestTried_NewWith(t *testing.T) {
-
 	var tried *Tried
-	var words string
+	var wordsCollection []string
+	var wordsList [][]string
+	var triedList []*Tried
 
-	tried = NewWithWordType(WordIndexLower)
-	words = "az"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexLower))
+	wordsList = append(wordsList, []string{"adazx", "assdfhgnvb", "ewqyiouyasdfmzvxz"})
 
-	tried = NewWithWordType(WordIndexUpper)
-	words = "AZ"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexUpper))
+	wordsList = append(wordsList, []string{"ADFSZ", "DEFASEWRQWER", "GFHJERQWREWTNBVFGFH"})
 
-	tried = NewWithWordType(WordIndexUpperLower)
-	words = "AZazsdfsd"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLower))
+	wordsList = append(wordsList, []string{"adazxAZDSAFASZRETHGFTUIPK", "assdfhgDSFGnvb", "yaXZLMPOIQsdGHFfmFBzvxz"})
 
-	tried = NewWithWordType(WordIndexUpperDigital)
-	words = "AZ021365546987"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexUpperDigital))
+	wordsList = append(wordsList, []string{"AZ3428934470193", "ZPQPDEK09876543629812", "AZEWIRU0192456FDEWR9032"})
 
-	tried = NewWithWordType(WordIndexLowerDigital)
-	words = "azfdgyjmnbjhkpuizxasd021365546987"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexLowerDigital))
+	wordsList = append(wordsList, []string{"az3428934470193", "zpqwe0987654362sf9812", "az21301az09azdstr540"})
 
-	tried = NewWithWordType(WordIndexUpperLowerDigital)
-	words = "AZazsdfsd131209"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLowerDigital))
+	wordsList = append(wordsList, []string{"azAZ09", "aRGFDSFDSzAasdZ06789", "A28374JHFudfsu09qwzzdsw874FDSAZfer"})
 
-	tried = NewWithWordType(WordIndex256)
-	words = "21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**! 09-阿萨德发生的官方说的对符合规定"
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
-	}
+	triedList = append(triedList, NewWithWordType(WordIndex256))
+	wordsList = append(wordsList, []string{"21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**! 09-阿萨德发生的官方说的对符合规定", "符号!@$*#))(#*", "╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳▁▂▃▄▅▆▇█ ▉ ▊▋▌▍▎▏"})
 
-	tried = NewWithWordType(WordIndex32to126)
-	words = " 21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  "
-	tried.Put(words)
-	if tried.Get(words) == nil {
-		t.Error("should be not nil")
+	triedList = append(triedList, NewWithWordType(WordIndex32to126))
+	wordsList = append(wordsList, []string{" 21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  ", "AZaz09~ dys!@#$)(*^$#", "<>.,?/"})
+
+	for i := 0; i < len(triedList); i++ {
+		tried = triedList[i]
+		wordsCollection = wordsList[i]
+		for _, words := range wordsCollection {
+			tried.Put(words)
+
+			if tried.Get(words) == nil {
+				t.Error("should be not nil the type is ", tried.wiStore.Type)
+			}
+		}
+		// t.Error(tried.WordsArray())
 	}
 }
 
@@ -80,16 +65,56 @@ func TestTried_String(t *testing.T) {
 	triedList = append(triedList, NewWithWordType(WordIndexLower))
 	wordsList = append(wordsList, []string{"adazx", "assdfhgnvb", "ewqyiouyasdfmzvxz"})
 
+	triedList = append(triedList, NewWithWordType(WordIndexUpper))
+	wordsList = append(wordsList, []string{"ADFSZ", "DEFASEWRQWER", "GFHJERQWREWTNBVFGFH"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLower))
+	wordsList = append(wordsList, []string{"adazxAZDSAFASZRETHGFTUIPK", "assdfhgDSFGnvb", "yaXZLMPOIQsdGHFfmFBzvxz"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperDigital))
+	wordsList = append(wordsList, []string{"AZ3428934470193", "ZPQPDEK09876543629812", "AZEWIRU0192456FDEWR9032"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexLowerDigital))
+	wordsList = append(wordsList, []string{"az3428934470193", "zpqwe0987654362sf9812", "az21301az09azdstr540"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLowerDigital))
+	wordsList = append(wordsList, []string{"azAZ09", "aRGFDSFDSzAasdZ06789", "A28374JHFudfsu09qwzzdsw874FDSAZfer"})
+
+	triedList = append(triedList, NewWithWordType(WordIndex256))
+	wordsList = append(wordsList, []string{"21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!\x01 09-213", "!@$*#))(#*", `\/213dsfsdf`})
+
+	triedList = append(triedList, NewWithWordType(WordIndex32to126))
+	wordsList = append(wordsList, []string{" 21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  ", "AZaz09~ dys!@#$)(*^$#", "<>.,?/"})
+
 	for i := 0; i < len(triedList); i++ {
 		tried = triedList[i]
 		wordsCollection = wordsList[i]
 		for _, words := range wordsCollection {
 			tried.Put(words)
 			if tried.Get(words) == nil {
-				t.Error("should be not nil")
+				t.Error("should be not nil the type is ", tried.wiStore.Type)
 			}
 		}
-		t.Error(tried.WordsArray())
+		sort.Slice(wordsCollection, func(i, j int) bool {
+			if wordsCollection[i] < wordsCollection[j] {
+				return true
+			}
+			return false
+		})
+
+		resultArray := tried.WordsArray()
+		sort.Slice(resultArray, func(i, j int) bool {
+			if resultArray[i] < resultArray[j] {
+				return true
+			}
+			return false
+		})
+		result1 := spew.Sprint(resultArray)
+		result2 := spew.Sprint(wordsCollection)
+		if result1 != result2 {
+			t.Error(result1, " != ", result2)
+		}
+		// t.Error(tried.WordsArray())
 	}
 }
 

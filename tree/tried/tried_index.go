@@ -76,7 +76,7 @@ func wordIndexUpperLower(w byte) uint {
 func indexWordUpperLower(w uint) byte {
 
 	if w >= 26 {
-		return byte(w) + 'A'
+		return byte(w) - 26 + 'A'
 	}
 	return byte(w) + 'a'
 }
@@ -92,7 +92,7 @@ func wordIndexLowerDigital(w byte) uint {
 
 func indexWordLowerDigital(w uint) byte {
 	if w >= 26 {
-		return byte(w) + '0'
+		return byte(w) - 26 + '0'
 	}
 	return byte(w) + 'a'
 }
@@ -108,9 +108,9 @@ func wordIndexUpperDigital(w byte) uint {
 
 func indexWordUpperDigital(w uint) byte {
 	if w >= 26 {
-		return byte(w) + '0'
+		return byte(w) - 26 + '0'
 	}
-	return byte(w) + 'a'
+	return byte(w) + 'A'
 }
 
 //
@@ -126,14 +126,14 @@ func wordIndexUpperLowerDigital(w byte) uint {
 
 func indexWordUpperLowerDigital(w uint) byte {
 	if w >= 52 {
-		return byte(w) + '0'
+		return byte(w) - 52 + '0'
 	} else if w >= 26 {
-		return byte(w) + 'A'
+		return byte(w) - 26 + 'A'
 	}
 	return byte(w) + 'a'
 }
 
-// wordIndex256 all byte
+// wordIndex256 all byte 不支持中文
 func wordIndex256(w byte) uint {
 	return uint(w)
 }

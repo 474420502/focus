@@ -126,10 +126,10 @@ func (tried *Tried) WordsArray() []string {
 
 		for i, n := range cur.data {
 			if n != nil {
-				prefix = append(prefix, rune(tried.wiStore.Index2Byte(uint(i))))
-				traversal(prefix, n)
+				nextPrefix := append(prefix, rune(tried.wiStore.Index2Byte(uint(i))))
+				traversal(nextPrefix, n)
 				if n.value != nil {
-					result = append(result, string(prefix))
+					result = append(result, string(nextPrefix))
 				}
 			}
 		}
