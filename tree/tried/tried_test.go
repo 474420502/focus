@@ -12,6 +12,127 @@ import (
 	"github.com/Pallinder/go-randomdata"
 )
 
+func CompareSliceWithSorted(source, words []string) (bool, string) {
+	sort.Slice(words, func(i, j int) bool {
+		if words[i] < words[j] {
+			return true
+		}
+		return false
+	})
+
+	// source := tried.WordsArray()
+	sort.Slice(source, func(i, j int) bool {
+		if source[i] < source[j] {
+			return true
+		}
+		return false
+	})
+	result1 := spew.Sprint(source)
+	result2 := spew.Sprint(words)
+
+	if result1 != result2 {
+		return false, spew.Sprint(result1, " != ", result2)
+	}
+	return true, ""
+}
+
+func TestTried_Has(t *testing.T) {
+	var tried *Tried
+	tried = NewWithWordType(WordIndexLower)
+	tried.Put("ads")
+	tried.Put("zadads")
+	tried.Put("asdgdf")
+	if !tried.Has("ads") {
+		t.Error("ads is exist, but not has")
+	}
+
+	if !tried.HasPrefix("ad") {
+		t.Error("ads is exist, but not HasPrefix")
+	}
+
+	if !tried.HasPrefix("za") {
+		t.Error("ads is exist, but not HasPrefix")
+	}
+
+	if tried.HasPrefix("fsdf") {
+		t.Error("fsdf  is not exist, but  HasPrefix")
+	}
+
+	if len(tried.String()) < 10 {
+		t.Error(tried.WordsArray())
+	}
+}
+func TestTried_PrefixWords(t *testing.T) {
+
+	var tried *Tried
+	var wordsCollection []string
+	var input []string
+
+	var wordsList [][]string
+	var inputParams [][]string
+	var triedList []*Tried
+
+	triedList = append(triedList, NewWithWordType(WordIndexLower))
+	inputParams = append(inputParams, []string{"ad", "adf"})
+	wordsList = append(wordsList, []string{"ad", "adfsxzcdas", "adfadsasd"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpper))
+	inputParams = append(inputParams, []string{"AD", "ADF"})
+	wordsList = append(wordsList, []string{"AD", "ADFSXZCDAS", "ADFADSASD"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLower))
+	inputParams = append(inputParams, []string{"aD", "aDf"})
+	wordsList = append(wordsList, []string{"aDF", "aDfsxzcdas", "aDfadsasd"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperDigital))
+	inputParams = append(inputParams, []string{"A09D", "A09DF"})
+	wordsList = append(wordsList, []string{"A09D", "A09DFSXZCD312AS", "A09DFA32DSASD"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexLowerDigital))
+	inputParams = append(inputParams, []string{"a09d", "a09df"})
+	wordsList = append(wordsList, []string{"a09d", "a09dfsxzcd312as", "a09dfa32dsasd"})
+
+	triedList = append(triedList, NewWithWordType(WordIndexUpperLowerDigital))
+	inputParams = append(inputParams, []string{"A09d", "A09dZ"})
+	wordsList = append(wordsList, []string{"A09d", "A09dZsxzcd312as", "A09dZa32dsasd"})
+
+	triedList = append(triedList, NewWithWordType(WordIndex256))
+	inputParams = append(inputParams, []string{"阿萨德", "阿萨德!"})
+	wordsList = append(wordsList, []string{"阿萨德", "阿萨德!@$*#))(#*", "阿萨德!╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳▁▂▃▄▅▆▇█ ▉ ▊▋▌▍▎▏"})
+
+	triedList = append(triedList, NewWithWordType(WordIndex32to126))
+	inputParams = append(inputParams, []string{" `", " `<"})
+	wordsList = append(wordsList, []string{" `21`3tcdbxcfhyop8901zc[]\\'/?()#$%^&**!  ", " `<AZaz09~ dys!@#$)(*^$#", " `<>.,?/"})
+
+	for i := 0; i < len(triedList); i++ {
+		tried = triedList[i]
+		input = inputParams[i]
+		wordsCollection = wordsList[i]
+		for _, words := range wordsCollection {
+			tried.Put(words)
+		}
+		var prefixWords []string
+		prefixWords = tried.PrefixWords(input[0])
+		if ok, errorResult := CompareSliceWithSorted(prefixWords, wordsCollection); !ok {
+			t.Error(errorResult)
+		}
+
+		prefixWords = tried.PrefixWords(input[1])
+		if ok, _ := CompareSliceWithSorted(prefixWords, wordsCollection); ok {
+			t.Error("should be not ok")
+		}
+		if len(prefixWords) != 2 {
+			t.Error(prefixWords, " Size of Array should be 2")
+		}
+
+		if ok, errorResult := CompareSliceWithSorted(prefixWords, wordsCollection[1:]); !ok {
+			t.Error(errorResult)
+		}
+
+		// t.Error(tried.WordsArray())
+	}
+}
+
 func TestTried_NewWith(t *testing.T) {
 	var tried *Tried
 	var wordsCollection []string
@@ -98,25 +219,12 @@ func TestTried_String(t *testing.T) {
 				t.Error("should be not nil the type is ", tried.wiStore.Type)
 			}
 		}
-		sort.Slice(wordsCollection, func(i, j int) bool {
-			if wordsCollection[i] < wordsCollection[j] {
-				return true
-			}
-			return false
-		})
 
 		resultArray := tried.WordsArray()
-		sort.Slice(resultArray, func(i, j int) bool {
-			if resultArray[i] < resultArray[j] {
-				return true
-			}
-			return false
-		})
-		result1 := spew.Sprint(resultArray)
-		result2 := spew.Sprint(wordsCollection)
-		if result1 != result2 {
-			t.Error(result1, " != ", result2)
+		if ok, errorResult := CompareSliceWithSorted(resultArray, wordsCollection); !ok {
+			t.Error(errorResult)
 		}
+
 		// t.Error(tried.WordsArray())
 	}
 }

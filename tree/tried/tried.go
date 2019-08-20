@@ -62,26 +62,20 @@ func (tried *Tried) Put(words string, values ...interface{}) {
 		cur = n
 	}
 
-	vlen := len(values)
-	switch vlen {
-	case 0:
-		cur.value = tried
-	case 1:
+	if values != nil {
 		cur.value = values[0]
-	case 2:
-		// TODO: 执行函数 values[1] 为函数类型 func (cur *Node, value interface{}) ...可以插入, 也可以不插入
-	default:
-		panic("unknow select to do")
+	} else {
+		cur.value = tried
 	}
-
 }
 
 func (tried *Tried) Get(words string) interface{} {
 	cur := tried.root
 	var n *Node
+	bytes := []byte(words)
 
-	for i := 0; i < len(words); i++ {
-		w := tried.wiStore.Byte2Index(words[i]) //TODO: 升级Index 函数
+	for i := 0; i < len(bytes); i++ {
+		w := tried.wiStore.Byte2Index(bytes[i]) //TODO: 升级Index 函数
 		if n = cur.data[w]; n == nil {
 			return nil
 		}
@@ -95,7 +89,61 @@ func (tried *Tried) Has(words string) bool {
 }
 
 func (tried *Tried) HasPrefix(words string) bool {
-	return tried.Get(words) != nil
+	cur := tried.root
+	var n *Node
+	bytes := []byte(words)
+
+	for i := 0; i < len(bytes); i++ {
+		w := tried.wiStore.Byte2Index(bytes[i]) //TODO: 升级Index 函数
+		if n = cur.data[w]; n == nil {
+			return false
+		}
+		cur = n
+	}
+	return true
+}
+
+func (tried *Tried) PrefixWords(words string) []string {
+	cur := tried.root
+	var n *Node
+	bytes := []byte(words)
+
+	var header []byte
+	for i := 0; i < len(bytes); i++ {
+		curbyte := bytes[i]
+		header = append(header, curbyte)
+		w := tried.wiStore.Byte2Index(curbyte)
+		if n = cur.data[w]; n == nil {
+			return nil
+		}
+		cur = n
+	}
+
+	var result []string
+
+	var traversal func([]byte, *Node)
+	traversal = func(prefix []byte, cur *Node) {
+
+		for i, n := range cur.data {
+			if n != nil {
+				nextPrefix := append(prefix, tried.wiStore.Index2Byte(uint(i)))
+				traversal(nextPrefix, n)
+				if n.value != nil {
+					result = append(result, string(append(header, nextPrefix...)))
+				}
+			}
+		}
+
+	}
+	// 拼接头
+	if n != nil {
+		if n.value != nil {
+			result = append(result, string(header))
+		}
+		traversal([]byte{}, n)
+	}
+
+	return result
 }
 
 func (tried *Tried) Traversal(every func(cidx uint, value interface{}) bool) {
