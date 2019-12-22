@@ -62,7 +62,7 @@ func (tree *Tree) Size() int {
 	return tree.root.size
 }
 
-func (tree *Tree) indexNode(idx int) *Node {
+func (tree *Tree) IndexNode(idx int) *Node {
 	cur := tree.root
 	if idx >= 0 {
 		for cur != nil {
@@ -94,7 +94,7 @@ func (tree *Tree) indexNode(idx int) *Node {
 }
 
 func (tree *Tree) Index(idx int) (interface{}, bool) {
-	n := tree.indexNode(idx)
+	n := tree.IndexNode(idx)
 	if n != nil {
 		return n.value, true
 	}
@@ -118,7 +118,7 @@ func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { /
 			ok = false
 		}
 
-		n := tree.indexNode(idx1)
+		n := tree.IndexNode(idx1)
 		tree.iter.SetNode(n)
 		iter := tree.iter
 		result = make([]interface{}, 0, idx1-idx2)
@@ -140,7 +140,7 @@ func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { /
 			ok = false
 		}
 
-		if n := tree.indexNode(idx1); n != nil {
+		if n := tree.IndexNode(idx1); n != nil {
 			tree.iter.SetNode(n)
 			iter := tree.iter
 			result = make([]interface{}, 0, idx2-idx1)
@@ -162,15 +162,15 @@ func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { /
 }
 
 func (tree *Tree) RemoveIndex(idx int) (interface{}, bool) {
-	n := tree.indexNode(idx)
+	n := tree.IndexNode(idx)
 	if n != nil {
-		tree.removeNode(n)
+		tree.RemoveNode(n)
 		return n.value, true
 	}
 	return nil, false
 }
 
-func (tree *Tree) removeNode(n *Node) {
+func (tree *Tree) RemoveNode(n *Node) {
 	if tree.root.size == 1 {
 		tree.root = nil
 		// return n
@@ -231,7 +231,7 @@ func (tree *Tree) removeNode(n *Node) {
 func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 
 	if n, ok := tree.GetNode(key); ok {
-		tree.removeNode(n)
+		tree.RemoveNode(n)
 		return n.value, true
 	}
 	// return nil
