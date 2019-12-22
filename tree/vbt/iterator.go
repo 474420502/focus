@@ -1,7 +1,7 @@
 package vbt
 
 import (
-	"github.com/474420502/focus/stack/listarraystack"
+	lastack "github.com/474420502/focus/stack/listarraystack"
 )
 
 type Iterator struct {
@@ -112,6 +112,7 @@ func (iter *Iterator) Next() (result bool) {
 
 	return false
 }
+
 func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
 
 	// iter := NewIterator(cur)
