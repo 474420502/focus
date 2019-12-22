@@ -170,6 +170,28 @@ func TestQueueRemove(t *testing.T) {
 	}
 }
 
+func TestQueueRemoveNode(t *testing.T) {
+	pq := New(compare.Int)
+	l := []int{32, 10, 53, 78, 90, 1, 4}
+	for _, v := range l {
+		pq.Push(v)
+	}
+
+	content := ""
+	for _, v := range l {
+		if n, ok := pq.GetNode(v); ok {
+			pq.RemoveNode(n)
+			content += spew.Sprint(pq.Values())
+		} else {
+			t.Error("can not get Node: ", v)
+		}
+	}
+
+	if content != "[90 78 53 10 4 1][90 78 53 4 1][90 78 4 1][90 4 1][4 1][4][]" {
+		t.Error(content)
+	}
+}
+
 func TestQueueRemoveIndex(t *testing.T) {
 	pq := New(compare.Int)
 	l := []int{32, 10, 53, 78, 90, 1, 4}

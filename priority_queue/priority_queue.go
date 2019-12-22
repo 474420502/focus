@@ -50,20 +50,20 @@ func (pq *PriorityQueue) IndexNode(idx int) (*Node, bool) {
 	return n, n != nil
 }
 
-func (pq *PriorityQueue) Get(key interface{}) (interface{}, bool) {
-	return pq.queue.Get(key)
+func (pq *PriorityQueue) Get(value interface{}) (interface{}, bool) {
+	return pq.queue.Get(value)
 }
 
-func (pq *PriorityQueue) GetNode(key interface{}) (*Node, bool) {
-	return pq.queue.GetNode(key)
+func (pq *PriorityQueue) GetNode(value interface{}) (*Node, bool) {
+	return pq.queue.GetNode(value)
 }
 
-func (pq *PriorityQueue) GetAround(key interface{}) [3]interface{} {
-	return pq.queue.GetAround(key)
+func (pq *PriorityQueue) GetAround(value interface{}) [3]interface{} {
+	return pq.queue.GetAround(value)
 }
 
-func (pq *PriorityQueue) GetAroundNode(key interface{}) [3]*Node {
-	return pq.queue.getArounNode(key)
+func (pq *PriorityQueue) GetAroundNode(value interface{}) [3]*Node {
+	return pq.queue.getArounNode(value)
 }
 
 func (pq *PriorityQueue) GetRange(k1, k2 interface{}) []interface{} {
@@ -74,8 +74,12 @@ func (pq *PriorityQueue) RemoveIndex(idx int) (interface{}, bool) {
 	return pq.queue.RemoveIndex(idx)
 }
 
-func (pq *PriorityQueue) Remove(key interface{}) (interface{}, bool) {
-	return pq.queue.Remove(key)
+func (pq *PriorityQueue) Remove(vlaue interface{}) (interface{}, bool) {
+	return pq.queue.Remove(vlaue)
+}
+
+func (pq *PriorityQueue) RemoveNode(node *Node) {
+	pq.queue.removeNode(node)
 }
 
 func (pq *PriorityQueue) Values() []interface{} {

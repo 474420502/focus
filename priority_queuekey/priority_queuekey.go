@@ -78,6 +78,10 @@ func (pq *PriorityQueue) Remove(key interface{}) (interface{}, bool) {
 	return pq.queue.Remove(key)
 }
 
+func (pq *PriorityQueue) RemoveNode(node *Node) {
+	pq.queue.removeNode(node)
+}
+
 func (pq *PriorityQueue) Values() []interface{} {
 	return pq.queue.Values()
 }
