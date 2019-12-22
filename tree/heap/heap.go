@@ -4,27 +4,27 @@ import (
 	"github.com/474420502/focus/compare"
 )
 
-type Heap struct {
+type Tree struct {
 	size     int
 	elements []interface{}
 	Compare  compare.Compare
 }
 
-func New(Compare compare.Compare) *Heap {
-	h := &Heap{Compare: Compare}
+func New(Compare compare.Compare) *Tree {
+	h := &Tree{Compare: Compare}
 	h.elements = make([]interface{}, 16, 16)
 	return h
 }
 
-func (h *Heap) Size() int {
+func (h *Tree) Size() int {
 	return h.size
 }
 
-func (h *Heap) Values() []interface{} {
+func (h *Tree) Values() []interface{} {
 	return h.elements[0:h.size]
 }
 
-func (h *Heap) grow() {
+func (h *Tree) grow() {
 	ecap := len(h.elements)
 	if h.size >= ecap {
 		ecap = ecap << 1
@@ -34,27 +34,27 @@ func (h *Heap) grow() {
 	}
 }
 
-func (h *Heap) Empty() bool {
+func (h *Tree) Empty() bool {
 	return h.size < 1
 }
 
-func (h *Heap) Clear() {
+func (h *Tree) Clear() {
 	h.size = 0
 }
 
-func (h *Heap) Reborn() {
+func (h *Tree) Reborn() {
 	h.size = 0
 	h.elements = make([]interface{}, 16, 16)
 }
 
-func (h *Heap) Top() (interface{}, bool) {
+func (h *Tree) Top() (interface{}, bool) {
 	if h.size != 0 {
 		return h.elements[0], true
 	}
 	return nil, false
 }
 
-func (h *Heap) Put(v interface{}) {
+func (h *Tree) Put(v interface{}) {
 	if v == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func (h *Heap) Put(v interface{}) {
 	h.elements[curidx] = v
 }
 
-func (h *Heap) slimming() {
+func (h *Tree) slimming() {
 
 	elen := len(h.elements)
 	if elen >= 32 {
@@ -92,7 +92,7 @@ func (h *Heap) slimming() {
 
 }
 
-func (h *Heap) Pop() (interface{}, bool) {
+func (h *Tree) Pop() (interface{}, bool) {
 
 	if h.size == 0 {
 		return nil, false
