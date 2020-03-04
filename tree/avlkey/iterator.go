@@ -1,7 +1,7 @@
 package avlkey
 
 import (
-	"github.com/474420502/focus/stack/listarraystack"
+	lastack "github.com/474420502/focus/stack/listarraystack"
 )
 
 type Iterator struct {
@@ -48,6 +48,10 @@ func (iter *Iterator) SetNode(n *Node) {
 	iter.up = n
 	iter.dir = 0
 	iter.tstack.Clear()
+}
+
+func (iter *Iterator) Key() interface{} {
+	return iter.cur.key
 }
 
 func (iter *Iterator) Value() interface{} {

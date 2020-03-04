@@ -50,6 +50,10 @@ func (iter *Iterator) SetNode(n *Node) {
 	iter.tstack.Clear()
 }
 
+func (iter *Iterator) Key() interface{} {
+	return iter.cur.key
+}
+
 func (iter *Iterator) Value() interface{} {
 	return iter.cur.value
 }
