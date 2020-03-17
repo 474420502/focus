@@ -25,3 +25,15 @@ type IBSTree interface {
 	Put(value interface{})
 	Traversal(every func(v interface{}) bool, traversalMethod ...interface{})
 }
+
+type IBSTreeDupKey interface {
+	String() string
+	Size() int
+	Remove(key interface{}) (interface{}, bool)
+	Clear()
+	// Values 返回先序遍历的值
+	Values() []interface{}
+	Get(key interface{}) (interface{}, bool)
+	Put(key, value interface{}) bool
+	Traversal(every func(k, v interface{}) bool, traversalMethod ...interface{})
+}
