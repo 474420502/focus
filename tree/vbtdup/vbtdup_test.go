@@ -1,4 +1,4 @@
-package vbtkey
+package vbtdup
 
 import (
 	"bytes"
@@ -29,7 +29,7 @@ func TestIteratorHeadTail(t *testing.T) {
 	tree := New(compare.Int)
 	l := []int{1, 7, 14, 14, 16, 17, 20, 30, 21, 40, 50, 3, 40, 40, 40, 15, 100}
 	for _, v := range l {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	iter := tree.Iterator()
@@ -50,7 +50,7 @@ func TestIteratorHeadTail(t *testing.T) {
 		var results []int
 		for i := 0; i < 50; i++ {
 			v := randomdata.Number(0, 5000)
-			if ok := tree.Put(v, v); ok {
+			if ok := tree.Put(v); ok {
 				results = append(results, v)
 			}
 		}
@@ -81,7 +81,7 @@ func TestLargePushRemove(t *testing.T) {
 		var results []int
 		for i := 0; i < 50000; i++ {
 			v := randomdata.Number(0, 100000000)
-			if ok := tree.Put(v, v); ok {
+			if ok := tree.Put(v); ok {
 				results = append(results, v)
 			}
 
@@ -131,7 +131,7 @@ func TestRemoveIndex(t *testing.T) {
 	tree := New(compare.Int)
 	l := []int{7, 14, 14, 14, 16, 1, 40, 15}
 	for _, v := range l {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	// [1 7 14 14 14 15 16 40]
@@ -176,7 +176,7 @@ func TestIndexRange(t *testing.T) {
 	tree := New(compare.Int)
 	l := []int{7, 14, 14, 14, 16, 17, 20, 30, 21, 40, 50, 3, 40, 40, 40, 15}
 	for _, v := range l {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 	// [3 7 14 15 16 17 20 21 30 40 50]
 	// t.Error(tree.Values(), tree.Size())
@@ -254,7 +254,7 @@ func TestIndexRange(t *testing.T) {
 func TestGetAround(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{7, 14, 14, 14, 16, 17, 20, 30, 21, 40, 50, 3, 40, 40, 40, 15} {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	var Result string
@@ -352,7 +352,7 @@ func TestGetAround(t *testing.T) {
 func TestGet(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{2383, 7666, 3055, 39016, 57092, 27897, 36513, 1562, 22574, 23202} {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	for _, v := range []int{2383, 7666, 3055, 39016, 57092, 27897, 36513, 1562, 22574, 23202} {
@@ -370,7 +370,7 @@ func TestGet(t *testing.T) {
 func TestDupGetRange(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{5, 10, 13, 5, 17, 1, 2, 10, 40, 30, 1} {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	result := tree.GetRange(0, 20)
@@ -428,7 +428,7 @@ func TestDupGetRange(t *testing.T) {
 func TestGetRange(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{5, 6, 8, 10, 13, 17, 1, 2, 40, 30} {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	// t.Error(tree.debugString())
@@ -485,13 +485,13 @@ func TestGetRange(t *testing.T) {
 func TestTravalsal(t *testing.T) {
 	tree := New(compare.Int)
 	for _, v := range []int{5, 6, 8, 10, 13, 17, 1, 2, 40, 30} {
-		tree.Put(v, v)
+		tree.Put(v)
 	}
 
 	i := 0
 	var result []interface{}
-	tree.Traversal(func(k, v interface{}) bool {
-		result = append(result, k)
+	tree.Traversal(func(v interface{}) bool {
+		result = append(result, v)
 		i++
 		if i >= 10 {
 			return false

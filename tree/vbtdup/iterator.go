@@ -1,4 +1,4 @@
-package vbtkey
+package vbtdup
 
 import (
 	lastack "github.com/474420502/focus/stack/listarraystack"

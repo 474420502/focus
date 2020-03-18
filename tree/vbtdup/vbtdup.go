@@ -1,4 +1,4 @@
-package vbtkey
+package vbtdup
 
 import (
 	"github.com/davecgh/go-spew/spew"
@@ -11,7 +11,6 @@ type Node struct {
 	children [2]*Node
 	parent   *Node
 	size     int
-	key      interface{}
 	value    interface{}
 }
 
@@ -35,7 +34,7 @@ type Tree struct {
 }
 
 func assertImplementation() {
-	var _ tree.IBSTreeDupKey = (*Tree)(nil)
+	var _ tree.IBSTreeDup = (*Tree)(nil)
 }
 
 func New(Compare compare.Compare) *Tree {
@@ -215,7 +214,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 
 	cparent := cur.parent
 	// 修改为interface 交换
-	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
+	n.value, cur.value = cur.value, n.value
 
 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
 	if cparent == n {
@@ -250,7 +249,7 @@ func (tree *Tree) Values() []interface{} {
 		mszie = tree.root.size
 	}
 	result := make([]interface{}, 0, mszie)
-	tree.Traversal(func(k, v interface{}) bool {
+	tree.Traversal(func(v interface{}) bool {
 		result = append(result, v)
 		return true
 	}, LDR)
@@ -409,7 +408,7 @@ func (tree *Tree) getArountNode(key interface{}) (result [3]*Node) {
 func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 
 	for n := tree.root; n != nil; {
-		switch c := tree.Compare(key, n.key); c {
+		switch c := tree.Compare(key, n.value); c {
 		case -1:
 			n = n.children[0]
 		case 1:
@@ -420,7 +419,7 @@ func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 			iter := tree.iter
 			iter.Prev()
 			for iter.Prev() {
-				if tree.Compare(iter.cur.key, n.key) == 0 {
+				if tree.Compare(iter.cur.value, n.value) == 0 {
 					n = iter.cur
 				} else {
 					break
@@ -435,9 +434,9 @@ func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 }
 
 // Put return bool
-func (tree *Tree) Put(key, value interface{}) (isInsert bool) {
+func (tree *Tree) Put(value interface{}) (isInsert bool) {
 
-	node := &Node{key: key, value: value, size: 1}
+	node := &Node{value: value, size: 1}
 	if tree.root == nil {
 		tree.root = node
 		return true
@@ -453,7 +452,7 @@ func (tree *Tree) Put(key, value interface{}) (isInsert bool) {
 			}
 		}
 
-		c := tree.Compare(key, cur.key)
+		c := tree.Compare(value, cur.value)
 		switch {
 		case c < 0:
 			if cur.children[0] == nil {
@@ -525,7 +524,7 @@ const (
 )
 
 // Traversal 遍历的方法 默认是LDR 从小到大 Compare 为 l < r
-func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod ...interface{}) {
+func (tree *Tree) Traversal(every func(v interface{}) bool, traversalMethod ...interface{}) {
 	if tree.root == nil {
 		return
 	}
@@ -542,7 +541,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if cur == nil {
 				return true
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -563,7 +562,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if !traverasl(cur.children[0]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[1]) {
@@ -584,7 +583,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			return true
@@ -596,7 +595,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if cur == nil {
 				return true
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -617,7 +616,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			if !traverasl(cur.children[0]) {
@@ -638,7 +637,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if !traverasl(cur.children[0]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.value) {
 				return false
 			}
 			return true
@@ -654,7 +653,7 @@ func (tree *Tree) lrrotate3(cur *Node) {
 	movparent := cur.children[l]
 	mov := movparent.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	cur.children[r] = mov
 	mov.parent = cur
@@ -678,7 +677,7 @@ func (tree *Tree) lrrotate(cur *Node) {
 	movparent := cur.children[l]
 	mov := movparent.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	if mov.children[l] != nil {
 		movparent.children[r] = mov.children[l]
@@ -717,7 +716,7 @@ func (tree *Tree) rlrotate3(cur *Node) {
 	movparent := cur.children[l]
 	mov := movparent.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	cur.children[r] = mov
 	mov.parent = cur
@@ -741,7 +740,7 @@ func (tree *Tree) rlrotate(cur *Node) {
 	movparent := cur.children[l]
 	mov := movparent.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	if mov.children[l] != nil {
 		movparent.children[r] = mov.children[l]
@@ -777,7 +776,7 @@ func (tree *Tree) rrotate3(cur *Node) {
 	// 1 right 0 left
 	mov := cur.children[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	cur.children[r] = mov
 
@@ -796,7 +795,7 @@ func (tree *Tree) rrotate(cur *Node) {
 	// 1 right 0 left
 	mov := cur.children[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	//  mov.children[l]不可能为nil
 	mov.children[l].parent = cur
@@ -830,7 +829,7 @@ func (tree *Tree) lrotate3(cur *Node) {
 	// 1 right 0 left
 	mov := cur.children[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	cur.children[r] = mov
 
@@ -849,7 +848,7 @@ func (tree *Tree) lrotate(cur *Node) {
 	// 1 right 0 left
 	mov := cur.children[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
 
 	//  mov.children[l]不可能为nil
 	mov.children[l].parent = cur
@@ -956,7 +955,7 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 		*str += "┌── "
 	}
 
-	*str += spew.Sprint(node.key) + ":" + spew.Sprint(node.value) + "\n"
+	*str += spew.Sprint(node.value) + ":" + spew.Sprint(node.value) + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix
@@ -993,10 +992,10 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	if node.parent == nil {
 		parentv = "nil"
 	} else {
-		parentv = spew.Sprint(node.parent.key)
+		parentv = spew.Sprint(node.parent.value)
 	}
 	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
-	*str += spew.Sprint(node.key) + suffix + "\n"
+	*str += spew.Sprint(node.value) + suffix + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix
