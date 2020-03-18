@@ -1,4 +1,4 @@
-package vbtkey
+package vbtkeydup
 
 import (
 	"bytes"
@@ -25,22 +25,77 @@ func loadTestData() []int {
 	return l
 }
 
+func TestIteratorHeadTail(t *testing.T) {
+	tree := New(compare.Int)
+	l := []int{1, 7, 14, 14, 16, 17, 20, 30, 21, 40, 50, 3, 40, 40, 40, 15, 100}
+	for _, v := range l {
+		tree.Put(v, v)
+	}
+
+	iter := tree.Iterator()
+	iter.ToHead() // 从小到大
+	iter.Next()
+	if iter.Value() != 1 {
+		t.Error("value error", iter.Value())
+	}
+
+	iter.ToTail()
+	iter.Prev()
+	if iter.Value() != 100 {
+		t.Error("value error", iter.Value())
+	}
+
+	for n := 0; n < 500; n++ {
+		tree := New(compare.Int)
+		var results []int
+		for i := 0; i < 50; i++ {
+			v := randomdata.Number(0, 5000)
+			if ok := tree.Put(v, v); ok {
+				results = append(results, v)
+			}
+		}
+		result := tree.GetAround(5001)
+
+		iter = tree.Iterator()
+		iter.ToTail()
+		iter.Prev()
+		if iter.Value() != result[0] {
+			t.Error("ToTail error", result, iter.Value())
+		}
+
+		result = tree.GetAround(-1)
+
+		iter.ToHead()
+		iter.Next()
+		if iter.Value() != result[2] {
+			t.Error("ToTail error", result, iter.Value())
+		}
+
+	}
+
+}
+
 func TestLargePushRemove(t *testing.T) {
 	for n := 0; n < 10; n++ {
 		tree := New(compare.Int)
 		var results []int
 		for i := 0; i < 50000; i++ {
 			v := randomdata.Number(0, 100000000)
-			tree.Put(v, v)
-			results = append(results, v)
+			if ok := tree.Put(v, v); ok {
+				results = append(results, v)
+			}
+
 		}
-		if tree.Size() != 50000 {
-			t.Error("Szie error")
+
+		if tree.Size() != len(results) {
+			t.Error("Szie error", tree.Size(), len(results))
 		}
-		for i := 0; i < 49990; i++ {
+
+		for i := 0; i < len(results)-10; i++ {
 			tree.Remove(results[i])
 		}
-		results = results[49990:]
+
+		results = results[len(results)-10:]
 		if tree.Size() != 10 {
 			t.Error("Szie error")
 		}
@@ -66,7 +121,7 @@ func TestLargePushRemove(t *testing.T) {
 		}
 
 		tree.Clear()
-		if tree.String() != "VBTree-Key\nnil" {
+		if tree.String() != "VBTree-Dup\nnil" {
 			t.Error("tree String is error")
 		}
 	}
@@ -82,29 +137,29 @@ func TestRemoveIndex(t *testing.T) {
 	// [1 7 14 14 14 15 16 40]
 	var result string
 	result = spew.Sprint(tree.Values())
-	if result != "[1 7 14 14 14 15 16 40]" {
-		t.Error("result = ", result, " should be [1 7 14 14 14 15 16 40]")
+	if result != "[1 7 14 15 16 40]" {
+		t.Error("result = ", result, " should be [1 7 14 15 16 40]")
 	}
 
 	tree.RemoveIndex(3)
 	result = spew.Sprint(tree.Values())
-	if result != "[1 7 14 14 15 16 40]" {
+	if result != "[1 7 14 16 40]" {
 		t.Error("result is error")
 	}
 
 	tree.RemoveIndex(-1)
 	result = spew.Sprint(tree.Values())
-	if result != "[1 7 14 14 15 16]" {
+	if result != "[1 7 14 16]" {
 		t.Error("result is error")
 	}
 
 	tree.RemoveIndex(0)
 	result = spew.Sprint(tree.Values())
-	if result != "[7 14 14 15 16]" {
+	if result != "[7 14 16]" {
 		t.Error("result is error")
 	}
 
-	if tree.Size() != 5 {
+	if tree.Size() != 3 {
 		t.Error("size is error")
 	}
 
@@ -123,73 +178,74 @@ func TestIndexRange(t *testing.T) {
 	for _, v := range l {
 		tree.Put(v, v)
 	}
-	// [3 7 14 14 14 15 16 17 20 21 30 40 40 40 40 50]
+	// [3 7 14 15 16 17 20 21 30 40 50]
 	// t.Error(tree.Values(), tree.Size())
+	// t.Error(tree.debugString())
 
 	var result string
 	result = spew.Sprint(tree.IndexRange(0, 5))
-	if result != "[3 7 14 14 14 15] true" {
+	if result != "[3 7 14 15 16 17] true" {
 		t.Error(result)
 	}
 
 	result = spew.Sprint(tree.IndexRange(2, 5))
-	if result != "[14 14 14 15] true" {
+	if result != "[14 15 16 17] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(10, 100))
-	if result != "[30 40 40 40 40 50] false" {
+	result = spew.Sprint(tree.IndexRange(5, 100))
+	if result != "[17 20 21 30 40 50] false" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(15, 0)) // size = 16, index max = 15
-	if result != "[50 40 40 40 40 30 21 20 17 16 15 14 14 14 7 3] true" {
+	result = spew.Sprint(tree.IndexRange(10, 0)) // size = 11, index max = 10
+	if result != "[50 40 30 21 20 17 16 15 14 7 3] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(16, 0)) // size = 16, index max = 15
-	if result != "[50 40 40 40 40 30 21 20 17 16 15 14 14 14 7 3] false" {
+	result = spew.Sprint(tree.IndexRange(11, 0)) // size = 11, index max = 10
+	if result != "[50 40 30 21 20 17 16 15 14 7 3] false" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(5, 1)) // size = 16, index max = 15
-	if result != "[15 14 14 14 7] true" {
+	result = spew.Sprint(tree.IndexRange(4, 1)) // size = 11, index max = 10
+	if result != "[16 15 14 7] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(-1, -5)) // size = 16, index max = 15
-	if result != "[50 40 40 40 40] true" {
+	result = spew.Sprint(tree.IndexRange(-1, -5)) // size = 11, index max = 10
+	if result != "[50 40 30 21 20] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(-1, -16)) // size = 16, index max = 0 - 15 (-1,-16)
-	if result != "[50 40 40 40 40 30 21 20 17 16 15 14 14 14 7 3] true" {
+	result = spew.Sprint(tree.IndexRange(-1, -11)) // size = 11, index max = 0 - 10 (-1,-11)
+	if result != "[50 40 30 21 20 17 16 15 14 7 3] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(-1, -17)) // size = 16, index max = 0 - 15 (-1,-16)
-	if result != "[50 40 40 40 40 30 21 20 17 16 15 14 14 14 7 3] false" {
+	result = spew.Sprint(tree.IndexRange(-1, -12)) // size = 11, index max = 0 - 10 (-1,-11)
+	if result != "[50 40 30 21 20 17 16 15 14 7 3] false" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(-5, -1)) // size = 16, index max = 0 - 15 (-1,-16)
-	if result != "[40 40 40 40 50] true" {
+	result = spew.Sprint(tree.IndexRange(-5, -1)) // size = 11, index max = 0 - 10 (-1,-11)
+	if result != "[20 21 30 40 50] true" {
 		t.Error(result)
 	}
 
-	// [3 7 14 14 14 15 16 17 20 21 30 40 40 40 40 50]
-	result = spew.Sprint(tree.IndexRange(-5, 10)) //
-	if result != "[40 30] true" {
+	// [3 7 14 15 16 17 20 21 30 40 50]
+	result = spew.Sprint(tree.IndexRange(-5, 5)) //
+	if result != "[20 17] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(10, -5)) //
-	if result != "[30 40] true" {
+	result = spew.Sprint(tree.IndexRange(5, -5)) //
+	if result != "[17 20] true" {
 		t.Error(result)
 	}
 
-	result = spew.Sprint(tree.IndexRange(-1, 8)) //
-	if result != "[50 40 40 40 40 30 21 20] true" {
+	result = spew.Sprint(tree.IndexRange(-1, 6)) //
+	if result != "[50 40 30 21 20] true" {
 		t.Error(result)
 	}
 
@@ -218,7 +274,7 @@ func TestGetAround(t *testing.T) {
 	}
 
 	Result = spew.Sprint(tree.GetAround(40))
-	if Result != "[30 40 40]" {
+	if Result != "[30 40 50]" {
 		t.Error(tree.Values())
 		t.Error("tree.GetAround(40)) is error", Result)
 		t.Error(tree.debugString())
@@ -309,6 +365,64 @@ func TestGet(t *testing.T) {
 	if v, ok := tree.Get(10000); ok {
 		t.Error("the val(1000) is not in tree, but is found", v)
 	}
+}
+
+func TestDupGetRange(t *testing.T) {
+	tree := New(compare.Int)
+	for _, v := range []int{5, 10, 13, 5, 17, 1, 2, 10, 40, 30, 1} {
+		tree.Put(v, v)
+	}
+
+	result := tree.GetRange(0, 20)
+	if spew.Sprint(result) != "[1 2 5 10 13 17]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(0, 8)
+	if spew.Sprint(result) != "[1 2 5]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(-5, -1)
+	if spew.Sprint(result) != "[]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(7, 20)
+	if spew.Sprint(result) != "[10 13 17]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(30, 40)
+	if spew.Sprint(result) != "[30 40]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(30, 60)
+	if spew.Sprint(result) != "[30 40]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(40, 40)
+	if spew.Sprint(result) != "[40]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(50, 60)
+	if spew.Sprint(result) != "[]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(50, 1)
+	if spew.Sprint(result) != "[40 30 17 13 10 5 2 1]" {
+		t.Error(result)
+	}
+
+	result = tree.GetRange(30, 20)
+	if spew.Sprint(result) != "[30]" {
+		t.Error(result)
+	}
+
 }
 
 func TestGetRange(t *testing.T) {
