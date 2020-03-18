@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-    pq := pqueuekey.New(compare.Int)
+    pq := New(compare.Int)
     pq.Push(1, 1)
     pq.Push(4, 4)
     pq.Push(5, 5)
@@ -40,14 +40,15 @@ func main() {
     log.Println(values3)
 
     iter := pq.Iterator() // Next 大到小 从root节点起始
+    log.Println(pq.String())
     // log.Println(iter.Value()) 直接使用会报错,
     iter.ToHead()
-    log.Println(iter.Value()) // 起始最大值. true 5
+    iter.Next()
+    log.Println(iter.Value())              // 起始最大值. true 5
     log.Println(iter.Prev(), iter.Value()) // false 5
 
     // Prev 大到小
     log.Println(iter.Next(), iter.Value()) // true 4
-    
-    
+
 }
 ```

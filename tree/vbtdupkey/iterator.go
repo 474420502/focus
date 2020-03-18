@@ -47,6 +47,7 @@ func (iter *Iterator) ToHead() {
 		iter.cur = iter.cur.children[0]
 	}
 	iter.SetNode(iter.cur)
+	iter.cur = nil
 }
 
 func (iter *Iterator) ToTail() {
@@ -63,6 +64,7 @@ func (iter *Iterator) ToTail() {
 		iter.cur = iter.cur.children[1]
 	}
 	iter.SetNode(iter.cur)
+	iter.cur = nil
 }
 
 func (iter *Iterator) SetNode(n *Node) {
