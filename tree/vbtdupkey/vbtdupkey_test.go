@@ -34,12 +34,13 @@ func TestIteratorHeadTail(t *testing.T) {
 
 	iter := tree.Iterator()
 	iter.ToHead() // 从小到大
+	iter.Next()
 	if iter.Value() != 1 {
 		t.Error("value error", iter.Value())
 	}
 
 	iter.ToTail()
-
+	iter.Prev()
 	if iter.Value() != 100 {
 		t.Error("value error", iter.Value())
 	}
@@ -57,6 +58,7 @@ func TestIteratorHeadTail(t *testing.T) {
 
 		iter = tree.Iterator()
 		iter.ToTail()
+		iter.Prev()
 		if iter.Value() != result[0] {
 			t.Error("ToTail error", result, iter.Value())
 		}
@@ -64,6 +66,7 @@ func TestIteratorHeadTail(t *testing.T) {
 		result = tree.GetAround(-1)
 
 		iter.ToHead()
+		iter.Next()
 		if iter.Value() != result[2] {
 			t.Error("ToTail error", result, iter.Value())
 		}

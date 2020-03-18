@@ -49,11 +49,13 @@ func TestIteratorHeadTail(t *testing.T) {
 	}
 
 	iter.ToHead()
+	iter.Prev() // or iter.Next
 	if iter.Value() != 1 {
 		t.Error("iter.Value() != ", 14, " value =", iter.Value())
 	}
 
 	iter.ToTail()
+	iter.Next() // or iter.Prev()
 	if iter.Value() != 30 {
 		t.Error("iter.Value() != ", 30, " value =", iter.Value())
 	}

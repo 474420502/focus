@@ -8,6 +8,84 @@ import "time"
 //    k1 < k2 --> -1
 type Compare func(k1, k2 interface{}) int
 
+// RuneArray []rune compare
+func RuneArray(k1, k2 interface{}) int {
+	s1 := k1.([]rune)
+	s2 := k2.([]rune)
+
+	switch {
+	case len(s1) > len(s2):
+		for i := 0; i < len(s2); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 1
+	case len(s1) < len(s2):
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return -1
+	default:
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 0
+	}
+}
+
+// ByteArray []byte compare
+func ByteArray(k1, k2 interface{}) int {
+	s1 := k1.([]byte)
+	s2 := k2.([]byte)
+
+	switch {
+	case len(s1) > len(s2):
+		for i := 0; i < len(s2); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 1
+	case len(s1) < len(s2):
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return -1
+	default:
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 0
+	}
+}
+
 // String comp
 func String(k1, k2 interface{}) int {
 	s1 := k1.(string)

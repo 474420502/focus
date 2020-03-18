@@ -387,13 +387,15 @@ func TestPriorityQueue_Iterator(t *testing.T) {
 
 	values := pq.Values()
 	for i := 0; ; i++ {
-		if values[i] != iter.Value() {
-			t.Error(values[i], " != ", iter.Value())
-		}
 
 		if !iter.Next() {
 			break
 		}
+
+		if values[i] != iter.Value() {
+			t.Error(values[i], " != ", iter.Value())
+		}
+
 	}
 }
 
@@ -481,10 +483,10 @@ func TestMain(t *testing.T) {
 	log.Println(pq.String())
 	// log.Println(iter.Value()) 直接使用会报错,
 	iter.ToHead()
+	iter.Next()
 	log.Println(iter.Value())              // 起始最大值. true 5
 	log.Println(iter.Prev(), iter.Value()) // false 5
 
 	// Prev 大到小
 	log.Println(iter.Next(), iter.Value()) // true 4
-
 }

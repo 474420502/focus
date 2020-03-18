@@ -35,19 +35,46 @@ func (iter *Iterator) GetNode() *Node {
 }
 
 func (iter *Iterator) ToHead() {
-	for iter.Prev() {
+	if iter.cur == nil {
+		iter.cur = iter.up
 	}
+
+	for iter.cur.parent != nil {
+		iter.cur = iter.cur.parent
+	}
+
+	for iter.cur.children[0] != nil {
+		iter.cur = iter.cur.children[0]
+	}
+	iter.SetNode(iter.cur)
+	iter.cur = nil
 }
 
 func (iter *Iterator) ToTail() {
-	for iter.Next() {
+
+	if iter.cur == nil {
+		iter.cur = iter.up
 	}
+
+	for iter.cur.parent != nil {
+		iter.cur = iter.cur.parent
+	}
+
+	for iter.cur.children[1] != nil {
+		iter.cur = iter.cur.children[1]
+	}
+	iter.SetNode(iter.cur)
+	iter.cur = nil
 }
 
 func (iter *Iterator) SetNode(n *Node) {
 	iter.up = n
 	iter.dir = 0
 	iter.tstack.Clear()
+}
+
+func (iter *Iterator) Key() interface{} {
+	return iter.cur.key
 }
 
 func (iter *Iterator) Value() interface{} {
