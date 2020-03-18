@@ -283,13 +283,15 @@ func TestPriorityQueue_Iterator(t *testing.T) {
 
 	values := pq.Values()
 	for i := 0; ; i++ {
+
+		if !iter.Next() {
+			break
+		}
+
 		if values[i] != iter.Value() {
 			t.Error(values[i], " != ", iter.Value())
 		}
 
-		if !iter.Prev() {
-			break
-		}
 	}
 }
 

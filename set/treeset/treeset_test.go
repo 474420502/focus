@@ -152,7 +152,14 @@ func TestTreeSet_Iterator(t *testing.T) {
 
 	iter := set.Iterator()
 	iter.ToHead()
-	// 3 4 5
+
+	// if not call Next Prev will error
+	// 5 4 3
+	// if iter.Value() != nil {
+	// 	t.Error(iter.Value())
+	// }
+
+	iter.Next()
 	if iter.Value() != 3 {
 		t.Error(iter.Value())
 	}
@@ -162,18 +169,26 @@ func TestTreeSet_Iterator(t *testing.T) {
 		t.Error(iter.Value())
 	}
 
-	iter.Next()
-	if iter.Value() != 5 {
-		t.Error(iter.Value())
-	}
-
 	iter.ToTail()
+	iter.Prev()
 	if iter.Value() != 5 {
 		t.Error(iter.Value())
 	}
 
 	iter.Prev()
 	if iter.Value() != 4 {
+		t.Error(iter.Value())
+	}
+
+	iter.ToHead()
+	iter.Prev()
+	if iter.Value() != 3 {
+		t.Error(iter.Value())
+	}
+
+	iter.ToTail()
+	iter.Next()
+	if iter.Value() != 5 {
 		t.Error(iter.Value())
 	}
 }
