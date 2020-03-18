@@ -1,4 +1,4 @@
-package vbtkey
+package vbtkeydup
 
 import (
 	"github.com/davecgh/go-spew/spew"
@@ -27,7 +27,6 @@ func (n *Node) String() string {
 	return spew.Sprint(n.value) + "(" + p + "|" + spew.Sprint(n.size) + ")"
 }
 
-// Tree increasing
 type Tree struct {
 	root    *Node
 	Compare compare.Compare
@@ -36,7 +35,7 @@ type Tree struct {
 }
 
 func assertImplementation() {
-	var _ tree.IBSTreeKey = (*Tree)(nil)
+	var _ tree.IBSTreeDupKey = (*Tree)(nil)
 }
 
 func New(Compare compare.Compare) *Tree {
@@ -44,7 +43,7 @@ func New(Compare compare.Compare) *Tree {
 }
 
 func (tree *Tree) String() string {
-	str := "VBTree-Key\n"
+	str := "VBTree-Dup\n"
 	if tree.root == nil {
 		return str + "nil"
 	}
@@ -435,12 +434,13 @@ func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 	return nil, false
 }
 
-func (tree *Tree) Put(key, value interface{}) {
+// Put return bool
+func (tree *Tree) Put(key, value interface{}) (isInsert bool) {
 
 	node := &Node{key: key, value: value, size: 1}
 	if tree.root == nil {
 		tree.root = node
-		return
+		return true
 	}
 
 	for cur := tree.root; ; {
@@ -453,13 +453,16 @@ func (tree *Tree) Put(key, value interface{}) {
 			}
 		}
 
-		cur.size++
-
 		c := tree.Compare(key, cur.key)
-		if c < 0 {
+		switch {
+		case c < 0:
 			if cur.children[0] == nil {
 				cur.children[0] = node
 				node.parent = cur
+
+				for temp := cur; temp != nil; temp = temp.parent {
+					temp.size++
+				}
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[0] == nil {
@@ -468,13 +471,17 @@ func (tree *Tree) Put(key, value interface{}) {
 						tree.rrotate3(cur.parent)
 					}
 				}
-				return
+				return true
 			}
 			cur = cur.children[0]
-		} else {
+		case c > 0:
 			if cur.children[1] == nil {
 				cur.children[1] = node
 				node.parent = cur
+
+				for temp := cur; temp != nil; temp = temp.parent {
+					temp.size++
+				}
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[1] == nil {
@@ -483,13 +490,18 @@ func (tree *Tree) Put(key, value interface{}) {
 						tree.lrotate3(cur.parent)
 					}
 				}
-				return
+				return true
 			}
 			cur = cur.children[1]
+		default:
+			cur.value = value
+			return false
 		}
+
 	}
 }
 
+// TraversalMethod 遍历模式
 type TraversalMethod int
 
 const (
@@ -998,7 +1010,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 }
 
 func (tree *Tree) debugString() string {
-	str := "AVLTree\n"
+	str := "VBTree-Dup\n"
 	if tree.root == nil {
 		return str + "nil"
 	}
