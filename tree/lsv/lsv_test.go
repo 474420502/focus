@@ -2,6 +2,7 @@ package lsv
 
 import (
 	"sort"
+	"strconv"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -349,8 +350,21 @@ func loadTestData() [][]rune {
 // // 	}
 // // }
 
-func TestValues(t *testing.T) {
+func TestPut(t *testing.T) {
 	tree := New(compareRunes)
+
+	for i := 0; i < 10000; i++ {
+		v := randomdata.FullDate() + ":" + strconv.Itoa(i) + randomdata.Street()
+		tree.Put([]rune(v), []rune(v))
+		if tree.root.size == 2 {
+			t.Error("213")
+		}
+	}
+	t.Error("123")
+}
+
+func TestValues(t *testing.T) {
+	tree := newDataTree(compareRunes)
 	var testdata = []string{"abc", "bca", "12xx", "ABC", "你好"}
 
 	for _, v := range testdata {
@@ -367,7 +381,7 @@ func TestValues(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	tree := New(compareRunes)
+	tree := newDataTree(compareRunes)
 	var testdata = []string{"asdb", "bsas", "asdba"}
 	for _, v := range testdata {
 		tree.PutString(v, v)
@@ -820,7 +834,7 @@ func BenchmarkPut(b *testing.B) {
 	execCount := 50
 	b.N = len(l) * execCount
 	for i := 0; i < execCount; i++ {
-		tree := New(compareRunes)
+		tree := newDataTree(compareRunes)
 		for _, v := range l {
 			tree.Put(v, v)
 		}

@@ -4,15 +4,14 @@ package lsv
 type INode struct {
 	family [3]*INode
 	size   int
-
-	tree *Tree
+	tree   *DTree
 }
 
 // NewINode 生成inode节点
 func NewINode() *INode {
 	inode := &INode{}
 	inode.size = 1
-	inode.tree = New(compareRunes)
+	inode.tree = newDataTree(compareRunes)
 	return inode
 }
 
@@ -21,6 +20,11 @@ type ITree struct {
 	root    *INode
 	limit   int
 	Compare func(s1, s2 []rune) int
+}
+
+// New 生成一颗索引树
+func New(Compare func(s1, s2 []rune) int) *ITree {
+	return &ITree{Compare: Compare, limit: 100}
 }
 
 // Put return bool
@@ -57,6 +61,8 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					// 根树 新节点要插入到　右节点的最小值位置　即是 左~
 					irnode := NewINode()
 					irnode.tree.root = rspilt
+					irnode.tree.feature = cur.tree.feature
+
 					icur := cur.family[2]
 					if icur == nil {
 						cur.family[2] = irnode
@@ -72,11 +78,11 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 						}
 
 						// 调整3节点失衡的情况
-						if icur.family[0] != nil && icur.family[0].size == 3 {
-							if icur.family[0].family[2] == nil {
-								tree.irlrotate3(icur.family[0])
+						if cur.family[0] != nil && cur.family[0].size == 3 {
+							if cur.family[0].family[1] == nil {
+								tree.ilrrotate3(cur.family[0])
 							} else {
-								tree.ilrotate3(icur.family[0])
+								tree.irrotate3(cur.family[0])
 							}
 						}
 					}
@@ -193,6 +199,10 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 	}
 }
 
+func (tree *ITree) String() {
+
+}
+
 func (tree *ITree) ifixSize(cur *INode, ls, rs int) {
 	if ls > rs {
 		llsize, lrsize := igetChildrenSize(cur.family[1])
@@ -218,7 +228,7 @@ func (tree *ITree) ilrrotate3(cur *INode) {
 	movparent := cur.family[l]
 	mov := movparent.family[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	cur.family[r] = mov
 	mov.family[0] = cur
@@ -229,8 +239,6 @@ func (tree *ITree) ilrrotate3(cur *INode) {
 	cur.family[r] = mov
 	mov.family[0] = cur
 
-	// cur.size = 3
-	// cur.family[r].size = 1
 	cur.family[l].size = 1
 }
 
@@ -242,7 +250,7 @@ func (tree *ITree) ilrrotate(cur *INode) {
 	movparent := cur.family[l]
 	mov := movparent.family[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	if mov.family[l] != nil {
 		movparent.family[r] = mov.family[l]
@@ -281,7 +289,7 @@ func (tree *ITree) irlrotate3(cur *INode) {
 	movparent := cur.family[l]
 	mov := movparent.family[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	cur.family[r] = mov
 	mov.family[0] = cur
@@ -305,7 +313,7 @@ func (tree *ITree) irlrotate(cur *INode) {
 	movparent := cur.family[l]
 	mov := movparent.family[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	if mov.family[l] != nil {
 		movparent.family[r] = mov.family[l]
@@ -341,7 +349,7 @@ func (tree *ITree) irrotate3(cur *INode) {
 	// 1 right 0 left
 	mov := cur.family[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	cur.family[r] = mov
 
@@ -360,7 +368,7 @@ func (tree *ITree) irrotate(cur *INode) {
 	// 1 right 0 left
 	mov := cur.family[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	//  mov.family[l]不可能为nil
 	mov.family[l].family[0] = cur
@@ -394,7 +402,7 @@ func (tree *ITree) ilrotate3(cur *INode) {
 	// 1 right 0 left
 	mov := cur.family[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	cur.family[r] = mov
 
@@ -413,7 +421,7 @@ func (tree *ITree) ilrotate(cur *INode) {
 	// 1 right 0 left
 	mov := cur.family[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	mov.tree, cur.tree = cur.tree, mov.tree //交换值达到, 相对位移
 
 	//  mov.family[l]不可能为nil
 	mov.family[l].family[0] = cur
@@ -456,27 +464,27 @@ func igetSize(cur *INode) int {
 	return cur.size
 }
 
-func (tree *ITree) fixSizeWithRemove(cur *INode) {
+func (tree *ITree) ifixSizeWithRemove(cur *INode) {
 	for cur != nil {
 		cur.size--
 		if cur.size > 8 {
 			factor := cur.size / 10 // or factor = 1
-			ls, rs := getChildrenSize(cur)
+			ls, rs := igetChildrenSize(cur)
 			if rs >= ls*2+factor || ls >= rs*2+factor {
-				tree.fixSize(cur, ls, rs)
+				tree.ifixSize(cur, ls, rs)
 			}
 		} else if cur.size == 3 {
 			if cur.family[1] == nil {
 				if cur.family[2].family[1] == nil {
-					tree.lrotate3(cur)
+					tree.ilrotate3(cur)
 				} else {
-					tree.lrrotate3(cur)
+					tree.ilrrotate3(cur)
 				}
 			} else if cur.family[2] == nil {
 				if cur.family[1].family[2] == nil {
-					tree.rrotate3(cur)
+					tree.irrotate3(cur)
 				} else {
-					tree.rlrotate3(cur)
+					tree.irlrotate3(cur)
 				}
 			}
 		}

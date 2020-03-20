@@ -6,31 +6,31 @@ import (
 
 type Iterator struct {
 	dir    int
-	up     *Node
-	cur    *Node
+	up     *DNode
+	cur    *DNode
 	tstack *lastack.Stack
 	// curnext *Node
 }
 
-func initIterator(avltree *Tree) *Iterator {
+func initIterator(avltree *DTree) *Iterator {
 	iter := &Iterator{tstack: lastack.New()}
 	iter.up = avltree.root
 	return iter
 }
 
-func NewIterator(n *Node) *Iterator {
+func NewIterator(n *DNode) *Iterator {
 	iter := &Iterator{tstack: lastack.New()}
 	iter.up = n
 	return iter
 }
 
-func NewIteratorWithCap(n *Node, cap int) *Iterator {
+func NewIteratorWithCap(n *DNode, cap int) *Iterator {
 	iter := &Iterator{tstack: lastack.NewWithCap(cap)}
 	iter.up = n
 	return iter
 }
 
-func (iter *Iterator) GetNode() *Node {
+func (iter *Iterator) GetNode() *DNode {
 	return iter.cur
 }
 
@@ -67,7 +67,7 @@ func (iter *Iterator) ToTail() {
 	iter.cur = nil
 }
 
-func (iter *Iterator) SetNode(n *Node) {
+func (iter *Iterator) SetNode(n *DNode) {
 	iter.up = n
 	iter.dir = 0
 	iter.tstack.Clear()
@@ -81,7 +81,7 @@ func (iter *Iterator) Value() interface{} {
 	return iter.cur.value
 }
 
-func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
+func (iter *Iterator) GetNext(cur *DNode, idx int) *DNode {
 
 	// iter := NewIterator(cur)
 	iter.SetNode(cur)
@@ -99,7 +99,7 @@ func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
 		}
 
 		if v, ok := iter.tstack.Pop(); ok {
-			iter.cur = v.(*Node)
+			iter.cur = v.(*DNode)
 			if i == idx-1 {
 				return iter.cur
 			}
@@ -132,14 +132,14 @@ func (iter *Iterator) Next() (result bool) {
 	}
 
 	if v, ok := iter.tstack.Pop(); ok {
-		iter.cur = v.(*Node)
+		iter.cur = v.(*DNode)
 		iter.curPushNextStack(iter.cur)
 		return true
 	}
 
 	return false
 }
-func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
+func (iter *Iterator) GetPrev(cur *DNode, idx int) *DNode {
 
 	// iter := NewIterator(cur)
 	iter.SetNode(cur)
@@ -157,7 +157,7 @@ func (iter *Iterator) GetPrev(cur *Node, idx int) *Node {
 		}
 
 		if v, ok := iter.tstack.Pop(); ok {
-			iter.cur = v.(*Node)
+			iter.cur = v.(*DNode)
 			if i == idx-1 {
 				return iter.cur
 			}
@@ -191,7 +191,7 @@ func (iter *Iterator) Prev() (result bool) {
 	}
 
 	if v, ok := iter.tstack.Pop(); ok {
-		iter.cur = v.(*Node)
+		iter.cur = v.(*DNode)
 		iter.curPushPrevStack(iter.cur)
 		return true
 	}
@@ -200,14 +200,14 @@ func (iter *Iterator) Prev() (result bool) {
 	return false
 }
 
-func getRelationship(cur *Node) int {
+func getRelationship(cur *DNode) int {
 	if cur.family[0].family[2] == cur {
 		return 2
 	}
 	return 1
 }
 
-func (iter *Iterator) getPrevUp(cur *Node) *Node {
+func (iter *Iterator) getPrevUp(cur *DNode) *DNode {
 	for cur.family[0] != nil {
 		if getRelationship(cur) == 1 { // next 在 降序 小值. 如果child在右边, parent 比 child 小, parent才有效, 符合降序
 			return cur.family[0]
@@ -217,7 +217,7 @@ func (iter *Iterator) getPrevUp(cur *Node) *Node {
 	return nil
 }
 
-func (iter *Iterator) curPushPrevStack(cur *Node) {
+func (iter *Iterator) curPushPrevStack(cur *DNode) {
 	Prev := cur.family[1] // 当前的左然后向右找, 找到最大, 就是最接近cur 并且小于cur的值
 
 	if Prev != nil {
@@ -229,7 +229,7 @@ func (iter *Iterator) curPushPrevStack(cur *Node) {
 	}
 }
 
-func (iter *Iterator) getNextUp(cur *Node) *Node {
+func (iter *Iterator) getNextUp(cur *DNode) *DNode {
 	for cur.family[0] != nil {
 		if getRelationship(cur) == 0 { // Prev 在 降序 大值. 如果child在左边, parent 比 child 大, parent才有效 , 符合降序
 			return cur.family[0]
@@ -239,7 +239,7 @@ func (iter *Iterator) getNextUp(cur *Node) *Node {
 	return nil
 }
 
-func (iter *Iterator) curPushNextStack(cur *Node) {
+func (iter *Iterator) curPushNextStack(cur *DNode) {
 	next := cur.family[2]
 
 	if next != nil {

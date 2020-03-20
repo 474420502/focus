@@ -4,28 +4,16 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// NodeType 节点类型
-type NodeType int
-
-const (
-
-	// Split 分型类型 = 0
-	Split NodeType = iota
-	// Data 数据集
-	Data
-)
-
 // DNode  节点
 type DNode struct {
 	family [3]*DNode
 	size   int
-	ntype  NodeType // 节点类型
 	key    []rune
 	value  []rune
 }
 
-// Tree 树
-type Tree struct {
+// DTree 用于数据的树
+type DTree struct {
 	root    *DNode
 	feature *DNode
 	Compare func(s1, s2 []rune) int
@@ -83,12 +71,12 @@ func (n *DNode) String() string {
 // 	var _ tree.IBSTreeDupKey = (*Tree)(nil)
 // }
 
-// New 创建一个树
-func New(Compare func(s1, s2 []rune) int) *Tree {
-	return &Tree{Compare: Compare, iter: NewIteratorWithCap(nil, 16)}
+// newDataTree 创建一个树
+func newDataTree(Compare func(s1, s2 []rune) int) *DTree {
+	return &DTree{Compare: Compare, iter: NewIteratorWithCap(nil, 16)}
 }
 
-func (tree *Tree) String() string {
+func (tree *DTree) String() string {
 	str := "VBTree-Dup\n"
 	if tree.root == nil {
 		return str + "nil"
@@ -97,11 +85,11 @@ func (tree *Tree) String() string {
 	return str
 }
 
-func (tree *Tree) Iterator() *Iterator {
+func (tree *DTree) Iterator() *Iterator {
 	return initIterator(tree)
 }
 
-func (tree *Tree) Size() int {
+func (tree *DTree) Size() int {
 	if tree.root == nil {
 		return 0
 	}
@@ -109,7 +97,7 @@ func (tree *Tree) Size() int {
 }
 
 // IndexNode 索引节点
-func (tree *Tree) IndexNode(idx int) *DNode {
+func (tree *DTree) IndexNode(idx int) *DNode {
 	cur := tree.root
 	if idx >= 0 {
 		for cur != nil {
@@ -140,7 +128,7 @@ func (tree *Tree) IndexNode(idx int) *DNode {
 	return nil
 }
 
-func (tree *Tree) Index(idx int) (interface{}, bool) {
+func (tree *DTree) Index(idx int) (interface{}, bool) {
 	n := tree.IndexNode(idx)
 	if n != nil {
 		return n.value, true
@@ -148,7 +136,7 @@ func (tree *Tree) Index(idx int) (interface{}, bool) {
 	return nil, false
 }
 
-func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { // 0 -1
+func (tree *DTree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { // 0 -1
 
 	if idx1^idx2 < 0 {
 		if idx1 < 0 {
@@ -208,7 +196,7 @@ func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { /
 	return nil, false
 }
 
-func (tree *Tree) RemoveIndex(idx int) (interface{}, bool) {
+func (tree *DTree) RemoveIndex(idx int) (interface{}, bool) {
 	n := tree.IndexNode(idx)
 	if n != nil {
 		tree.RemoveNode(n)
@@ -217,7 +205,7 @@ func (tree *Tree) RemoveIndex(idx int) (interface{}, bool) {
 	return nil, false
 }
 
-func (tree *Tree) RemoveNode(n *DNode) {
+func (tree *DTree) RemoveNode(n *DNode) {
 	if tree.root.size == 1 {
 		tree.root = nil
 		tree.feature = nil
@@ -282,7 +270,7 @@ func (tree *Tree) RemoveNode(n *DNode) {
 	return
 }
 
-func (tree *Tree) Remove(key []rune) (interface{}, bool) {
+func (tree *DTree) Remove(key []rune) (interface{}, bool) {
 
 	if n, ok := tree.GetNode(key); ok {
 		tree.RemoveNode(n)
@@ -292,13 +280,13 @@ func (tree *Tree) Remove(key []rune) (interface{}, bool) {
 	return nil, false
 }
 
-func (tree *Tree) Clear() {
+func (tree *DTree) Clear() {
 	tree.root = nil
 	tree.iter = NewIteratorWithCap(nil, 16)
 }
 
 // Values 返回先序遍历的值
-func (tree *Tree) Values() [][]rune {
+func (tree *DTree) Values() [][]rune {
 	mszie := 0
 	if tree.root != nil {
 		mszie = tree.root.size
@@ -311,7 +299,7 @@ func (tree *Tree) Values() [][]rune {
 	return result
 }
 
-func (tree *Tree) GetRange(k1, k2 []rune) (result []interface{}) {
+func (tree *DTree) GetRange(k1, k2 []rune) (result []interface{}) {
 	c := tree.Compare(k2, k1)
 	switch c {
 	case 1:
@@ -377,7 +365,7 @@ func (tree *Tree) GetRange(k1, k2 []rune) (result []interface{}) {
 	return
 }
 
-func (tree *Tree) GetString(key string) (interface{}, bool) {
+func (tree *DTree) GetString(key string) (interface{}, bool) {
 	n, ok := tree.GetNode([]rune(key))
 	if ok {
 		return n.value, true
@@ -385,7 +373,7 @@ func (tree *Tree) GetString(key string) (interface{}, bool) {
 	return n, false
 }
 
-func (tree *Tree) Get(key []rune) ([]rune, bool) {
+func (tree *DTree) Get(key []rune) ([]rune, bool) {
 	n, ok := tree.GetNode(key)
 	if ok {
 		return n.value, true
@@ -393,7 +381,7 @@ func (tree *Tree) Get(key []rune) ([]rune, bool) {
 	return nil, false
 }
 
-func (tree *Tree) GetAround(key []rune) (result [3]interface{}) {
+func (tree *DTree) GetAround(key []rune) (result [3]interface{}) {
 	an := tree.getArountNode(key)
 	for i, n := range an {
 		if n != nil {
@@ -403,7 +391,7 @@ func (tree *Tree) GetAround(key []rune) (result [3]interface{}) {
 	return
 }
 
-func (tree *Tree) getArountNode(key []rune) (result [3]*DNode) {
+func (tree *DTree) getArountNode(key []rune) (result [3]*DNode) {
 	var last *DNode
 	var lastc int
 
@@ -468,7 +456,7 @@ func (tree *Tree) getArountNode(key []rune) (result [3]*DNode) {
 	return
 }
 
-func (tree *Tree) GetNode(key []rune) (*DNode, bool) {
+func (tree *DTree) GetNode(key []rune) (*DNode, bool) {
 
 	for n := tree.root; n != nil; {
 		switch c := tree.Compare(key, n.key); c {
@@ -497,11 +485,11 @@ func (tree *Tree) GetNode(key []rune) (*DNode, bool) {
 }
 
 // PutString Key Value with Type string
-func (tree *Tree) PutString(key, value string) (isInsert bool) {
+func (tree *DTree) PutString(key, value string) (isInsert bool) {
 	return tree.Put([]rune(key), []rune(value))
 }
 
-func (tree *Tree) putfeature(node *DNode) {
+func (tree *DTree) putfeature(node *DNode) {
 	for cur := tree.root; cur != nil; cur = cur.family[2] {
 		cur.size++
 		if cur.family[2] == nil {
@@ -513,7 +501,7 @@ func (tree *Tree) putfeature(node *DNode) {
 }
 
 // Put return bool
-func (tree *Tree) Put(key, value []rune) (isInsert bool) {
+func (tree *DTree) Put(key, value []rune) (isInsert bool) {
 
 	if tree.root == nil {
 		node := &DNode{key: key, value: value, size: 1}
@@ -611,7 +599,7 @@ const (
 )
 
 // Traversal 遍历的方法 默认是LDR 从小到大 Compare 为 l < r
-func (tree *Tree) Traversal(every func(k, v []rune) bool, traversalMethod ...interface{}) {
+func (tree *DTree) Traversal(every func(k, v []rune) bool, traversalMethod ...interface{}) {
 	if tree.root == nil {
 		return
 	}
@@ -733,7 +721,7 @@ func (tree *Tree) Traversal(every func(k, v []rune) bool, traversalMethod ...int
 	}
 }
 
-func (tree *Tree) lrrotate3(cur *DNode) {
+func (tree *DTree) lrrotate3(cur *DNode) {
 	const l = 2
 	const r = 1
 
@@ -756,7 +744,7 @@ func (tree *Tree) lrrotate3(cur *DNode) {
 	cur.family[l].size = 1
 }
 
-func (tree *Tree) lrrotate(cur *DNode) {
+func (tree *DTree) lrrotate(cur *DNode) {
 
 	const l = 2
 	const r = 1
@@ -796,7 +784,7 @@ func (tree *Tree) lrrotate(cur *DNode) {
 	cur.size = getChildrenSumSize(cur) + 1
 }
 
-func (tree *Tree) rlrotate3(cur *DNode) {
+func (tree *DTree) rlrotate3(cur *DNode) {
 	const l = 1
 	const r = 2
 
@@ -819,7 +807,7 @@ func (tree *Tree) rlrotate3(cur *DNode) {
 	cur.family[l].size = 1
 }
 
-func (tree *Tree) rlrotate(cur *DNode) {
+func (tree *DTree) rlrotate(cur *DNode) {
 
 	const l = 1
 	const r = 2
@@ -857,7 +845,7 @@ func (tree *Tree) rlrotate(cur *DNode) {
 	cur.size = getChildrenSumSize(cur) + 1
 }
 
-func (tree *Tree) rrotate3(cur *DNode) {
+func (tree *DTree) rrotate3(cur *DNode) {
 	const l = 1
 	const r = 2
 	// 1 right 0 left
@@ -875,7 +863,7 @@ func (tree *Tree) rrotate3(cur *DNode) {
 	mov.size = 1
 }
 
-func (tree *Tree) rrotate(cur *DNode) {
+func (tree *DTree) rrotate(cur *DNode) {
 
 	const l = 1
 	const r = 2
@@ -910,7 +898,7 @@ func (tree *Tree) rrotate(cur *DNode) {
 	cur.size = getChildrenSumSize(cur) + 1
 }
 
-func (tree *Tree) lrotate3(cur *DNode) {
+func (tree *DTree) lrotate3(cur *DNode) {
 	const l = 2
 	const r = 1
 	// 1 right 0 left
@@ -928,7 +916,7 @@ func (tree *Tree) lrotate3(cur *DNode) {
 	mov.size = 1
 }
 
-func (tree *Tree) lrotate(cur *DNode) {
+func (tree *DTree) lrotate(cur *DNode) {
 
 	const l = 2
 	const r = 1
@@ -978,7 +966,7 @@ func getSize(cur *DNode) int {
 	return cur.size
 }
 
-func (tree *Tree) fixSizeWithRemove(cur *DNode) {
+func (tree *DTree) fixSizeWithRemove(cur *DNode) {
 	for cur != nil {
 		cur.size--
 		if cur.size > 8 {
@@ -1006,7 +994,7 @@ func (tree *Tree) fixSizeWithRemove(cur *DNode) {
 	}
 }
 
-func (tree *Tree) fixSize(cur *DNode, ls, rs int) {
+func (tree *DTree) fixSize(cur *DNode, ls, rs int) {
 	if ls > rs {
 		llsize, lrsize := getChildrenSize(cur.family[1])
 		if lrsize > llsize {
@@ -1095,7 +1083,7 @@ func outputfordebug(node *DNode, prefix string, isTail bool, str *string) {
 	}
 }
 
-func (tree *Tree) debugString() string {
+func (tree *DTree) debugString() string {
 	str := "VBTree-Dup\n"
 	if tree.root == nil {
 		return str + "nil"
