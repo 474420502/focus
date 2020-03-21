@@ -5,8 +5,8 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/474420502/focus/compare"
-	"github.com/474420502/focus/tree/avlkeydup"
+	"focus/compare"
+	"focus/tree/avlkeydup"
 )
 
 type TreeMap struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/474420502/focus/compare"
+	"focus/compare"
 )
 
 func loadTestData() []int {

@@ -3,7 +3,8 @@ package arraylist
 import (
 	"log"
 
-	"github.com/474420502/focus/list"
+	"focus/list"
+
 	"github.com/davecgh/go-spew/spew"
 )
 

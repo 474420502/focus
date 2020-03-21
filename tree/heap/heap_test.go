@@ -4,7 +4,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/474420502/focus/compare"
+	"focus/compare"
+
 	"github.com/Pallinder/go-randomdata"
 )
 

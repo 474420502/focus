@@ -3,7 +3,7 @@ package pqueue
 import (
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/474420502/focus/compare"
+	"focus/compare"
 )
 
 type Node struct {

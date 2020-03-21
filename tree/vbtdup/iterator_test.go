@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/474420502/focus/compare"
+	"focus/compare"
 )
 
 func TestIerator(t *testing.T) {

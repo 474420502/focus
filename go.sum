@@ -1,3 +1,5 @@
+github.com/474420502/focus v0.8.1 h1:PZwCgzcnxwx7ZZCWc/XKLVaZPH9e4YX9cP4ckyT2HDA=
+github.com/474420502/focus v0.8.1/go.mod h1:jrDXvK1CnUJ3PCR3ZJVYinbS2Yz5kM8OoAbCLe6AF7Y=
 github.com/Pallinder/go-randomdata v1.1.0 h1:gUubB1IEUliFmzjqjhf+bgkg1o6uoFIkRsP3VrhEcx8=
 github.com/Pallinder/go-randomdata v1.1.0/go.mod h1:yHmJgulpD2Nfrm0cR9tI/+oAgRqCQQixsA8HyRZfV9Y=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/474420502/focus/compare"
-	"github.com/474420502/focus/tree/avldup"
+	"focus/compare"
+	"focus/tree/avldup"
 )
 
 // TreeSet

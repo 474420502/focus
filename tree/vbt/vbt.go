@@ -3,8 +3,8 @@ package vbt
 import (
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/474420502/focus/compare"
-	"github.com/474420502/focus/tree"
+	"focus/compare"
+	"focus/tree"
 )
 
 type Node struct {

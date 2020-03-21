@@ -1,7 +1,8 @@
 package lastack
 
 import (
-	"github.com/474420502/focus/stack"
+	"focus/stack"
+
 	"github.com/davecgh/go-spew/spew"
 )
 

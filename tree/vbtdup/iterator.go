@@ -1,7 +1,7 @@
 package vbtdup
 
 import (
-	lastack "github.com/474420502/focus/stack/listarraystack"
+	lastack "focus/stack/listarraystack"
 )
 
 type Iterator struct {

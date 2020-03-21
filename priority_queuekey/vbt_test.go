@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/474420502/focus/compare"
+	"focus/compare"
 
 	"github.com/davecgh/go-spew/spew"
 )

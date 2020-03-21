@@ -6,8 +6,8 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/474420502/focus/compare"
-	"github.com/474420502/focus/tree/avldup"
+	"focus/compare"
+	"focus/tree/avldup"
 )
 
 func TestTreeSet_Add(t *testing.T) {

@@ -1,7 +1,8 @@
 package linkedhashmap
 
 import (
-	linkedlist "github.com/474420502/focus/list/linked_list"
+	linkedlist "focus/list/linked_list"
+
 	"github.com/davecgh/go-spew/spew"
 )
 

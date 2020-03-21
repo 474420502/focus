@@ -1,7 +1,8 @@
 package lastack
 
 import (
-	"github.com/474420502/focus/stack"
+	"focus/stack"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -18,7 +19,6 @@ type Stack struct {
 func assertImplementation() {
 	var _ stack.IStack = (*Stack)(nil)
 }
-
 
 func New() *Stack {
 	s := &Stack{}

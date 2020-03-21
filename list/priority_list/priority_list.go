@@ -3,8 +3,8 @@ package plist
 import (
 	"strings"
 
-	"github.com/474420502/focus/compare"
-	"github.com/474420502/focus/list"
+	"focus/compare"
+	"focus/list"
 	"github.com/davecgh/go-spew/spew"
 )
 
