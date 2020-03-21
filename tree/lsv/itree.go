@@ -57,6 +57,8 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					// 子树的节点分解　操作
 					lspilt := cur.tree.root.family[1]
 					rspilt := cur.tree.root.family[2]
+					rspilt.family[0] = nil //清空右节点的父类, rsplit为根
+					lspilt.family[0] = nil // 上
 
 					// 根树 新节点要插入到　右节点的最小值位置　即是 左~
 					irnode := NewINode()
@@ -64,34 +66,37 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					irnode.tree.feature = cur.tree.feature
 
 					icur := cur.family[2]
+
 					if icur == nil {
+
 						cur.family[2] = irnode
+						irnode.family[0] = cur
+
+						icur = cur
 					} else {
+
 						for ; icur.family[1] != nil; icur = icur.family[1] {
-						}
+						} // 找右最左的值为最小值节点处
 
-						icur.family[1] = irnode
+						icur.family[1] = irnode // 挂接分离的右节点
 						irnode.family[0] = icur
+					}
 
-						for temp := icur; temp != nil; temp = temp.family[0] {
-							temp.size++
-						}
+					for temp := icur; temp != nil; temp = temp.family[0] {
+						temp.size++
+					} // 往上加+1 达到每个节点能统计size正确
 
-						// 调整3节点失衡的情况
-						if cur.family[0] != nil && cur.family[0].size == 3 {
-							if cur.family[0].family[1] == nil {
-								tree.ilrrotate3(cur.family[0])
-							} else {
-								tree.irrotate3(cur.family[0])
-							}
+					// 调整3节点失衡的情况
+					if cur.family[0] != nil && cur.family[0].size == 3 {
+						if cur.family[0].family[1] == nil {
+							tree.ilrrotate3(cur.family[0])
+						} else {
+							tree.irrotate3(cur.family[0])
 						}
 					}
 
-					rspilt.family[0] = nil
-
 					tempRoot := cur.tree.root
 
-					lspilt.family[0] = nil
 					cur.tree.root = lspilt
 
 					tempRoot.size = 1
@@ -103,23 +108,6 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 				}
 
 				return cur.tree.Put(key, value)
-
-				// inode := NewINode()
-				// cur.family[1] = inode
-				// inode.family[0] = cur
-
-				// for temp := cur; temp != nil; temp = temp.family[0] {
-				// 	temp.size++
-				// }
-
-				// if cur.family[0] != nil && cur.family[0].size == 3 {
-				// 	if cur.family[0].family[1] == nil {
-				// 		tree.ilrrotate3(cur.family[0])
-				// 	} else {
-				// 		tree.irrotate3(cur.family[0])
-				// 	}
-				// }
-				// return true
 			}
 			cur = cur.family[1]
 		case c > 0:
@@ -128,40 +116,34 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 				if cur.tree.root.size >= tree.limit {
 					lspilt := cur.tree.root.family[1]
 					rspilt := cur.tree.root.family[2]
+					rspilt.family[0] = nil //清空右节点的父类, rsplit为根
+					lspilt.family[0] = nil // 上
+
 					// cur.family
 					irnode := NewINode()
 					irnode.tree.root = rspilt
-					icur := cur.family[2]
-					if icur == nil {
-						cur.family[2] = irnode
-					} else {
-						for ; icur.family[1] != nil; icur = icur.family[1] {
-						}
 
-						icur.family[1] = irnode
-						irnode.family[0] = icur
+					cur.family[2] = irnode
+					irnode.family[0] = cur
+					icur := cur
 
-						for temp := icur; temp != nil; temp = temp.family[0] {
-							temp.size++
-						}
+					for temp := icur; temp != nil; temp = temp.family[0] {
+						temp.size++
+					} // 往上加+1 达到每个节点能统计size正确
 
-						// 调整3节点失衡的情况
-						if icur.family[0] != nil && icur.family[0].size == 3 {
-							if icur.family[0].family[2] == nil {
-								tree.irlrotate3(icur.family[0])
-							} else {
-								tree.ilrotate3(icur.family[0])
-							}
+					// 调整3节点失衡的情况
+					if cur.family[0] != nil && cur.family[0].size == 3 {
+						if cur.family[0].family[2] == nil {
+							tree.irlrotate3(cur.family[0])
+						} else {
+							tree.ilrotate3(cur.family[0])
 						}
 					}
-
-					rspilt.family[0] = nil
 
 					// cur.family irnode
 
 					tempRoot := cur.tree.root
 
-					lspilt.family[0] = nil
 					cur.tree.root = lspilt
 
 					tempRoot.size = 1
@@ -173,23 +155,6 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 				}
 
 				return cur.tree.Put(key, value)
-
-				// inode := NewINode()
-				// cur.family[2] = inode
-				// inode.family[0] = cur
-
-				// for temp := cur; temp != nil; temp = temp.family[0] {
-				// 	temp.size++
-				// }
-
-				// if cur.family[0] != nil && cur.family[0].size == 3 {
-				// 	if cur.family[0].family[2] == nil {
-				// 		tree.irlrotate3(cur.family[0])
-				// 	} else {
-				// 		tree.ilrotate3(cur.family[0])
-				// 	}
-				// }
-				// return true
 			}
 			cur = cur.family[2]
 		default:
