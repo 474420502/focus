@@ -352,13 +352,17 @@ func loadTestData() [][]rune {
 
 func TestPut(t *testing.T) {
 	tree := New(compareRunes)
-
+	temp := ""
 	for i := 0; i < 10000; i++ {
-		v := randomdata.FullDate() + ":" + strconv.Itoa(i) + randomdata.Street()
+		v := strconv.Itoa(i) + ":" + randomdata.FullDate() + randomdata.Street()
+		// v := strconv.Itoa(i)
 		tree.Put([]rune(v), []rune(v))
-		if tree.root.size == 2 {
-			t.Error("213")
+
+		if temp != tree.debugString() {
+			t.Error(tree.debugString())
+			temp = tree.debugString()
 		}
+
 	}
 	t.Error("123")
 }

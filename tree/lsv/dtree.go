@@ -495,6 +495,7 @@ func (tree *DTree) putfeature(node *DNode) {
 		if cur.family[2] == nil {
 			cur.family[2] = node
 			node.family[0] = cur
+			tree.feature = node
 			break
 		}
 	}
