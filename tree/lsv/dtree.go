@@ -1,6 +1,8 @@
 package lsv
 
 import (
+	"log"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -496,9 +498,10 @@ func (tree *DTree) putfeature(node *DNode) {
 			cur.family[2] = node
 			node.family[0] = cur
 			tree.feature = node
-			break
+			return
 		}
 	}
+	log.Println("error")
 }
 
 // Put return bool

@@ -1,6 +1,8 @@
 package lsv
 
 import (
+	"strconv"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -28,7 +30,7 @@ type ITree struct {
 
 // New 生成一颗索引树
 func New(Compare func(s1, s2 []rune) int) *ITree {
-	return &ITree{Compare: Compare, limit: 10}
+	return &ITree{Compare: Compare, limit: 100}
 }
 
 // Put return bool
@@ -36,10 +38,8 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 
 	// node := &INode{key: key, value: value, size: 1}
 	if tree.root == nil {
-
 		tree.root = NewINode()
 		return tree.root.tree.Put(key, value)
-
 	}
 
 	for cur := tree.root; ; {
@@ -64,32 +64,22 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					rspilt.family[0] = nil //清空右节点的父类, rsplit为根
 					lspilt.family[0] = nil // 上
 
-					if cur.family[1].size < cur.family[2].size {
-						ilnode := NewINode()
-						ilnode.tree.root = lspilt
+					tempRoot := cur.tree.root
+					tempRoot.size = 1
+					for i := 1; i < len(tempRoot.family); i++ {
+						tempRoot.family[i] = nil
 					}
 
-					// 根树 新节点要插入到　右节点的最小值位置　即是 左~
-					irnode := NewINode()
-					irnode.tree.root = rspilt
-					irnode.tree.feature = cur.tree.feature // 右树最大值
+					var icur *INode
+					ilnode := NewINode()
+					ilnode.tree.root = lspilt
+					ilnode.tree.putfeature(tempRoot)
 
-					icur := cur.family[2]
+					cur.family[1] = ilnode
+					ilnode.family[0] = cur
+					icur = cur
 
-					if icur == nil {
-
-						cur.family[2] = irnode
-						irnode.family[0] = cur
-
-						icur = cur
-					} else {
-
-						for ; icur.family[1] != nil; icur = icur.family[1] {
-						} // 找右最左的值为最小值节点处
-
-						icur.family[1] = irnode // 挂接分离的右节点
-						irnode.family[0] = icur
-					}
+					cur.tree.root = rspilt //主根替换 右树
 
 					for temp := icur; temp != nil; temp = temp.family[0] {
 						temp.size++
@@ -103,16 +93,6 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 							tree.irrotate3(icur.family[0])
 						}
 					}
-
-					tempRoot := cur.tree.root
-					cur.tree.root = lspilt
-
-					tempRoot.size = 1
-					for i := 1; i < len(tempRoot.family); i++ {
-						tempRoot.family[i] = nil
-					}
-
-					cur.tree.putfeature(tempRoot)
 				}
 
 				return cur.tree.Put(key, value)
@@ -127,13 +107,21 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					rspilt.family[0] = nil //清空右节点的父类, rsplit为根
 					lspilt.family[0] = nil // 上
 
+					tempRoot := cur.tree.root
+					tempRoot.size = 1
+					for i := 1; i < len(tempRoot.family); i++ {
+						tempRoot.family[i] = nil
+					}
+
 					// cur.family
+					var icur *INode
 					irnode := NewINode()
 					irnode.tree.root = rspilt
+					irnode.tree.feature = cur.tree.feature
 
 					cur.family[2] = irnode
 					irnode.family[0] = cur
-					icur := cur
+					icur = cur
 
 					for temp := icur; temp != nil; temp = temp.family[0] {
 						temp.size++
@@ -148,17 +136,7 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 						}
 					}
 
-					// cur.family irnode
-
-					tempRoot := cur.tree.root
-
 					cur.tree.root = lspilt
-
-					tempRoot.size = 1
-					for i := 1; i < len(tempRoot.family); i++ {
-						tempRoot.family[i] = nil
-					}
-
 					cur.tree.putfeature(tempRoot)
 				}
 
@@ -166,6 +144,7 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 			}
 			cur = cur.family[2]
 		default:
+			// c == 0 而且满足插入限制, 分离出来, 分左右节点
 			return cur.tree.Put(key, value)
 		}
 
@@ -488,10 +467,10 @@ func ioutputfordebug(node *INode, prefix string, isTail bool, str *string) {
 	if node.family[0] == nil {
 		parentv = "nil"
 	} else {
-		parentv = spew.Sprint(string(node.family[0].tree.root.key[0:3]))
+		parentv = spew.Sprint(string(node.family[0].tree.root.key[0:3]), strconv.Itoa(node.family[0].tree.root.size))
 	}
 	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
-	*str += spew.Sprint(string(node.tree.root.key[0:3])) + suffix + "\n"
+	*str += spew.Sprint(string(node.tree.root.key[0:3]), strconv.Itoa(node.tree.root.size)) + suffix + "\n"
 
 	if node.family[1] != nil {
 		newPrefix := prefix
@@ -505,7 +484,7 @@ func ioutputfordebug(node *INode, prefix string, isTail bool, str *string) {
 }
 
 func (tree *ITree) debugString() string {
-	str := "VBTree-Dup\n"
+	str := "LSV\n"
 	if tree.root == nil {
 		return str + "nil"
 	}
