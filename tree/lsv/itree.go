@@ -1,5 +1,9 @@
 package lsv
 
+import (
+	"github.com/davecgh/go-spew/spew"
+)
+
 // INode 用于索引的节点
 type INode struct {
 	family [3]*INode
@@ -24,7 +28,7 @@ type ITree struct {
 
 // New 生成一颗索引树
 func New(Compare func(s1, s2 []rune) int) *ITree {
-	return &ITree{Compare: Compare, limit: 100}
+	return &ITree{Compare: Compare, limit: 10}
 }
 
 // Put return bool
@@ -60,10 +64,15 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					rspilt.family[0] = nil //清空右节点的父类, rsplit为根
 					lspilt.family[0] = nil // 上
 
+					if cur.family[1].size < cur.family[2].size {
+						ilnode := NewINode()
+						ilnode.tree.root = lspilt
+					}
+
 					// 根树 新节点要插入到　右节点的最小值位置　即是 左~
 					irnode := NewINode()
 					irnode.tree.root = rspilt
-					irnode.tree.feature = cur.tree.feature
+					irnode.tree.feature = cur.tree.feature // 右树最大值
 
 					icur := cur.family[2]
 
@@ -87,16 +96,15 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					} // 往上加+1 达到每个节点能统计size正确
 
 					// 调整3节点失衡的情况
-					if cur.family[0] != nil && cur.family[0].size == 3 {
-						if cur.family[0].family[1] == nil {
-							tree.ilrrotate3(cur.family[0])
+					if icur.family[0] != nil && icur.family[0].size == 3 {
+						if icur.family[0].family[1] == nil {
+							tree.ilrrotate3(icur.family[0])
 						} else {
-							tree.irrotate3(cur.family[0])
+							tree.irrotate3(icur.family[0])
 						}
 					}
 
 					tempRoot := cur.tree.root
-
 					cur.tree.root = lspilt
 
 					tempRoot.size = 1
@@ -132,11 +140,11 @@ func (tree *ITree) Put(key, value []rune) (isInsert bool) {
 					} // 往上加+1 达到每个节点能统计size正确
 
 					// 调整3节点失衡的情况
-					if cur.family[0] != nil && cur.family[0].size == 3 {
-						if cur.family[0].family[2] == nil {
-							tree.irlrotate3(cur.family[0])
+					if icur.family[0] != nil && icur.family[0].size == 3 {
+						if icur.family[0].family[2] == nil {
+							tree.irlrotate3(icur.family[0])
 						} else {
-							tree.ilrotate3(cur.family[0])
+							tree.ilrotate3(icur.family[0])
 						}
 					}
 
@@ -455,4 +463,52 @@ func (tree *ITree) ifixSizeWithRemove(cur *INode) {
 		}
 		cur = cur.family[0]
 	}
+}
+
+func ioutputfordebug(node *INode, prefix string, isTail bool, str *string) {
+
+	if node.family[2] != nil {
+		newPrefix := prefix
+		if isTail {
+			newPrefix += "│   "
+		} else {
+			newPrefix += "    "
+		}
+		ioutputfordebug(node.family[2], newPrefix, false, str)
+	}
+	*str += prefix
+	if isTail {
+		*str += "└── "
+	} else {
+		*str += "┌── "
+	}
+
+	suffix := "("
+	parentv := ""
+	if node.family[0] == nil {
+		parentv = "nil"
+	} else {
+		parentv = spew.Sprint(string(node.family[0].tree.root.key[0:3]))
+	}
+	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
+	*str += spew.Sprint(string(node.tree.root.key[0:3])) + suffix + "\n"
+
+	if node.family[1] != nil {
+		newPrefix := prefix
+		if isTail {
+			newPrefix += "    "
+		} else {
+			newPrefix += "│   "
+		}
+		ioutputfordebug(node.family[1], newPrefix, true, str)
+	}
+}
+
+func (tree *ITree) debugString() string {
+	str := "VBTree-Dup\n"
+	if tree.root == nil {
+		return str + "nil"
+	}
+	ioutputfordebug(tree.root, "", true, &str)
+	return str
 }
