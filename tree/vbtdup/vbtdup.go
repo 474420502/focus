@@ -445,9 +445,9 @@ func (tree *Tree) Put(value interface{}) (isInsert bool) {
 	for cur := tree.root; ; {
 
 		if cur.size > 8 {
-			factor := cur.size / 10 // or factor = 1
+			factor := cur.size >> 3 // or factor = 1
 			ls, rs := cur.children[0].size, cur.children[1].size
-			if rs >= ls*2+factor || ls >= rs*2+factor {
+			if rs >= (ls<<1)+factor || ls >= (rs<<1)+factor {
 				tree.fixSize(cur, ls, rs)
 			}
 		}
@@ -895,9 +895,9 @@ func (tree *Tree) fixSizeWithRemove(cur *Node) {
 	for cur != nil {
 		cur.size--
 		if cur.size > 8 {
-			factor := cur.size / 10 // or factor = 1
+			factor := cur.size >> 3 // or factor = 1
 			ls, rs := getChildrenSize(cur)
-			if rs >= ls*2+factor || ls >= rs*2+factor {
+			if rs >= (ls<<1)+factor || ls >= (rs<<1)+factor {
 				tree.fixSize(cur, ls, rs)
 			}
 		} else if cur.size == 3 {
