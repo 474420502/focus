@@ -12,7 +12,7 @@ type IStack interface {
 
 	Values() []interface{}
 
-	Push(v interface{})
+	Push(interface{})
 
 	Pop() (interface{}, bool)
 
