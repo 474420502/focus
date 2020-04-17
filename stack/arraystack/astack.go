@@ -1,6 +1,9 @@
 package astack
 
-import "github.com/davecgh/go-spew/spew"
+import (
+	"github.com/474420502/focus/stack"
+	"github.com/davecgh/go-spew/spew"
+)
 
 // type IStack interface {
 // 	Clear()
@@ -24,6 +27,10 @@ import "github.com/davecgh/go-spew/spew"
 // Stack 栈
 type Stack struct {
 	element []interface{}
+}
+
+func assertImplementation() {
+	var _ stack.IStack = (*Stack)(nil)
 }
 
 // New  创建一个Stack
