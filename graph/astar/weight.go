@@ -14,9 +14,11 @@ type Param struct {
 }
 
 // SimpleWeight 默认估价函数
-func SimpleWeight(nparam *Param) int {
+func SimpleWeight(nparam *Param, end *Point) int {
 	pw := len(nparam.paths)
-	return -(nparam.cur.x*nparam.cur.x + nparam.cur.y*nparam.cur.y + pw)
+	vx := nparam.cur.x - end.x
+	vy := nparam.cur.y - end.y
+	return -(vx*vx + vy*vy + pw*vx*vy)
 }
 
 // // WeightHeap 权重堆

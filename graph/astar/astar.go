@@ -17,7 +17,7 @@ type Graph struct {
 	// flag        int
 	isDebug bool
 
-	weight     func(nparam *Param) int
+	weight     func(nparam *Param, end *Point) int
 	weightHeap *heap.Tree
 
 	steps      int
@@ -57,7 +57,7 @@ func New2D(dx, dy int) *Graph {
 	g.weightHeap = heap.New(weightCompare)
 	g.weight = SimpleWeight
 	g.infoMap = make([]byte, g.tsize)
-	g.stepslimit = dx*dx*dy*dy*100 + 1
+	g.stepslimit = (dx*dx + dy*dy) * 8000
 	return g
 }
 
@@ -193,7 +193,7 @@ func (graph *Graph) Traversing(param *Param) bool {
 }
 
 // SetWeight 设置估价函数
-func (graph *Graph) SetWeight(weight func(nparam *Param) int) {
+func (graph *Graph) SetWeight(weight func(nparam *Param, end *Point) int) {
 	graph.weight = weight
 }
 
@@ -203,7 +203,7 @@ func (graph *Graph) evaluate(nparam *Param, param *Param) {
 	nparam.paths = make([]Point, len(param.paths))
 	copy(nparam.paths, param.paths)
 
-	nparam.weight = graph.weight(nparam)
+	nparam.weight = graph.weight(nparam, &graph.end)
 	graph.weightHeap.Put(nparam)
 }
 
