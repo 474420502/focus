@@ -1,14 +1,14 @@
 package astar
 
-func newParam(cur Point, graph []byte, paths []Point, weight int) *Param {
-	p := &Param{cur, graph, paths, weight}
+func newParam(cur Point, bits *Bitmap2D, paths []Point, weight int) *Param {
+	p := &Param{cur, bits, paths, weight}
 	return p
 }
 
 // Param 栈参数
 type Param struct {
 	cur    Point
-	graph  []byte
+	bits   *Bitmap2D
 	paths  []Point
 	weight int
 }

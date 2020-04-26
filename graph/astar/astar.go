@@ -78,7 +78,7 @@ func (graph *Graph) SetTarget(sx, sy, ex, ey int) {
 
 	graph.end.msize = graph.end.y*graph.dimX + graph.end.x
 
-	gdata := make([]byte, graph.bsize)
+	gdata := NewBitmap2D(graph.dimX, graph.dimY)
 	paths := make([]Point, 0)
 
 	param := newParam(graph.srart, gdata, paths, 0)
@@ -104,12 +104,12 @@ func (graph *Graph) Search() {
 
 func (graph *Graph) debugShow(param *Param) {
 	param.cur.msize = param.cur.y*graph.dimX + param.cur.x
-	param.graph[param.cur.msize] |= 0b10000000
+	param.bits.SetBit(param.cur.x, param.cur.y, 1)
+
 	content := "\n"
 	for y := 0; y < graph.dimY; y++ {
 		for x := 0; x < graph.dimX; x++ {
-			showmsize := y*graph.dimX + x
-			content += fmt.Sprintf("%03d ", param.graph[showmsize])
+			content += fmt.Sprintf("%1d ", param.bits.GetBit(x, y))
 		}
 		content += "\n"
 	}
@@ -130,7 +130,8 @@ func (graph *Graph) Traversing(param *Param) bool {
 
 	param.paths = append(param.paths, param.cur)
 	// param.cur.msize = param.cur.y*graph.dimX + param.cur.x
-	param.graph[param.cur.msize] |= 0b10000000
+	param.bits.SetBit(param.cur.x, param.cur.y, 1)
+	// param.graphbits[param.cur.msize] |= 0b10000000
 
 	graph.left(param)
 	graph.right(param)
@@ -146,8 +147,7 @@ func (graph *Graph) SetWeight(weight func(nparam *Param) int) {
 }
 
 func (graph *Graph) evaluate(nparam *Param, param *Param) {
-	nparam.graph = make([]byte, graph.bsize)
-	copy(nparam.graph, param.graph)
+	nparam.bits = CopyFrom(param.bits)
 
 	nparam.paths = make([]Point, len(param.paths))
 	copy(nparam.paths, param.paths)
@@ -165,11 +165,12 @@ func (graph *Graph) left(param *Param) {
 	nparam := &Param{cur: Point{x: leftx, y: param.cur.y}}
 	nparam.cur.msize = nparam.cur.y*graph.dimX + nparam.cur.x
 
-	nb := nparam.cur.msize / 8
-	mb := nparam.cur.msize % 8
+	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
+		return
+	}
 
 	pinfo := graph.infoMap[nparam.cur.msize]
-	if pinfo&0b10000000 > 0 {
+	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
 
@@ -183,8 +184,12 @@ func (graph *Graph) right(param *Param) {
 	}
 
 	nparam := &Param{cur: Point{x: rightx, y: param.cur.y}}
-	pinfo := param.graph[nparam.cur.y*graph.dimX+nparam.cur.x]
-	if pinfo&0b11000000 > 0 {
+	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
+		return
+	}
+
+	pinfo := graph.infoMap[nparam.cur.msize]
+	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
 
@@ -198,8 +203,12 @@ func (graph *Graph) up(param *Param) {
 	}
 
 	nparam := &Param{cur: Point{x: param.cur.x, y: upy}}
-	pinfo := param.graph[nparam.cur.y*graph.dimX+nparam.cur.x]
-	if pinfo&0b11000000 > 0 {
+	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
+		return
+	}
+
+	pinfo := graph.infoMap[nparam.cur.msize]
+	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
 
@@ -213,9 +222,12 @@ func (graph *Graph) down(param *Param) {
 	}
 
 	nparam := &Param{cur: Point{x: param.cur.x, y: downy}}
-	pinfo := param.graph[nparam.cur.y*graph.dimX+nparam.cur.x]
+	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
+		return
+	}
 
-	if pinfo&0b11000000 > 0 {
+	pinfo := graph.infoMap[nparam.cur.msize]
+	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
 

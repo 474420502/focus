@@ -5,10 +5,10 @@ import (
 )
 
 func TestCaseSimplePath(t *testing.T) {
-	graph := New2D(16, 16)
+	graph := New2D(8, 8)
 	graph.isDebug = true
 
-	graph.SetTarget(15, 15, 0, 0)
+	graph.SetTarget(7, 7, 0, 0)
 	graph.Search()
 	t.Error(graph.GetStep())
 }
