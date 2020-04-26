@@ -62,8 +62,9 @@ func (graph *Graph) setDimension(dx, dy int) {
 }
 
 // SetBlock 设置起点 结束点
-func (graph *Graph) SetBlock(x, y int) {
-
+func (graph *Graph) SetBlock(x, y int, v byte) {
+	msize := y*graph.dimX + x
+	graph.infoMap[msize] = v
 }
 
 // SetTarget 设置起点 结束点
