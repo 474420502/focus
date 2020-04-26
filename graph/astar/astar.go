@@ -2,7 +2,11 @@ package astar
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"regexp"
+	"strconv"
 
 	"github.com/474420502/focus/tree/heap"
 )
@@ -16,7 +20,8 @@ type Graph struct {
 	weight     func(nparam *Param) int
 	weightHeap *heap.Tree
 
-	step int
+	steps      int
+	stepslimit int
 
 	infoMap []byte
 
@@ -52,6 +57,7 @@ func New2D(dx, dy int) *Graph {
 	g.weightHeap = heap.New(weightCompare)
 	g.weight = SimpleWeight
 	g.infoMap = make([]byte, g.tsize)
+	g.stepslimit = dx*dx*dy*dy*100 + 1
 	return g
 }
 
@@ -61,10 +67,38 @@ func (graph *Graph) setDimension(dx, dy int) {
 	graph.dimY = dy
 }
 
+// SetTimeoutSteps 设置起点 结束点
+func (graph *Graph) SetTimeoutSteps(steps int) {
+	graph.stepslimit = steps
+}
+
 // SetBlock 设置起点 结束点
 func (graph *Graph) SetBlock(x, y int, v byte) {
 	msize := y*graph.dimX + x
 	graph.infoMap[msize] = v
+}
+
+// SetBlockFromFile 设置起点 结束点
+func (graph *Graph) SetBlockFromFile(path string) {
+	f, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+
+	re := regexp.MustCompile(`\d+`)
+	sdata := re.FindAll(data, -1)
+	for i, s := range sdata {
+		blockvalue, err := strconv.ParseInt(string(s), 16, 8)
+		if err != nil {
+			panic(err)
+		}
+		graph.infoMap[i] = byte(blockvalue)
+	}
 }
 
 // SetTarget 设置起点 结束点
@@ -88,19 +122,25 @@ func (graph *Graph) SetTarget(sx, sy, ex, ey int) {
 
 // GetStep 执行的步数
 func (graph *Graph) GetStep() int {
-	return graph.step
+	return graph.steps
 }
 
 // Search 执行搜索
-func (graph *Graph) Search() {
-	graph.step = 0
+func (graph *Graph) Search() (*Param, bool) {
+	graph.steps = 0
 	for !graph.weightHeap.Empty() {
-		param, _ := graph.weightHeap.Pop()
-		if graph.Traversing(param.(*Param)) {
-			break
+		iparam, _ := graph.weightHeap.Pop()
+		param := iparam.(*Param)
+		if graph.Traversing(param) {
+			return param, true
 		}
-		graph.step++
+		graph.steps++
+		if graph.steps >= graph.stepslimit {
+			log.Println("超时找不到路径", graph.steps)
+			return param, false
+		}
 	}
+	return nil, false
 }
 
 func (graph *Graph) debugShow(param *Param) {
@@ -111,6 +151,16 @@ func (graph *Graph) debugShow(param *Param) {
 	for y := 0; y < graph.dimY; y++ {
 		for x := 0; x < graph.dimX; x++ {
 			content += fmt.Sprintf("%1d ", param.bits.GetBit(x, y))
+		}
+		content += "\n"
+	}
+	log.Println(content)
+
+	content = "\n"
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			msize := y*graph.dimY + x
+			content += fmt.Sprintf("%02x ", graph.infoMap[msize])
 		}
 		content += "\n"
 	}
