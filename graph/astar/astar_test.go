@@ -1,6 +1,8 @@
 package astar
 
 import (
+	"log"
+	"os"
 	"testing"
 )
 
@@ -31,7 +33,11 @@ func TestCaseBlockPath(t *testing.T) {
 }
 
 func TestCaseBlockPathFile(t *testing.T) {
-	graph := New2D(16, 16)
+	var graph *Graph
+	f, _ := os.OpenFile("./test.log", os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	log.SetOutput(f)
+
+	graph = New2D(16, 16)
 	graph.isDebug = true
 	graph.SetTarget(15, 15, 0, 0)
 	graph.SetBlockFromFile("./test1.bf")

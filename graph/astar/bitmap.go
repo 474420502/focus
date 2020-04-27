@@ -21,17 +21,14 @@ type Bitmap2D struct {
 func (bm *Bitmap2D) GetBitBySize(msize int) int {
 	a := msize / 8
 	b := msize % 8
-	return int(bm.bits[a] & (1 << b))
-}
-
-func (bm *Bitmap2D) GetBit(x, y int) int {
-	msize := y*bm.dimX + x
-	a := msize / 8
-	b := msize % 8
 	if bm.bits[a]&(1<<b) > 0 {
 		return 1
 	}
 	return 0
+}
+
+func (bm *Bitmap2D) GetBit(x, y int) int {
+	return bm.GetBitBySize(y*bm.dimX + x)
 }
 
 func (bm *Bitmap2D) SetBit(x, y int, v int) {
