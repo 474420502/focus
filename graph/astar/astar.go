@@ -1,6 +1,7 @@
 package astar
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,7 +19,7 @@ type Graph struct {
 	// flag        int
 	isDebug bool
 
-	weight     func(nparam *Param, end *Point) int
+	weight     func(nparam *Param, graph *Graph) int
 	weightHeap *heap.Tree
 
 	steps      int
@@ -34,6 +35,8 @@ type Graph struct {
 	dimY  int
 	tsize int // dimX * dimY
 	bsize int // bit size
+
+	blockflag float64
 }
 
 // Point 点
@@ -52,6 +55,7 @@ func weightCompare(x1, x2 interface{}) int {
 
 // New2D 一个graph. 必须指定维度数据
 func New2D(dx, dy int) *Graph {
+
 	g := &Graph{}
 	g.setDimension(dx, dy)
 	g.tsize = g.dimX * g.dimY
@@ -60,8 +64,89 @@ func New2D(dx, dy int) *Graph {
 	g.weight = SimpleWeight
 	g.infoMap = make([]byte, g.tsize)
 	g.paramMap = make([]*Param, g.tsize)
-	g.stepslimit = (dx*dx + dy*dy) * 1024
+	g.stepslimit = (dx*dx + dy*dy) * 512
+
 	return g
+}
+
+// New2DFromBlockFile 一个graph. 必须指定BlockFile 内部已经调用 CountBlocksFlag
+func New2DFromBlockFile(path string) *Graph {
+	f, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+
+	var sdatalist [][]string
+	reader := bufio.NewReader(f)
+	dy := 0
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		sdata := regexp.MustCompile(`\d+`).FindAllString(line, -1)
+		if sdata != nil {
+			dy++
+			sdatalist = append(sdatalist, sdata)
+		}
+	}
+	dy++ // 维度
+	dx := len(sdatalist[0])
+	graph := New2D(dx, dy)
+	i := 0
+	for _, sdata := range sdatalist {
+		for _, s := range sdata {
+			blockvalue, err := strconv.ParseInt(s, 16, 8)
+			if err != nil {
+				panic(err)
+			}
+			graph.infoMap[i] = byte(blockvalue)
+			i++
+		}
+	}
+
+	graph.CountBlocksFlag()
+	return graph
+}
+
+// CountBlocksFlag 计算blocks的比例, 便于做估价处理
+func (graph *Graph) CountBlocksFlag() {
+	blocks := 0
+	zeroSize := graph.tsize
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			msize := y*graph.dimY + x
+			v := graph.infoMap[msize]
+			if v > 0 {
+				blocks++
+			} else {
+				zeroCount := 0
+				for _, p := range []Point{{-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}} {
+
+					cx := x + p.x
+					cy := y + p.y
+					if cx < 0 || cy < 0 {
+						break
+					}
+
+					if cx >= graph.dimX || cy >= graph.dimY {
+						break
+					}
+
+					cmsize := cy*graph.dimY + cx
+					if graph.infoMap[cmsize] == 0 {
+						zeroCount++
+					}
+				}
+
+				if zeroCount == 4 {
+					zeroSize -= 2
+				}
+			}
+		}
+	}
+
+	graph.blockflag = float64(blocks) / float64(zeroSize)
 }
 
 // setDimension 初始化维度
@@ -75,13 +160,13 @@ func (graph *Graph) SetTimeoutSteps(steps int) {
 	graph.stepslimit = steps
 }
 
-// SetBlock 设置起点 结束点
+// SetBlock 设置障碍　完后需要调用　CountBlocksFlag() 让估价更加准确.
 func (graph *Graph) SetBlock(x, y int, v byte) {
 	msize := y*graph.dimX + x
 	graph.infoMap[msize] = v
 }
 
-// SetBlockFromFile 设置起点 结束点
+// SetBlockFromFile 设置障碍从文件中 内部已经调用 CountBlocksFlag
 func (graph *Graph) SetBlockFromFile(path string) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -102,6 +187,7 @@ func (graph *Graph) SetBlockFromFile(path string) {
 		}
 		graph.infoMap[i] = byte(blockvalue)
 	}
+	graph.CountBlocksFlag()
 }
 
 // SetTarget 设置起点 结束点
@@ -168,7 +254,7 @@ func (graph *Graph) Traversing(param *Param) bool {
 	param.paths = append(param.paths, param.cur)
 	param.bits.SetBit(param.cur.x, param.cur.y, 1)
 
-	graph.myDebug(param)
+	// graph.myDebug(param)
 
 	graph.left(param)
 	graph.right(param)
@@ -179,7 +265,7 @@ func (graph *Graph) Traversing(param *Param) bool {
 }
 
 // SetWeight 设置估价函数
-func (graph *Graph) SetWeight(weight func(nparam *Param, end *Point) int) {
+func (graph *Graph) SetWeight(weight func(nparam *Param, graph *Graph) int) {
 	graph.weight = weight
 }
 
@@ -189,7 +275,7 @@ func (graph *Graph) evaluate(nparam *Param, param *Param) {
 	nparam.paths = make([]Point, len(param.paths))
 	copy(nparam.paths, param.paths)
 
-	nparam.cur.weight = graph.weight(nparam, &graph.end)
+	nparam.cur.weight = graph.weight(nparam, graph)
 	graph.weightHeap.Put(nparam)
 }
 
@@ -376,7 +462,5 @@ func (graph *Graph) myDebug(param *Param) {
 			content += "\n"
 		}
 		log.Println(content)
-
 	}
-
 }

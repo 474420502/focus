@@ -28,6 +28,7 @@ func TestCaseBlockPath(t *testing.T) {
 	graph.SetBlock(1, 4, 1)
 	graph.SetBlock(7, 7, 1)
 	graph.SetBlock(7, 8, 1)
+	graph.CountBlocksFlag()
 	graph.Search()
 	t.Error(graph.GetStep())
 }
@@ -48,6 +49,32 @@ func TestCaseBlockPathFile(t *testing.T) {
 	graph.isDebug = true
 	graph.SetTarget(15, 15, 0, 0)
 	graph.SetBlockFromFile("./test2.bf")
+	graph.Search()
+	t.Error(graph.GetStep())
+}
+
+func TestCaseBlock512x512(t *testing.T) {
+	var graph *Graph
+	f, _ := os.OpenFile("./test.log", os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	log.SetOutput(f)
+
+	graph = New2D(512, 512)
+	graph.isDebug = true
+	graph.SetTarget(511, 511, 0, 0)
+	// graph.SetBlockFromFile("./test3.bf")
+	graph.Search()
+	t.Error(graph.GetStep())
+}
+
+func TestCaseBlock32x32(t *testing.T) {
+	var graph *Graph
+	f, _ := os.OpenFile("./test.log", os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	log.SetOutput(f)
+
+	graph = New2DFromBlockFile("./test3.bf")
+	graph.isDebug = true
+	graph.SetTarget(31, 31, 0, 0)
+	// graph.SetBlockFromFile("./test3.bf")
 	graph.Search()
 	t.Error(graph.GetStep())
 }
