@@ -28,7 +28,7 @@ func TestCaseBlockPath(t *testing.T) {
 	graph.SetBlock(1, 4, 1)
 	graph.SetBlock(7, 7, 1)
 	graph.SetBlock(7, 8, 1)
-	graph.CountBlocksFlag()
+	// graph.CountBlocksFlag()
 	graph.Search()
 	t.Error(graph.GetStep())
 }

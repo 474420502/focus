@@ -3,7 +3,6 @@ package astar
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -25,11 +24,11 @@ type Graph struct {
 	steps      int
 	stepslimit int
 
-	paramMap []*Param
-	infoMap  []byte
+	paramMap [][]*Param // 记录最小的路径Param 比这个大而且来过的都可以cut
+	tile     [][]*Point
 
-	srart Point
-	end   Point
+	srart *Point
+	end   *Point
 
 	dimX  int
 	dimY  int
@@ -41,13 +40,13 @@ type Graph struct {
 
 // Point 点
 type Point struct {
-	x, y   int
-	weight int
+	X, Y int
+	Flag byte
 }
 
 func weightCompare(x1, x2 interface{}) int {
 	p1, p2 := x1.(*Param), x2.(*Param)
-	if p1.cur.weight > p2.cur.weight {
+	if p1.weight > p2.weight {
 		return 1
 	}
 	return -1
@@ -55,17 +54,28 @@ func weightCompare(x1, x2 interface{}) int {
 
 // New2D 一个graph. 必须指定维度数据
 func New2D(dx, dy int) *Graph {
-
 	g := &Graph{}
 	g.setDimension(dx, dy)
 	g.tsize = g.dimX * g.dimY
 	g.bsize = (g.tsize + 1) / 8
 	g.weightHeap = heap.New(weightCompare)
 	g.weight = SimpleWeight
-	g.infoMap = make([]byte, g.tsize)
-	g.paramMap = make([]*Param, g.tsize)
-	g.stepslimit = (dx*dx + dy*dy) * 512
 
+	g.tile = make([][]*Point, dy)
+	for y := 0; y < dy; y++ {
+		g.tile[y] = make([]*Point, dx)
+		for x := 0; x < dx; x++ {
+			point := &Point{X: x, Y: y}
+			g.tile[y][x] = point
+		}
+	}
+
+	g.paramMap = make([][]*Param, dy)
+	for y := 0; y < dy; y++ {
+		g.paramMap[y] = make([]*Param, dx)
+	}
+
+	g.stepslimit = (dx*dx + dy*dy) * 512
 	return g
 }
 
@@ -93,61 +103,61 @@ func New2DFromBlockFile(path string) *Graph {
 	dy++ // 维度
 	dx := len(sdatalist[0])
 	graph := New2D(dx, dy)
-	i := 0
-	for _, sdata := range sdatalist {
-		for _, s := range sdata {
+
+	for y, sdata := range sdatalist {
+		tiltx := graph.tile[y]
+		for x, s := range sdata {
 			blockvalue, err := strconv.ParseInt(s, 16, 8)
 			if err != nil {
 				panic(err)
 			}
-			graph.infoMap[i] = byte(blockvalue)
-			i++
+			tiltx[x].Flag = byte(blockvalue)
 		}
 	}
 
-	graph.CountBlocksFlag()
+	// graph.CountBlocksFlag()
 	return graph
 }
 
 // CountBlocksFlag 计算blocks的比例, 便于做估价处理
-func (graph *Graph) CountBlocksFlag() {
-	blocks := 0
-	zeroSize := graph.tsize
-	for y := 0; y < graph.dimY; y++ {
-		for x := 0; x < graph.dimX; x++ {
-			msize := y*graph.dimY + x
-			v := graph.infoMap[msize]
-			if v > 0 {
-				blocks++
-			} else {
-				zeroCount := 0
-				for _, p := range []Point{{-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}} {
+// func (graph *Graph) CountBlocksFlag() {
+// 	blocks := 0
+// 	zeroSize := graph.tsize
+// 	for y := 0; y < graph.dimY; y++ {
+// 		for x := 0; x < graph.dimX; x++ {
+// 			msize := y*graph.dimY + x
+// 			v := graph.tile[msize]
+// 			if v > 0 {
+// 				blocks++
+// 			} else {
+// 				zeroCount := 0
+// 				for _, p := range []Point{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 
-					cx := x + p.x
-					cy := y + p.y
-					if cx < 0 || cy < 0 {
-						break
-					}
+// 					cx := x + p.x
+// 					cy := y + p.y
+// 					if cx < 0 || cy < 0 {
+// 						break
+// 					}
 
-					if cx >= graph.dimX || cy >= graph.dimY {
-						break
-					}
+// 					if cx >= graph.dimX || cy >= graph.dimY {
+// 						break
+// 					}
 
-					cmsize := cy*graph.dimY + cx
-					if graph.infoMap[cmsize] == 0 {
-						zeroCount++
-					}
-				}
+// 					cmsize := cy*graph.dimY + cx
+// 					if graph.tile[cmsize] == 0 {
+// 						zeroCount++
+// 					}
+// 				}
 
-				if zeroCount == 4 {
-					zeroSize -= 2
-				}
-			}
-		}
-	}
+// 				if zeroCount == 4 {
+// 					zeroSize -= 2
+// 				}
+// 			}
+// 		}
+// 	}
 
-	graph.blockflag = float64(blocks) / float64(zeroSize)
-}
+// 	graph.blockflag = float64(blocks) / float64(zeroSize)
+// }
 
 // setDimension 初始化维度
 func (graph *Graph) setDimension(dx, dy int) {
@@ -162,8 +172,7 @@ func (graph *Graph) SetTimeoutSteps(steps int) {
 
 // SetBlock 设置障碍　完后需要调用　CountBlocksFlag() 让估价更加准确.
 func (graph *Graph) SetBlock(x, y int, v byte) {
-	msize := y*graph.dimX + x
-	graph.infoMap[msize] = v
+	graph.tile[y][x].Flag = v
 }
 
 // SetBlockFromFile 设置障碍从文件中 内部已经调用 CountBlocksFlag
@@ -173,43 +182,55 @@ func (graph *Graph) SetBlockFromFile(path string) {
 		panic(err)
 	}
 
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
+	var sdatalist [][]string
+	reader := bufio.NewReader(f)
+	dy := 0
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		sdata := regexp.MustCompile(`\d+`).FindAllString(line, -1)
+		if sdata != nil {
+			dy++
+			sdatalist = append(sdatalist, sdata)
+		}
+	}
+	dy++ // 维度
+	dx := len(sdatalist[0])
+
+	if !(dy == graph.dimY && dx == graph.dimX) {
+		panic("file dim X, Y is not equal graph tile")
 	}
 
-	re := regexp.MustCompile(`\d+`)
-	sdata := re.FindAll(data, -1)
-	for i, s := range sdata {
-		blockvalue, err := strconv.ParseInt(string(s), 16, 8)
-		if err != nil {
-			panic(err)
+	for y, sdata := range sdatalist {
+		tiltx := graph.tile[y]
+		for x, s := range sdata {
+			blockvalue, err := strconv.ParseInt(s, 16, 8)
+			if err != nil {
+				panic(err)
+			}
+			tiltx[x].Flag = byte(blockvalue)
 		}
-		graph.infoMap[i] = byte(blockvalue)
 	}
-	graph.CountBlocksFlag()
+	// graph.CountBlocksFlag()
 }
 
 // SetTarget 设置起点 结束点
 func (graph *Graph) SetTarget(sx, sy, ex, ey int) {
-	graph.srart.x = sx
-	graph.srart.y = sy
 
-	// graph.srart.msize = graph.srart.y*graph.dimX + graph.srart.x
-
-	graph.end.x = ex
-	graph.end.y = ey
+	graph.srart = graph.tile[sy][sx]
+	graph.end = graph.tile[ey][ex]
 
 	// graph.end.msize = graph.end.y*graph.dimX + graph.end.x
 
 	gdata := NewBitmap2D(graph.dimX, graph.dimY)
-	paths := make([]Point, 0)
+	paths := make([]*Point, 0)
 
 	param := newParam(graph.srart, gdata, paths, 0)
 	graph.weightHeap.Put(param)
 
-	msize := param.cur.y*graph.dimX + param.cur.x
-	graph.cutAllByMinPath(param, msize)
+	graph.cutAllByMinPath(param)
 }
 
 // GetStep 执行的步数
@@ -221,6 +242,9 @@ func (graph *Graph) GetStep() int {
 func (graph *Graph) Search() (*Param, bool) {
 
 	defer func() {
+		if graph.isDebug {
+			log.Println("blockflag", graph.blockflag, "search heap size:", graph.weightHeap.Size())
+		}
 		graph.weightHeap.Clear()
 	}()
 
@@ -243,7 +267,7 @@ func (graph *Graph) Search() (*Param, bool) {
 
 // Traversing 遍历结果
 func (graph *Graph) Traversing(param *Param) bool {
-	if param.cur.x == graph.end.x && param.cur.y == graph.end.y {
+	if param.pos == graph.end {
 		if graph.isDebug {
 			graph.debugShow(param)
 		}
@@ -251,8 +275,8 @@ func (graph *Graph) Traversing(param *Param) bool {
 		return true
 	}
 
-	param.paths = append(param.paths, param.cur)
-	param.bits.SetBit(param.cur.x, param.cur.y, 1)
+	param.paths = append(param.paths, param.pos)
+	param.bits.SetBit(param.pos.X, param.pos.Y, 1)
 
 	// graph.myDebug(param)
 
@@ -272,32 +296,33 @@ func (graph *Graph) SetWeight(weight func(nparam *Param, graph *Graph) int) {
 func (graph *Graph) evaluate(nparam *Param, param *Param) {
 	nparam.bits = CopyFrom(param.bits)
 
-	nparam.paths = make([]Point, len(param.paths))
+	nparam.paths = make([]*Point, len(param.paths))
 	copy(nparam.paths, param.paths)
 
-	nparam.cur.weight = graph.weight(nparam, graph)
+	nparam.weight = graph.weight(nparam, graph)
 	graph.weightHeap.Put(nparam)
 }
 
-func (graph *Graph) cutAllByMinPath(param *Param, msize int) bool {
-	if checkParam := graph.paramMap[msize]; checkParam != nil {
+func (graph *Graph) cutAllByMinPath(param *Param) bool {
+	checkpoint := param.pos
+	if checkParam := graph.paramMap[checkpoint.Y][checkpoint.X]; checkParam != nil {
 		if len(checkParam.paths) > len(param.paths) {
-			graph.paramMap[msize] = param
+			graph.paramMap[checkpoint.Y][checkpoint.X] = param
 		} else {
 			return true
 		}
 	} else {
-		graph.paramMap[msize] = param
+		graph.paramMap[checkpoint.Y][checkpoint.X] = param
 	}
 	return false
 }
 
 func (graph *Graph) cutUnessential(nparam *Param, bits *Bitmap2D) bool {
 	count := 0
-	for _, p := range []Point{{-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}} {
+	for _, p := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 
-		x := nparam.cur.x + p.x
-		y := nparam.cur.y + p.y
+		x := nparam.pos.X + p[0] // p[0] == `x`
+		y := nparam.pos.Y + p[1] // p[0] == `y`
 		if x < 0 || y < 0 {
 			continue
 		}
@@ -316,9 +341,9 @@ func (graph *Graph) cutUnessential(nparam *Param, bits *Bitmap2D) bool {
 	return false
 }
 
-func (graph *Graph) cut(nparam *Param, bits *Bitmap2D, msize int) bool {
+func (graph *Graph) cut(nparam *Param, bits *Bitmap2D) bool {
 
-	if graph.cutAllByMinPath(nparam, msize) {
+	if graph.cutAllByMinPath(nparam) {
 		return true
 	}
 
@@ -330,23 +355,21 @@ func (graph *Graph) cut(nparam *Param, bits *Bitmap2D, msize int) bool {
 }
 
 func (graph *Graph) left(param *Param) {
-	leftx := param.cur.x - 1
+	leftx := param.pos.X - 1
 	if leftx < 0 {
 		return
 	}
 
-	nparam := &Param{cur: Point{x: leftx, y: param.cur.y}}
-	msize := nparam.cur.y*graph.dimX + nparam.cur.x
-
-	if param.bits.GetBitBySize(msize) > 0 {
+	nparam := &Param{pos: graph.tile[param.pos.Y][leftx]}
+	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
 		return
 	}
 
-	if graph.cut(nparam, param.bits, msize) {
+	if graph.cut(nparam, param.bits) {
 		return
 	}
 
-	pinfo := graph.infoMap[msize]
+	pinfo := nparam.pos.Flag
 	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
@@ -355,22 +378,21 @@ func (graph *Graph) left(param *Param) {
 }
 
 func (graph *Graph) right(param *Param) {
-	rightx := param.cur.x + 1
+	rightx := param.pos.X + 1
 	if rightx >= graph.dimX {
 		return
 	}
 
-	nparam := &Param{cur: Point{x: rightx, y: param.cur.y}}
-	msize := nparam.cur.y*graph.dimX + nparam.cur.x
-	if param.bits.GetBitBySize(msize) > 0 {
+	nparam := &Param{pos: graph.tile[param.pos.Y][rightx]}
+	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
 		return
 	}
 
-	if graph.cut(nparam, param.bits, msize) {
+	if graph.cut(nparam, param.bits) {
 		return
 	}
 
-	pinfo := graph.infoMap[msize]
+	pinfo := nparam.pos.Flag
 	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
@@ -379,22 +401,21 @@ func (graph *Graph) right(param *Param) {
 }
 
 func (graph *Graph) up(param *Param) {
-	upy := param.cur.y - 1
+	upy := param.pos.Y - 1
 	if upy < 0 {
 		return
 	}
 
-	nparam := &Param{cur: Point{x: param.cur.x, y: upy}}
-	msize := nparam.cur.y*graph.dimX + nparam.cur.x
-	if param.bits.GetBitBySize(msize) > 0 {
+	nparam := &Param{pos: graph.tile[upy][param.pos.X]}
+	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
 		return
 	}
 
-	if graph.cut(nparam, param.bits, msize) {
+	if graph.cut(nparam, param.bits) {
 		return
 	}
 
-	pinfo := graph.infoMap[msize]
+	pinfo := nparam.pos.Flag
 	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
@@ -403,22 +424,21 @@ func (graph *Graph) up(param *Param) {
 }
 
 func (graph *Graph) down(param *Param) {
-	downy := param.cur.y + 1
+	downy := param.pos.Y + 1
 	if downy >= graph.dimY {
 		return
 	}
 
-	nparam := &Param{cur: Point{x: param.cur.x, y: downy}}
-	msize := nparam.cur.y*graph.dimX + nparam.cur.x
-	if param.bits.GetBitBySize(msize) > 0 {
+	nparam := &Param{pos: graph.tile[downy][param.pos.X]}
+	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
 		return
 	}
 
-	if graph.cut(nparam, param.bits, msize) {
+	if graph.cut(nparam, param.bits) {
 		return
 	}
 
-	pinfo := graph.infoMap[msize]
+	pinfo := nparam.pos.Flag
 	if pinfo&0b00000001 > 0 { // 障碍物
 		return
 	}
@@ -427,7 +447,7 @@ func (graph *Graph) down(param *Param) {
 }
 
 func (graph *Graph) debugShow(param *Param) {
-	param.bits.SetBit(param.cur.x, param.cur.y, 1)
+	param.bits.SetBit(param.pos.X, param.pos.Y, 1)
 
 	content := "\n"
 	for y := 0; y < graph.dimY; y++ {
@@ -441,8 +461,7 @@ func (graph *Graph) debugShow(param *Param) {
 	content = "\n"
 	for y := 0; y < graph.dimY; y++ {
 		for x := 0; x < graph.dimX; x++ {
-			msize := y*graph.dimY + x
-			content += fmt.Sprintf("%02x ", graph.infoMap[msize])
+			content += fmt.Sprintf("%02x ", graph.tile[y][x].Flag)
 		}
 		content += "\n"
 	}
