@@ -1,4 +1,4 @@
-package astar
+package gsearch
 
 func NewBitmap2D(dx, dy int) *Bitmap2D {
 	bm := &Bitmap2D{dimX: dx, dimY: dy}

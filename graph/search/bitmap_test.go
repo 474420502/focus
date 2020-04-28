@@ -1,4 +1,4 @@
-package astar
+package gsearch
 
 import "testing"
 
