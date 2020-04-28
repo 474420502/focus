@@ -18,7 +18,7 @@ type Graph struct {
 	// flag        int
 	isDebug bool
 
-	weight     func(nparam *Param, graph *Graph) int
+	weightFunc func(nparam *Param, graph *Graph) int
 	weightHeap *heap.Tree
 
 	steps      int
@@ -59,7 +59,7 @@ func New2D(dx, dy int) *Graph {
 	g.tsize = g.dimX * g.dimY
 	g.bsize = (g.tsize + 1) / 8
 	g.weightHeap = heap.New(weightCompare)
-	g.weight = SimpleWeight
+	g.weightFunc = SimpleWeight
 
 	g.tile = make([][]*Point, dy)
 	for y := 0; y < dy; y++ {
@@ -230,7 +230,7 @@ func (graph *Graph) SetTarget(sx, sy, ex, ey int) {
 	param := newParam(graph.srart, gdata, paths, 0)
 	graph.weightHeap.Put(param)
 
-	graph.cutAllByMinPath(param)
+	graph.cutByMinPath(param)
 }
 
 // GetStep 执行的步数
@@ -290,20 +290,37 @@ func (graph *Graph) Traversing(param *Param) bool {
 
 // SetWeight 设置估价函数
 func (graph *Graph) SetWeight(weight func(nparam *Param, graph *Graph) int) {
-	graph.weight = weight
+	graph.weightFunc = weight
+}
+
+// Clear 设置估价函数
+func (graph *Graph) Clear() {
+	graph.steps = 0
+	graph.blockflag = 0
+
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			graph.paramMap[y][x] = nil
+		}
+	}
+	graph.weightHeap.Clear()
 }
 
 func (graph *Graph) evaluate(nparam *Param, param *Param) {
+	if graph.cut(nparam, param.bits) {
+		return
+	}
+
 	nparam.bits = CopyFrom(param.bits)
 
 	nparam.paths = make([]*Point, len(param.paths))
 	copy(nparam.paths, param.paths)
 
-	nparam.weight = graph.weight(nparam, graph)
+	nparam.weight = graph.weightFunc(nparam, graph)
 	graph.weightHeap.Put(nparam)
 }
 
-func (graph *Graph) cutAllByMinPath(param *Param) bool {
+func (graph *Graph) cutByMinPath(param *Param) bool {
 	checkpoint := param.pos
 	if checkParam := graph.paramMap[checkpoint.Y][checkpoint.X]; checkParam != nil {
 		if len(checkParam.paths) > len(param.paths) {
@@ -343,7 +360,16 @@ func (graph *Graph) cutUnessential(nparam *Param, bits *Bitmap2D) bool {
 
 func (graph *Graph) cut(nparam *Param, bits *Bitmap2D) bool {
 
-	if graph.cutAllByMinPath(nparam) {
+	pinfo := nparam.pos.Flag
+	if pinfo&0b00000001 > 0 { // 障碍物
+		return true
+	}
+
+	if bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
+		return true
+	}
+
+	if graph.cutByMinPath(nparam) {
 		return true
 	}
 
@@ -361,19 +387,6 @@ func (graph *Graph) left(param *Param) {
 	}
 
 	nparam := &Param{pos: graph.tile[param.pos.Y][leftx]}
-	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
-		return
-	}
-
-	if graph.cut(nparam, param.bits) {
-		return
-	}
-
-	pinfo := nparam.pos.Flag
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
 	graph.evaluate(nparam, param)
 }
 
@@ -384,19 +397,6 @@ func (graph *Graph) right(param *Param) {
 	}
 
 	nparam := &Param{pos: graph.tile[param.pos.Y][rightx]}
-	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
-		return
-	}
-
-	if graph.cut(nparam, param.bits) {
-		return
-	}
-
-	pinfo := nparam.pos.Flag
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
 	graph.evaluate(nparam, param)
 }
 
@@ -407,19 +407,6 @@ func (graph *Graph) up(param *Param) {
 	}
 
 	nparam := &Param{pos: graph.tile[upy][param.pos.X]}
-	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
-		return
-	}
-
-	if graph.cut(nparam, param.bits) {
-		return
-	}
-
-	pinfo := nparam.pos.Flag
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
 	graph.evaluate(nparam, param)
 }
 
@@ -430,19 +417,6 @@ func (graph *Graph) down(param *Param) {
 	}
 
 	nparam := &Param{pos: graph.tile[downy][param.pos.X]}
-	if param.bits.GetBit(nparam.pos.X, nparam.pos.Y) > 0 {
-		return
-	}
-
-	if graph.cut(nparam, param.bits) {
-		return
-	}
-
-	pinfo := nparam.pos.Flag
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
 	graph.evaluate(nparam, param)
 }
 

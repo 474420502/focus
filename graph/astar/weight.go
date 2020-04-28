@@ -27,7 +27,7 @@ func SimpleWeight(nparam *Param, graph *Graph) int {
 	// }
 	// pw := len(nparam.paths) >> mbit
 
-	pw := len(nparam.paths)
+	pw := len(nparam.paths) >> 1
 	vx := int(math.Abs(float64(nparam.pos.X - graph.end.X)))
 	vy := int(math.Abs(float64(nparam.pos.Y - graph.end.Y)))
 	w := -(vx + vy + pw)
