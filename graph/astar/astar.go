@@ -32,9 +32,16 @@ type Graph struct {
 
 	path []*Tile
 
-	Tiles       [][]*Tile
+	Tiles [][]*Tile
+
 	getNeighbor func(graph *Graph, tile *Tile) []*Tile
-	openHeap    *heap.Tree
+
+	// countCost   func(graph *Graph, tile *Tile, ptile *Tile)
+	// countWeight func(graph *Graph, tile *Tile, ptile *Tile)
+	countCost   CountCost
+	countWeight CountWeight
+
+	openHeap *heap.Tree
 }
 
 // Point point x y
