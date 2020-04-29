@@ -1,23 +1,46 @@
 package astar
 
 import (
-	"log"
 	"testing"
 )
 
 func TestMaxDim(t *testing.T) {
-	Dim := 2 << 11
-	log.Println(Dim)
+	Dim := 2 << 9 // 10 11 is fast
 	graph := New(Dim, Dim)
-	// graph.isDebug = true
-
 	graph.SetTarget(0, 0, Dim-1, Dim-1)
-	t.Error(len(graph.Search()) - 1)
+	graph.Search()
+	if graph.GetSteps() != 2046 {
+		t.Error(graph.GetSteps())
+	}
+}
+
+func TestSimplePathLen(t *testing.T) {
+	graph := NewWithTiles(`
+	....
+	....
+	....
+	....
+	`)
+	graph.SetTarget(0, 0, graph.dimX-1, graph.dimY-1)
+	graph.Search()
+	if graph.GetSteps() != 6 {
+		t.Error(graph.GetSteps(), graph.GetStringTiles())
+	}
+
+	graph.Clear()
+
+	graph.SetTarget(0, 0, graph.dimX-2, graph.dimY-2)
+	if !graph.Search() {
+		t.Error("Clear error")
+	}
+
+	if graph.GetSteps() != 4 {
+		t.Error(graph.GetSteps(), graph.GetStringTiles())
+	}
 }
 
 func TestNoPath(t *testing.T) {
 	graph := New(32, 32)
-	graph.isDebug = true
 	graph.SetStringTiles(`
 	e...............................
 	xxxx.......xxxxxxxxxxxxxxxxxxxxx
@@ -52,13 +75,14 @@ func TestNoPath(t *testing.T) {
 	.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.
 	...............................s
 	`)
-	graph.Search()
+	if graph.Search() {
+		t.Error("should be no path")
+	}
 }
 
 func TestSearch8Dir(t *testing.T) {
 	graph := New(32, 32)
 	graph.SetNeighborFunc(GetNeighbor8)
-	graph.isDebug = true
 	graph.SetStringTiles(`
 	e...............................
 	xxxx.......xxxxxxxxxxxxxxxx.xxxx
@@ -93,12 +117,52 @@ func TestSearch8Dir(t *testing.T) {
 	.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.
 	...............................s
 	`)
-	graph.Search()
+	if !graph.Search() {
+		t.Error("why not find the path?")
+	}
+	stiles := graph.GetStringTiles()
+	rtiles := `
+eoooooooooooooooooooooooooo.....
+xxxx.......xxxxxxxxxxxxxxxxoxxxx
+...x.......x.oooooooooooooo.x...
+...x.......xoxxxxxxxxxxxxxxxx...
+...x.......x.oooooooooooooooooo.
+...xxx.....xxxxxxxxxxxxxxxxxxxxo
+.....xx....x..ooooooooooooooooo.
+......xx...x.oxxxxxxxxxxxxxxxxxx
+.......xx..x..o.................
+........xx.x...ooooooooooooooo..
+.........xxxxxxxxxxxxxxxxxxxxxo.
+..........xx...ooooooooooooooo..
+...........xx.oxxxxxxxxxxxxxxxxx
+............xx.oooooooooooooooo.
+.............xxxxxxxxxxxxxxxxxxo
+..............xx...............o
+...............xx..............o
+................xx.............o
+.................xx............o
+..................xx...........o
+.xxxxxxxxxxxxxxxxxxxx..........o
+....................xx.........o
+.....................xx........o
+xxxxxxxxxxxxxxxxxx....xx.......o
+.......................xx......o
+.xxxxxxxxxxxxxxxxxxxxxxxxx.....o
+.........................xx....o
+xxxxxxxxxxxxxxxxxx........xx...o
+...........................xx..o
+............................xx.o
+.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
+...............................s
+`
+	if stiles != rtiles {
+		t.Error("path is not that my want", stiles, rtiles)
+	}
+
 }
 
 func TestSearch4Dir(t *testing.T) {
 	graph := New(32, 32)
-	graph.isDebug = true
 	graph.SetStringTiles(`
 	e...............................
 	xxxx.......xxxxxxxxxxxxxxxx.xxxx
@@ -133,5 +197,128 @@ func TestSearch4Dir(t *testing.T) {
 	.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.
 	...............................s
 	`)
-	graph.Search()
+	if !graph.Search() {
+		t.Error("why not find the path?")
+	}
+	stiles := graph.GetStringTiles()
+	rtiles := `
+eooooooooooooooooooooooooooo....
+xxxx.......xxxxxxxxxxxxxxxxoxxxx
+...x.......xoooooooooooooooox...
+...x.......xoxxxxxxxxxxxxxxxx...
+...x.......xoooooooooooooooooooo
+...xxx.....xxxxxxxxxxxxxxxxxxxxo
+.....xx....x.ooooooooooooooooooo
+......xx...x.oxxxxxxxxxxxxxxxxxx
+.......xx..x.oooooooooooooooooo.
+........xx.x..................o.
+.........xxxxxxxxxxxxxxxxxxxxxo.
+..........xx..ooooooooooooooooo.
+...........xx.oxxxxxxxxxxxxxxxxx
+............xxoooooooooooooooooo
+.............xxxxxxxxxxxxxxxxxxo
+..............xx...............o
+...............xx..............o
+................xx.............o
+.................xx............o
+..................xx...........o
+.xxxxxxxxxxxxxxxxxxxx..........o
+....................xx.........o
+.....................xx........o
+xxxxxxxxxxxxxxxxxx....xx.......o
+.......................xx......o
+.xxxxxxxxxxxxxxxxxxxxxxxxx.....o
+.........................xx....o
+xxxxxxxxxxxxxxxxxx........xx...o
+...........................xx..o
+............................xx.o
+.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
+...............................s
+`
+	if stiles != rtiles {
+		t.Error("path is not that my want", stiles, rtiles)
+	}
+}
+
+func TestNewWithTiles(t *testing.T) {
+	graph := NewWithTiles(`
+	e...............................
+	xxxx.......xxxxxxxxxxxxxxxx.xxxx
+	...x.......x................x...
+	...x.......x.xxxxxxxxxxxxxxxx...
+	...x.......x....................
+	...xxx.....xxxxxxxxxxxxxxxxxxxx.
+	.....xx....x....................
+	......xx...x..xxxxxxxxxxxxxxxxxx
+	.......xx..x....................
+	........xx.x....................
+	.........xxxxxxxxxxxxxxxxxxxxx..
+	..........xx....................
+	...........xx..xxxxxxxxxxxxxxxxx
+	............xx..................
+	.............xxxxxxxxxxxxxxxxxx.
+	..............xx................
+	...............xx...............
+	................xx..............
+	.................xx.............
+	..................xx............
+	.xxxxxxxxxxxxxxxxxxxx...........
+	....................xx..........
+	.....................xx.........
+	xxxxxxxxxxxxxxxxxx....xx........
+	.......................xx.......
+	.xxxxxxxxxxxxxxxxxxxxxxxxx......
+	.........................xx.....
+	xxxxxxxxxxxxxxxxxx........xx....
+	...........................xx...
+	............................xx..
+	.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.
+	...............................s
+	`)
+
+	if dimX, dimY := graph.GetDimension(); dimX != 32 && dimY != 32 {
+		t.Error("dim error")
+	}
+
+	if !graph.Search() {
+		t.Error("why not find the path?")
+	}
+	stiles := graph.GetStringTiles()
+	rtiles := `
+eooooooooooooooooooooooooooo....
+xxxx.......xxxxxxxxxxxxxxxxoxxxx
+...x.......xoooooooooooooooox...
+...x.......xoxxxxxxxxxxxxxxxx...
+...x.......xoooooooooooooooooooo
+...xxx.....xxxxxxxxxxxxxxxxxxxxo
+.....xx....x.ooooooooooooooooooo
+......xx...x.oxxxxxxxxxxxxxxxxxx
+.......xx..x.oooooooooooooooooo.
+........xx.x..................o.
+.........xxxxxxxxxxxxxxxxxxxxxo.
+..........xx..ooooooooooooooooo.
+...........xx.oxxxxxxxxxxxxxxxxx
+............xxoooooooooooooooooo
+.............xxxxxxxxxxxxxxxxxxo
+..............xx...............o
+...............xx..............o
+................xx.............o
+.................xx............o
+..................xx...........o
+.xxxxxxxxxxxxxxxxxxxx..........o
+....................xx.........o
+.....................xx........o
+xxxxxxxxxxxxxxxxxx....xx.......o
+.......................xx......o
+.xxxxxxxxxxxxxxxxxxxxxxxxx.....o
+.........................xx....o
+xxxxxxxxxxxxxxxxxx........xx...o
+...........................xx..o
+............................xx.o
+.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
+...............................s
+`
+	if stiles != rtiles {
+		t.Error("path is not that my want", stiles, rtiles)
+	}
 }
