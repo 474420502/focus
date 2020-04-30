@@ -3,8 +3,8 @@ package astar
 import (
 	"bufio"
 	"bytes"
-	"log"
 	"regexp"
+	"sort"
 
 	"github.com/474420502/focus/tree/heap"
 )
@@ -30,7 +30,7 @@ type Graph struct {
 	dimX, dimY int
 	start, end *Point
 
-	pathlist [][]*Tile
+	pathlist PathList
 
 	Tiles [][]*Tile
 
@@ -49,6 +49,27 @@ type Graph struct {
 type Point struct {
 	X, Y int
 	Attr byte
+}
+
+// Path search astar path
+type Path []*Tile
+
+// PathList pathlist
+type PathList []Path
+
+func (pl PathList) Less(i, j int) bool {
+	if len(pl[i]) < len(pl[j]) {
+		return true
+	}
+	return false
+}
+
+func (pl PathList) Swap(i, j int) {
+	pl[i], pl[j] = pl[j], pl[i]
+}
+
+func (pl PathList) Len() int {
+	return len(pl)
 }
 
 // Tile node
@@ -227,7 +248,7 @@ func abs(v int) (ret int) {
 }
 
 // GetSteps result == len(path) - 1
-func (graph *Graph) GetSteps(path []*Tile) int {
+func (graph *Graph) GetSteps(path Path) int {
 	return len(path) - 1 // contains start point so -1
 }
 
@@ -242,12 +263,12 @@ func (graph *Graph) GetTarget() (*Point, *Point) {
 }
 
 // GetPath the astar path
-func (graph *Graph) GetPath() []*Tile {
+func (graph *Graph) GetPath() Path {
 	return graph.pathlist[0] // contains start point so -1
 }
 
 // GetMultiPath get multi  the astar path of same cost
-func (graph *Graph) GetMultiPath() [][]*Tile {
+func (graph *Graph) GetMultiPath() []Path {
 	return graph.pathlist // contains start point so -1
 }
 
@@ -257,7 +278,7 @@ func (graph *Graph) GetDimension() (int, int) {
 }
 
 // GetStringTiles get the string of tiles map info
-func (graph *Graph) GetStringTiles(path []*Tile) string {
+func (graph *Graph) GetStringTiles(path Path) string {
 	var data [][]byte = make([][]byte, graph.dimY)
 
 	// content = append(content, '\n')
@@ -372,9 +393,10 @@ func (graph *Graph) multiPath(tile *Tile, startTile *Tile, path []*Tile) {
 		}
 
 		// tile.Attr = PATH
+	} else {
+		graph.pathlist = append(graph.pathlist, path)
 	}
 
-	graph.pathlist = append(graph.pathlist, path)
 	return
 }
 
@@ -411,40 +433,16 @@ func (graph *Graph) search(multi bool) bool {
 
 			if tile == endTile {
 
-				graph.pathlist = make([][]*Tile, 0)
+				graph.pathlist = make([]Path, 0)
 
-				var path []*Tile
+				var path Path
 				path = append(path, tile)
 				if multi {
 					graph.multiPath(tile, startTile, path)
+					sort.Sort(graph.pathlist)
 				} else {
 					graph.singlePath(tile, startTile, path)
 				}
-
-				// startTile.Attr = START
-
-				// graph.pathlist = make([][]*Tile, 0)
-
-				// var path []*Tile
-				// path = append(path, tile)
-				// // 回找路径
-				// for tile != startTile {
-
-				// 	returnTile := tile
-				// 	for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
-				// 		if ntile.IsCount {
-				// 			if returnTile.Cost >= ntile.Cost {
-				// 				returnTile = ntile
-				// 			}
-				// 		}
-				// 	}
-				// 	tile = returnTile
-				// 	path = append(path, tile)
-				// 	tile.Attr = PATH
-				// }
-
-				// startTile.Attr = START
-				// graph.pathlist = append(graph.pathlist, path)
 
 				return true
 			}
@@ -460,7 +458,7 @@ func (graph *Graph) search(multi bool) bool {
 			}
 
 		} else {
-			log.Println("path can not found")
+			// log.Println("path can not found")
 			break
 		}
 	}
