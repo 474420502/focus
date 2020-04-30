@@ -42,7 +42,7 @@ xx.ommmm
 ...ommmm
 ...ooooe
 `
-	result = graph.GetStringTiles()
+	result = graph.GetSingleStringTiles()
 	if result != should {
 		t.Error("result:\n", result, "\nshould:\n", should)
 	}
@@ -55,14 +55,14 @@ xx..mmmr
 ..rrrrre
 `)
 	graph.Search()
-	result = graph.GetStringTiles()
+	result = graph.GetSingleStringTiles()
 	should = `
 sooooooo
 xx..mmmo
 ...rmmmo
 ..rrrrre
 `
-	result = graph.GetStringTiles()
+	result = graph.GetSingleStringTiles()
 	if result != should {
 		t.Error("result:\n", result, "\nshould:\n", should)
 	}

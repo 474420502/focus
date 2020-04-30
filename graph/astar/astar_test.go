@@ -9,8 +9,8 @@ func TestMaxDim(t *testing.T) {
 	graph := New(Dim, Dim)
 	graph.SetTarget(0, 0, Dim-1, Dim-1)
 	graph.Search()
-	if graph.GetSteps() != 2046 {
-		t.Error(graph.GetSteps())
+	if graph.GetSteps(graph.GetPath()) != 2046 {
+		t.Error(graph.GetSteps(graph.GetPath()))
 	}
 }
 
@@ -23,8 +23,8 @@ func TestSimplePathLen(t *testing.T) {
 	`)
 	graph.SetTarget(0, 0, graph.dimX-1, graph.dimY-1)
 	graph.Search()
-	if graph.GetSteps() != 6 {
-		t.Error(graph.GetSteps(), graph.GetStringTiles())
+	if graph.GetSteps(graph.GetPath()) != 6 {
+		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSingleStringTiles())
 	}
 
 	graph.Clear()
@@ -34,8 +34,8 @@ func TestSimplePathLen(t *testing.T) {
 		t.Error("Clear error")
 	}
 
-	if graph.GetSteps() != 4 {
-		t.Error(graph.GetSteps(), graph.GetStringTiles())
+	if graph.GetSteps(graph.GetPath()) != 4 {
+		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSingleStringTiles())
 	}
 }
 
@@ -120,10 +120,10 @@ func TestSearch8Dir(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetStringTiles()
-	rtiles := `
-eoooooooooooooooooooooooooo.....
-xxxx.......xxxxxxxxxxxxxxxxoxxxx
+	stiles := graph.GetSingleStringTiles()
+	wantTiles := `
+eooo.o.o.o.oooooooooooooooo.....
+xxxxo.o.o.oxxxxxxxxxxxxxxxxoxxxx
 ...x.......x.oooooooooooooo.x...
 ...x.......xoxxxxxxxxxxxxxxxx...
 ...x.......x.oooooooooooooooooo.
@@ -155,8 +155,8 @@ xxxxxxxxxxxxxxxxxx........xx...o
 .xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
 ...............................s
 `
-	if stiles != rtiles {
-		t.Error("path is not that my want", stiles, rtiles)
+	if stiles != wantTiles {
+		t.Error("path is not that my want", stiles, wantTiles)
 	}
 }
 
@@ -199,8 +199,8 @@ func TestSearch4Dir(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetStringTiles()
-	rtiles := `
+	stiles := graph.GetSingleStringTiles()
+	wantTiles := `
 eooooooooooooooooooooooooooo....
 xxxx.......xxxxxxxxxxxxxxxxoxxxx
 ...x.......xoooooooooooooooox...
@@ -209,8 +209,8 @@ xxxx.......xxxxxxxxxxxxxxxxoxxxx
 ...xxx.....xxxxxxxxxxxxxxxxxxxxo
 .....xx....x.ooooooooooooooooooo
 ......xx...x.oxxxxxxxxxxxxxxxxxx
-.......xx..x.oooooooooooooooooo.
-........xx.x..................o.
+.......xx..x.o..................
+........xx.x.oooooooooooooooooo.
 .........xxxxxxxxxxxxxxxxxxxxxo.
 ..........xx..ooooooooooooooooo.
 ...........xx.oxxxxxxxxxxxxxxxxx
@@ -234,8 +234,8 @@ xxxxxxxxxxxxxxxxxx........xx...o
 .xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
 ...............................s
 `
-	if stiles != rtiles {
-		t.Error("path is not that my want", stiles, rtiles)
+	if stiles != wantTiles {
+		t.Error("path is not that my want", stiles, wantTiles)
 	}
 }
 
@@ -282,8 +282,8 @@ func TestNewWithTiles(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetStringTiles()
-	rtiles := `
+	stiles := graph.GetSingleStringTiles()
+	wantTiles := `
 eooooooooooooooooooooooooooo....
 xxxx.......xxxxxxxxxxxxxxxxoxxxx
 ...x.......xoooooooooooooooox...
@@ -292,8 +292,8 @@ xxxx.......xxxxxxxxxxxxxxxxoxxxx
 ...xxx.....xxxxxxxxxxxxxxxxxxxxo
 .....xx....x.ooooooooooooooooooo
 ......xx...x.oxxxxxxxxxxxxxxxxxx
-.......xx..x.oooooooooooooooooo.
-........xx.x..................o.
+.......xx..x.o..................
+........xx.x.oooooooooooooooooo.
 .........xxxxxxxxxxxxxxxxxxxxxo.
 ..........xx..ooooooooooooooooo.
 ...........xx.oxxxxxxxxxxxxxxxxx
@@ -317,7 +317,7 @@ xxxxxxxxxxxxxxxxxx........xx...o
 .xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
 ...............................s
 `
-	if stiles != rtiles {
-		t.Error("path is not that my want", stiles, rtiles)
+	if stiles != wantTiles {
+		t.Error("path is not that my want", stiles, wantTiles)
 	}
 }

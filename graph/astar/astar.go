@@ -30,7 +30,7 @@ type Graph struct {
 	dimX, dimY int
 	start, end *Point
 
-	path []*Tile
+	pathlist [][]*Tile
 
 	Tiles [][]*Tile
 
@@ -227,8 +227,13 @@ func abs(v int) (ret int) {
 }
 
 // GetSteps result == len(path) - 1
-func (graph *Graph) GetSteps() int {
-	return len(graph.path) - 1 // contains start point so -1
+func (graph *Graph) GetSteps(path []*Tile) int {
+	return len(path) - 1 // contains start point so -1
+}
+
+// GetSingleSteps result == len(pathlist[0]) - 1
+func (graph *Graph) GetSingleSteps() int {
+	return len(graph.pathlist[0]) - 1 // contains start point so -1
 }
 
 // GetTarget start end point
@@ -238,7 +243,12 @@ func (graph *Graph) GetTarget() (*Point, *Point) {
 
 // GetPath the astar path
 func (graph *Graph) GetPath() []*Tile {
-	return graph.path // contains start point so -1
+	return graph.pathlist[0] // contains start point so -1
+}
+
+// GetMultiPath get multi  the astar path of same cost
+func (graph *Graph) GetMultiPath() [][]*Tile {
+	return graph.pathlist // contains start point so -1
 }
 
 // GetDimension get dimension info
@@ -247,16 +257,41 @@ func (graph *Graph) GetDimension() (int, int) {
 }
 
 // GetStringTiles get the string of tiles map info
-func (graph *Graph) GetStringTiles() string {
+func (graph *Graph) GetStringTiles(path []*Tile) string {
+	var data [][]byte = make([][]byte, graph.dimY)
+
+	// content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		xdata := make([]byte, graph.dimX)
+		for x := 0; x < graph.dimX; x++ {
+			xdata[x] = graph.Tiles[y][x].Attr
+		}
+		data[y] = xdata
+		// content = append(content, '\n')
+	}
+
+	for _, t := range path {
+		data[t.Y][t.X] = PATH
+	}
+
+	data[graph.start.Y][graph.start.X] = START
+	data[graph.end.Y][graph.end.X] = END
+
 	var content []byte
 	content = append(content, '\n')
 	for y := 0; y < graph.dimY; y++ {
 		for x := 0; x < graph.dimX; x++ {
-			content = append(content, graph.Tiles[y][x].Attr)
+			content = append(content, data[y][x])
 		}
 		content = append(content, '\n')
 	}
+
 	return string(content)
+}
+
+// GetSingleStringTiles get the string of tiles map info
+func (graph *Graph) GetSingleStringTiles() string {
+	return graph.GetStringTiles(graph.pathlist[0])
 }
 
 // Clear astar 搜索
@@ -283,6 +318,68 @@ func (graph *Graph) Clear() {
 
 // Search astar search path
 func (graph *Graph) Search() bool {
+	return graph.search(false)
+}
+
+// SearchMulti astar search multi path
+func (graph *Graph) SearchMulti() bool {
+	return graph.search(true)
+}
+
+func (graph *Graph) singlePath(tile *Tile, startTile *Tile, path []*Tile) {
+	// 回找路径
+	for tile != startTile {
+
+		returnTile := tile
+		for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+			if ntile.IsCount {
+				if returnTile.Cost >= ntile.Cost {
+					returnTile = ntile
+				}
+			}
+		}
+		tile = returnTile
+		path = append(path, tile)
+	}
+
+	graph.pathlist = append(graph.pathlist, path)
+	return
+}
+
+func (graph *Graph) multiPath(tile *Tile, startTile *Tile, path []*Tile) {
+	path = append(path, tile)
+	// 回找路径
+	if tile != startTile {
+
+		var minCostTiles []*Tile
+		returnTile := tile
+		for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+			if ntile.IsCount {
+				if returnTile.Cost > ntile.Cost {
+					minCostTiles = minCostTiles[0:0]
+					returnTile = ntile
+					minCostTiles = append(minCostTiles, ntile)
+				} else if returnTile.Cost == ntile.Cost {
+					minCostTiles = append(minCostTiles, ntile)
+				}
+			}
+		}
+
+		for _, rtile := range minCostTiles {
+			npath := make([]*Tile, len(path))
+			copy(npath, path)
+			graph.multiPath(rtile, startTile, npath)
+		}
+
+		// tile.Attr = PATH
+	}
+
+	graph.pathlist = append(graph.pathlist, path)
+	return
+}
+
+// search astar search path
+func (graph *Graph) search(multi bool) bool {
 
 	defer func() {
 		graph.openHeap.Clear()
@@ -308,31 +405,47 @@ func (graph *Graph) Search() bool {
 
 	graph.openHeap.Put(startTile)
 
-	var path []*Tile
 	for {
 		if itile, ok := graph.openHeap.Pop(); ok {
 			tile := itile.(*Tile)
 
 			if tile == endTile {
-				path = append(path, tile)
-				// 回找路径
-				for tile != startTile {
 
-					returnTile := tile
-					for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
-						if ntile.IsCount {
-							if returnTile.Cost >= ntile.Cost {
-								returnTile = ntile
-							}
-						}
-					}
-					tile = returnTile
-					path = append(path, tile)
-					tile.Attr = PATH
+				graph.pathlist = make([][]*Tile, 0)
+
+				var path []*Tile
+				path = append(path, tile)
+				if multi {
+					graph.multiPath(tile, startTile, path)
+				} else {
+					graph.singlePath(tile, startTile, path)
 				}
 
-				startTile.Attr = START
-				graph.path = path
+				// startTile.Attr = START
+
+				// graph.pathlist = make([][]*Tile, 0)
+
+				// var path []*Tile
+				// path = append(path, tile)
+				// // 回找路径
+				// for tile != startTile {
+
+				// 	returnTile := tile
+				// 	for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+				// 		if ntile.IsCount {
+				// 			if returnTile.Cost >= ntile.Cost {
+				// 				returnTile = ntile
+				// 			}
+				// 		}
+				// 	}
+				// 	tile = returnTile
+				// 	path = append(path, tile)
+				// 	tile.Attr = PATH
+				// }
+
+				// startTile.Attr = START
+				// graph.pathlist = append(graph.pathlist, path)
+
 				return true
 			}
 
