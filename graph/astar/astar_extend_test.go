@@ -25,23 +25,45 @@ func (cost *MyCost) Cost(graph *Graph, tile *Tile, ptile *Tile) {
 }
 
 func TestMyCost(t *testing.T) {
+
 	graph := NewWithTiles(`
-	s.......
-	xx..mmmm
-	....mmmm
-	.....rre
-	`)
+s.......
+xx..mmmm
+....mmmm
+.....rre
+`)
 	graph.SetCountCost(&MyCost{})
 	graph.Search()
-	t.Error(graph.GetStringTiles())
+
+	var should, result string
+	should = `
+sooo....
+xx.ommmm
+...ommmm
+...ooooe
+`
+	result = graph.GetStringTiles()
+	if result != should {
+		t.Error("result:\n", result, "\nshould:\n", should)
+	}
 
 	graph.Clear()
 	graph.SetStringTiles(`
-	s......m
-	xx..mmmr
-	...rmmmr
-	..rrrrre
-	`)
+s......m
+xx..mmmr
+...rmmmr
+..rrrrre
+`)
 	graph.Search()
-	t.Error(graph.GetStringTiles())
+	result = graph.GetStringTiles()
+	should = `
+sooooooo
+xx..mmmo
+...rmmmo
+..rrrrre
+`
+	result = graph.GetStringTiles()
+	if result != should {
+		t.Error("result:\n", result, "\nshould:\n", should)
+	}
 }
