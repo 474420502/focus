@@ -1,286 +1,467 @@
 package astar
 
 import (
-	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
+	"bufio"
+	"bytes"
 	"regexp"
-	"strconv"
+	"sort"
 
 	"github.com/474420502/focus/tree/heap"
 )
 
-// Graph 图
+// AttributeEnum 属性类型
+const (
+	// SKIP skip set attr. used by SetStringTiles
+	SKIP = byte('*')
+	// PLAIN  point can be arrived to
+	PLAIN = byte('.')
+	// BLOCK  point can not be arrived to
+	BLOCK = byte('x')
+	// START  the start point
+	START = byte('s')
+	// END  the end point
+	END = byte('e')
+	// PATH  not contains start and end.
+	PATH = byte('o')
+)
+
+// Graph Astar struct
 type Graph struct {
-	// direction   []*Graph
-	// flag        int
-	isDebug bool
+	dimX, dimY int
+	start, end *Point
 
-	weight     func(nparam *Param, end *Point) int
-	weightHeap *heap.Tree
+	pathlist PathList
 
-	steps      int
-	stepslimit int
+	Tiles [][]*Tile
 
-	infoMap []byte
+	// getNeighbor func(graph *Graph, tile *Tile) []*Tile
 
-	srart Point
-	end   Point
+	// countCost   func(graph *Graph, tile *Tile, ptile *Tile)
+	// countWeight func(graph *Graph, tile *Tile, ptile *Tile)
+	neighbor    Neighbor
+	countCost   CountCost
+	countWeight CountWeight
 
-	dimX  int
-	dimY  int
-	tsize int // dimX * dimY
-	bsize int // bit size
+	openHeap *heap.Tree
 }
 
-// Point 点
+// Point point x y
 type Point struct {
-	x, y  int
-	msize int
+	X, Y int
+	Attr byte
+}
+
+// Path search astar path
+type Path []*Tile
+
+// PathList pathlist
+type PathList []Path
+
+func (pl PathList) Less(i, j int) bool {
+	if len(pl[i]) < len(pl[j]) {
+		return true
+	}
+	return false
+}
+
+func (pl PathList) Swap(i, j int) {
+	pl[i], pl[j] = pl[j], pl[i]
+}
+
+func (pl PathList) Len() int {
+	return len(pl)
+}
+
+// Tile node
+type Tile struct {
+	X, Y    int
+	Cost    int
+	Weight  int
+	IsCount bool
+
+	Attr byte
+}
+
+// New create astar
+func New(dimX, dimY int) *Graph {
+	graph := &Graph{dimX: dimX, dimY: dimY}
+
+	graph.Tiles = make([][]*Tile, graph.dimY)
+	for y := 0; y < graph.dimY; y++ {
+		xtiles := make([]*Tile, graph.dimX)
+		for x := 0; x < graph.dimX; x++ {
+			xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
+		}
+		graph.Tiles[y] = xtiles
+	}
+
+	graph.SetNeighbor(&Neighbor4{})
+	graph.SetCountCost(&SimpleCost{})
+	graph.SetCountWeight(&SimpleWeight{})
+	graph.openHeap = heap.New(weightCompare)
+	return graph
+}
+
+// NewWithTiles create astar
+func NewWithTiles(tiles string) *Graph {
+
+	reader := bufio.NewReader(bytes.NewReader([]byte(tiles)))
+	var tilebuffer [][]byte
+	xMax := 0
+	for {
+		line, _, err := reader.ReadLine()
+
+		if err != nil {
+			break
+		}
+
+		if len(line) == 0 {
+			continue
+		}
+
+		found := regexp.MustCompile("[^\\s]+").FindAll(line, -1)
+		if len(found) != 0 {
+			buffer := []byte{}
+
+			for _, foundbuf := range found {
+				buffer = append(buffer, foundbuf...)
+			}
+
+			if xMax < len(buffer) {
+				xMax = len(buffer)
+			}
+
+			tilebuffer = append(tilebuffer, buffer)
+		}
+
+	}
+
+	graph := &Graph{dimX: xMax, dimY: len(tilebuffer)}
+	graph.Tiles = make([][]*Tile, graph.dimY)
+	for y := 0; y < graph.dimY; y++ {
+		xtiles := make([]*Tile, graph.dimX)
+		xbuffer := tilebuffer[y]
+		for x := 0; x < graph.dimX; x++ {
+			if x < len(xbuffer) {
+				Attr := xbuffer[x]
+				switch Attr {
+				case SKIP:
+					xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
+				case START:
+					graph.start = &Point{Y: y, X: x}
+					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
+				case END:
+					graph.end = &Point{Y: y, X: x}
+					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
+				default:
+					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
+				}
+			} else {
+				xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
+			}
+		}
+		graph.Tiles[y] = xtiles
+	}
+
+	graph.SetNeighbor(&Neighbor4{})
+	graph.SetCountCost(&SimpleCost{})
+	graph.SetCountWeight(&SimpleWeight{})
+
+	graph.openHeap = heap.New(weightCompare)
+	return graph
 }
 
 func weightCompare(x1, x2 interface{}) int {
-	p1, p2 := x1.(*Param), x2.(*Param)
-	if p1.weight > p2.weight {
+	p1, p2 := x1.(*Tile), x2.(*Tile)
+	if p1.Weight > p2.Weight { // 权重大的优先
 		return 1
 	}
 	return -1
 }
 
-// New2D 一个graph. 必须指定维度数据
-func New2D(dx, dy int) *Graph {
-	g := &Graph{}
-	g.setDimension(dx, dy)
-	g.tsize = g.dimX * g.dimY
-	g.bsize = (g.tsize + 1) / 8
-	g.weightHeap = heap.New(weightCompare)
-	g.weight = SimpleWeight
-	g.infoMap = make([]byte, g.tsize)
-	g.stepslimit = (dx*dx + dy*dy) * 8000
-	return g
+// SetCountWeight use the function  different weight
+func (graph *Graph) SetCountWeight(count CountWeight) {
+	graph.countWeight = count
 }
 
-// setDimension 初始化维度
-func (graph *Graph) setDimension(dx, dy int) {
-	graph.dimX = dx
-	graph.dimY = dy
+// SetCountCost use the function  different cost
+func (graph *Graph) SetCountCost(count CountCost) {
+	graph.countCost = count
 }
 
-// SetTimeoutSteps 设置起点 结束点
-func (graph *Graph) SetTimeoutSteps(steps int) {
-	graph.stepslimit = steps
+// SetNeighbor use the function  different directions
+func (graph *Graph) SetNeighbor(neighbor Neighbor) {
+	graph.neighbor = neighbor
 }
 
-// SetBlock 设置起点 结束点
-func (graph *Graph) SetBlock(x, y int, v byte) {
-	msize := y*graph.dimX + x
-	graph.infoMap[msize] = v
-}
-
-// SetBlockFromFile 设置起点 结束点
-func (graph *Graph) SetBlockFromFile(path string) {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
-
-	re := regexp.MustCompile(`\d+`)
-	sdata := re.FindAll(data, -1)
-	for i, s := range sdata {
-		blockvalue, err := strconv.ParseInt(string(s), 16, 8)
-		if err != nil {
-			panic(err)
-		}
-		graph.infoMap[i] = byte(blockvalue)
-	}
-}
-
-// SetTarget 设置起点 结束点
+// SetTarget start point end point
 func (graph *Graph) SetTarget(sx, sy, ex, ey int) {
-	graph.srart.x = sx
-	graph.srart.y = sy
-
-	graph.srart.msize = graph.srart.y*graph.dimX + graph.srart.x
-
-	graph.end.x = ex
-	graph.end.y = ey
-
-	graph.end.msize = graph.end.y*graph.dimX + graph.end.x
-
-	gdata := NewBitmap2D(graph.dimX, graph.dimY)
-	paths := make([]Point, 0)
-
-	param := newParam(graph.srart, gdata, paths, 0)
-	graph.weightHeap.Put(param)
+	graph.start = &Point{Y: sy, X: sx}
+	graph.end = &Point{Y: ey, X: ex}
 }
 
-// GetStep 执行的步数
-func (graph *Graph) GetStep() int {
-	return graph.steps
-}
+// SetStringTiles if want some tile do nothing, can use SKIP.
+func (graph *Graph) SetStringTiles(strtile string) {
+	bufreader := bytes.NewReader([]byte(strtile))
+	reader := bufio.NewReader(bufreader)
 
-// Search 执行搜索
-func (graph *Graph) Search() (*Param, bool) {
-	graph.steps = 0
-	for !graph.weightHeap.Empty() {
-		iparam, _ := graph.weightHeap.Pop()
-		param := iparam.(*Param)
-		if graph.Traversing(param) {
-			return param, true
+	for y := 0; ; {
+		line, _, err := reader.ReadLine()
+
+		if err != nil {
+			break
 		}
-		graph.steps++
-		if graph.steps >= graph.stepslimit {
-			log.Println("超时找不到路径", graph.steps)
-			return param, false
+
+		if len(line) == 0 {
+			continue
 		}
+
+		for x, i := 0, 0; x < graph.dimX && i < len(line); i++ {
+			attr := line[i]
+			switch attr {
+			case START:
+				graph.start = &Point{Y: y, X: x}
+				x++
+				continue
+			case END:
+				graph.end = &Point{Y: y, X: x}
+				x++
+				continue
+			case '\t':
+				continue
+			case ' ':
+				continue
+			case '\n':
+				continue
+			}
+			if attr != SKIP {
+				graph.Tiles[y][x].Attr = attr
+			}
+			x++
+		}
+		y++
 	}
-	return nil, false
 }
 
-func (graph *Graph) debugShow(param *Param) {
-	param.cur.msize = param.cur.y*graph.dimX + param.cur.x
-	param.bits.SetBit(param.cur.x, param.cur.y, 1)
+func abs(v int) (ret int) {
+	return (v ^ v>>31) - v>>31
+}
 
-	content := "\n"
+// GetSteps result == len(path) - 1
+func (graph *Graph) GetSteps(path Path) int {
+	return len(path) - 1 // contains start point so -1
+}
+
+// GetSingleSteps result == len(pathlist[0]) - 1
+func (graph *Graph) GetSingleSteps() int {
+	return len(graph.pathlist[0]) - 1 // contains start point so -1
+}
+
+// GetTarget start end point
+func (graph *Graph) GetTarget() (*Point, *Point) {
+	return graph.start, graph.end
+}
+
+// GetPath the astar path
+func (graph *Graph) GetPath() Path {
+	return graph.pathlist[0] // contains start point so -1
+}
+
+// GetMultiPath get multi  the astar path of same cost
+func (graph *Graph) GetMultiPath() []Path {
+	return graph.pathlist // contains start point so -1
+}
+
+// GetDimension get dimension info
+func (graph *Graph) GetDimension() (int, int) {
+	return graph.dimX, graph.dimY // contains start point so -1
+}
+
+// GetStringTiles get the string of tiles map info
+func (graph *Graph) GetStringTiles(path Path) string {
+	var data [][]byte = make([][]byte, graph.dimY)
+
+	// content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		xdata := make([]byte, graph.dimX)
+		for x := 0; x < graph.dimX; x++ {
+			xdata[x] = graph.Tiles[y][x].Attr
+		}
+		data[y] = xdata
+		// content = append(content, '\n')
+	}
+
+	for _, t := range path {
+		data[t.Y][t.X] = PATH
+	}
+
+	data[graph.start.Y][graph.start.X] = START
+	data[graph.end.Y][graph.end.X] = END
+
+	var content []byte
+	content = append(content, '\n')
 	for y := 0; y < graph.dimY; y++ {
 		for x := 0; x < graph.dimX; x++ {
-			content += fmt.Sprintf("%1d ", param.bits.GetBit(x, y))
+			content = append(content, data[y][x])
 		}
-		content += "\n"
+		content = append(content, '\n')
 	}
-	log.Println(content)
 
-	content = "\n"
-	for y := 0; y < graph.dimY; y++ {
-		for x := 0; x < graph.dimX; x++ {
-			msize := y*graph.dimY + x
-			content += fmt.Sprintf("%02x ", graph.infoMap[msize])
-		}
-		content += "\n"
-	}
-	log.Println(content)
+	return string(content)
 }
 
-// Traversing 遍历结果
-func (graph *Graph) Traversing(param *Param) bool {
+// GetSingleStringTiles get the string of tiles map info
+func (graph *Graph) GetSingleStringTiles() string {
+	return graph.GetStringTiles(graph.pathlist[0])
+}
 
-	if param.cur.x == graph.end.x && param.cur.y == graph.end.y {
-		if graph.isDebug {
-			graph.debugShow(param)
+// Clear astar 搜索
+func (graph *Graph) Clear() {
+
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			tile := graph.Tiles[y][x]
+			switch tile.Attr {
+			case PATH:
+				tile.Attr = PLAIN
+			case START:
+				tile.Attr = graph.start.Attr
+			case END:
+				tile.Attr = graph.end.Attr
+			}
+
+			tile.Cost = 0
+			tile.IsCount = false
+			tile.Weight = 0
 		}
-		log.Println("finish")
+	}
+}
 
-		return true
+// Search astar search path
+func (graph *Graph) Search() bool {
+	return graph.search(false)
+}
+
+// SearchMulti astar search multi path
+func (graph *Graph) SearchMulti() bool {
+	return graph.search(true)
+}
+
+func (graph *Graph) singlePath(tile *Tile, startTile *Tile, path []*Tile) {
+	// 回找路径
+	for tile != startTile {
+
+		returnTile := tile
+		for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+			if ntile.IsCount {
+				if returnTile.Cost >= ntile.Cost {
+					returnTile = ntile
+				}
+			}
+		}
+		tile = returnTile
+		path = append(path, tile)
 	}
 
-	param.paths = append(param.paths, param.cur)
-	// param.cur.msize = param.cur.y*graph.dimX + param.cur.x
-	param.bits.SetBit(param.cur.x, param.cur.y, 1)
-	// param.graphbits[param.cur.msize] |= 0b10000000
+	graph.pathlist = append(graph.pathlist, path)
+	return
+}
 
-	graph.left(param)
-	graph.right(param)
-	graph.up(param)
-	graph.down(param)
+func (graph *Graph) multiPath(tile *Tile, startTile *Tile, path []*Tile) {
+	path = append(path, tile)
+	// 回找路径
+	if tile != startTile {
+
+		var minCostTiles []*Tile
+		returnTile := tile
+		for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+			if ntile.IsCount {
+				if returnTile.Cost > ntile.Cost {
+					minCostTiles = minCostTiles[0:0]
+					returnTile = ntile
+					minCostTiles = append(minCostTiles, ntile)
+				} else if returnTile.Cost == ntile.Cost {
+					minCostTiles = append(minCostTiles, ntile)
+				}
+			}
+		}
+
+		for _, rtile := range minCostTiles {
+			npath := make([]*Tile, len(path))
+			copy(npath, path)
+			graph.multiPath(rtile, startTile, npath)
+		}
+
+		// tile.Attr = PATH
+	} else {
+		graph.pathlist = append(graph.pathlist, path)
+	}
+
+	return
+}
+
+// search astar search path
+func (graph *Graph) search(multi bool) bool {
+
+	defer func() {
+		graph.openHeap.Clear()
+	}()
+
+	if graph.start == nil {
+		panic("not set start point")
+	}
+
+	if graph.end == nil {
+		panic("not set end point")
+	}
+
+	startTile := graph.Tiles[graph.start.Y][graph.start.X]
+	graph.start.Attr = startTile.Attr
+	startTile.IsCount = true
+	startTile.Attr = START
+
+	endTile := graph.Tiles[graph.end.Y][graph.end.X]
+	graph.end.Attr = endTile.Attr
+	endTile.IsCount = false
+	endTile.Attr = END
+
+	graph.openHeap.Put(startTile)
+
+	for {
+		if itile, ok := graph.openHeap.Pop(); ok {
+			tile := itile.(*Tile)
+
+			if tile == endTile {
+
+				graph.pathlist = make([]Path, 0)
+
+				var path Path
+				path = append(path, tile)
+				if multi {
+					graph.multiPath(tile, startTile, path)
+					sort.Sort(graph.pathlist)
+				} else {
+					graph.singlePath(tile, startTile, path)
+				}
+
+				return true
+			}
+
+			for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
+				if ntile.IsCount == false && ntile.Attr != BLOCK {
+					graph.countCost.Cost(graph, ntile, tile)
+					graph.countWeight.Weight(graph, ntile, tile)
+					ntile.IsCount = true
+					// 处理ntile权值
+					graph.openHeap.Put(ntile)
+				}
+			}
+
+		} else {
+			// log.Println("path can not found")
+			break
+		}
+	}
 
 	return false
-}
-
-// SetWeight 设置估价函数
-func (graph *Graph) SetWeight(weight func(nparam *Param, end *Point) int) {
-	graph.weight = weight
-}
-
-func (graph *Graph) evaluate(nparam *Param, param *Param) {
-	nparam.bits = CopyFrom(param.bits)
-
-	nparam.paths = make([]Point, len(param.paths))
-	copy(nparam.paths, param.paths)
-
-	nparam.weight = graph.weight(nparam, &graph.end)
-	graph.weightHeap.Put(nparam)
-}
-
-func (graph *Graph) left(param *Param) {
-	leftx := param.cur.x - 1
-	if leftx < 0 {
-		return
-	}
-
-	nparam := &Param{cur: Point{x: leftx, y: param.cur.y}}
-	nparam.cur.msize = nparam.cur.y*graph.dimX + nparam.cur.x
-
-	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
-		return
-	}
-
-	pinfo := graph.infoMap[nparam.cur.msize]
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
-	graph.evaluate(nparam, param)
-}
-
-func (graph *Graph) right(param *Param) {
-	rightx := param.cur.x + 1
-	if rightx >= graph.dimX {
-		return
-	}
-
-	nparam := &Param{cur: Point{x: rightx, y: param.cur.y}}
-	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
-		return
-	}
-
-	pinfo := graph.infoMap[nparam.cur.msize]
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
-	graph.evaluate(nparam, param)
-}
-
-func (graph *Graph) up(param *Param) {
-	upy := param.cur.y + 1
-	if upy >= graph.dimY {
-		return
-	}
-
-	nparam := &Param{cur: Point{x: param.cur.x, y: upy}}
-	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
-		return
-	}
-
-	pinfo := graph.infoMap[nparam.cur.msize]
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
-	graph.evaluate(nparam, param)
-}
-
-func (graph *Graph) down(param *Param) {
-	downy := param.cur.y - 1
-	if downy < 0 {
-		return
-	}
-
-	nparam := &Param{cur: Point{x: param.cur.x, y: downy}}
-	if param.bits.GetBitBySize(nparam.cur.msize) > 0 {
-		return
-	}
-
-	pinfo := graph.infoMap[nparam.cur.msize]
-	if pinfo&0b00000001 > 0 { // 障碍物
-		return
-	}
-
-	graph.evaluate(nparam, param)
 }
