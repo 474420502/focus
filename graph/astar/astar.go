@@ -34,10 +34,11 @@ type Graph struct {
 
 	Tiles [][]*Tile
 
-	getNeighbor func(graph *Graph, tile *Tile) []*Tile
+	// getNeighbor func(graph *Graph, tile *Tile) []*Tile
 
 	// countCost   func(graph *Graph, tile *Tile, ptile *Tile)
 	// countWeight func(graph *Graph, tile *Tile, ptile *Tile)
+	neighbor    Neighbor
 	countCost   CountCost
 	countWeight CountWeight
 
@@ -60,25 +61,6 @@ type Tile struct {
 	Attr byte
 }
 
-func (tile *Tile) countCost(graph *Graph, ptile *Tile) {
-	tile.Cost = ptile.Cost + 1
-}
-
-func (tile *Tile) countWeight(graph *Graph, ptile *Tile) {
-	_, end := graph.GetTarget()
-	absY := abs(tile.Y - end.Y)
-	absX := abs(tile.X - end.X)
-	tile.Weight = -(absX + absY + tile.Cost)
-}
-
-func weightCompare(x1, x2 interface{}) int {
-	p1, p2 := x1.(*Tile), x2.(*Tile)
-	if p1.Weight > p2.Weight { // 权重大的优先
-		return 1
-	}
-	return -1
-}
-
 // New create astar
 func New(dimX, dimY int) *Graph {
 	graph := &Graph{dimX: dimX, dimY: dimY}
@@ -92,7 +74,9 @@ func New(dimX, dimY int) *Graph {
 		graph.Tiles[y] = xtiles
 	}
 
-	graph.SetNeighborFunc(GetNeighbor4)
+	graph.SetNeighbor(&Neighbor4{})
+	graph.SetCountCost(&SimpleCost{})
+	graph.SetCountWeight(&SimpleWeight{})
 	graph.openHeap = heap.New(weightCompare)
 	return graph
 }
@@ -158,14 +142,35 @@ func NewWithTiles(tiles string) *Graph {
 		graph.Tiles[y] = xtiles
 	}
 
-	graph.SetNeighborFunc(GetNeighbor4)
+	graph.SetNeighbor(&Neighbor4{})
+	graph.SetCountCost(&SimpleCost{})
+	graph.SetCountWeight(&SimpleWeight{})
+
 	graph.openHeap = heap.New(weightCompare)
 	return graph
 }
 
-// SetNeighborFunc use the function  different directions
-func (graph *Graph) SetNeighborFunc(neighborfunc func(graph *Graph, tile *Tile) []*Tile) {
-	graph.getNeighbor = neighborfunc
+func weightCompare(x1, x2 interface{}) int {
+	p1, p2 := x1.(*Tile), x2.(*Tile)
+	if p1.Weight > p2.Weight { // 权重大的优先
+		return 1
+	}
+	return -1
+}
+
+// SetCountWeight use the function  different weight
+func (graph *Graph) SetCountWeight(count CountWeight) {
+	graph.countWeight = count
+}
+
+// SetCountCost use the function  different cost
+func (graph *Graph) SetCountCost(count CountCost) {
+	graph.countCost = count
+}
+
+// SetNeighbor use the function  different directions
+func (graph *Graph) SetNeighbor(neighbor Neighbor) {
+	graph.neighbor = neighbor
 }
 
 // SetTarget start point end point
@@ -195,9 +200,11 @@ func (graph *Graph) SetStringTiles(strtile string) {
 			switch attr {
 			case START:
 				graph.start = &Point{Y: y, X: x}
+				x++
 				continue
 			case END:
 				graph.end = &Point{Y: y, X: x}
+				x++
 				continue
 			case '\t':
 				continue
@@ -213,38 +220,6 @@ func (graph *Graph) SetStringTiles(strtile string) {
 		}
 		y++
 	}
-}
-
-// GetNeighbor8 8向寻址 eight direction
-func GetNeighbor8(graph *Graph, tile *Tile) []*Tile {
-	var result []*Tile
-	for _, neighbor := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {-1, 1}, {1, -1}} {
-		x := tile.X + neighbor[0]
-		y := tile.Y + neighbor[1]
-		if x < 0 || y < 0 || x >= graph.dimX || y >= graph.dimY {
-			continue
-		}
-
-		ntile := graph.Tiles[y][x]
-		result = append(result, ntile)
-	}
-	return result
-}
-
-// GetNeighbor4 四向寻址 four direction
-func GetNeighbor4(graph *Graph, tile *Tile) []*Tile {
-	var result []*Tile
-	for _, neighbor := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
-		x := tile.X + neighbor[0]
-		y := tile.Y + neighbor[1]
-		if x < 0 || y < 0 || x >= graph.dimX || y >= graph.dimY {
-			continue
-		}
-
-		ntile := graph.Tiles[y][x]
-		result = append(result, ntile)
-	}
-	return result
 }
 
 func abs(v int) (ret int) {
@@ -344,9 +319,9 @@ func (graph *Graph) Search() bool {
 				for tile != startTile {
 
 					returnTile := tile
-					for _, ntile := range graph.getNeighbor(graph, tile) {
+					for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
 						if ntile.IsCount {
-							if returnTile.Cost > ntile.Cost {
+							if returnTile.Cost >= ntile.Cost {
 								returnTile = ntile
 							}
 						}
@@ -361,10 +336,10 @@ func (graph *Graph) Search() bool {
 				return true
 			}
 
-			for _, ntile := range graph.getNeighbor(graph, tile) {
+			for _, ntile := range graph.neighbor.GetNeighbor(graph, tile) {
 				if ntile.IsCount == false && ntile.Attr != BLOCK {
-					ntile.countCost(graph, tile)
-					ntile.countWeight(graph, tile)
+					graph.countCost.Cost(graph, ntile, tile)
+					graph.countWeight.Weight(graph, ntile, tile)
 					ntile.IsCount = true
 					// 处理ntile权值
 					graph.openHeap.Put(ntile)

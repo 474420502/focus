@@ -82,7 +82,7 @@ func TestNoPath(t *testing.T) {
 
 func TestSearch8Dir(t *testing.T) {
 	graph := New(32, 32)
-	graph.SetNeighborFunc(GetNeighbor8)
+	graph.SetNeighbor(&Neighbor8{})
 	graph.SetStringTiles(`
 	e...............................
 	xxxx.......xxxxxxxxxxxxxxxx.xxxx
@@ -158,7 +158,6 @@ xxxxxxxxxxxxxxxxxx........xx...o
 	if stiles != rtiles {
 		t.Error("path is not that my want", stiles, rtiles)
 	}
-
 }
 
 func TestSearch4Dir(t *testing.T) {
