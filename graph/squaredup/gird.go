@@ -2,6 +2,8 @@ package squaredup
 
 import (
 	"bytes"
+	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -71,14 +73,15 @@ func (bm *Grid) SetGirdByString(dimX, vlen int, value string) {
 
 func (bm *Grid) GetGirdString(dimY, dimX, vlen int) string {
 
+	dnum := strconv.Itoa(int(math.Log10(float64(dimY*dimX)) + 1))
+
 	content := "\n"
 
 	for y := 0; y < dimY; y++ {
 		for x := 0; x < dimX; x++ {
 			msize := (y*dimX + x) * vlen
 			v := bm.bits[msize]
-			vstr := strconv.Itoa(int(v))
-			content += vstr + " "
+			content += fmt.Sprintf("%"+dnum+"d ", v)
 		}
 
 		content += "\n"

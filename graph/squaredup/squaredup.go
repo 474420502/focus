@@ -13,6 +13,8 @@ type SquaredUp struct {
 	start *Grid
 	end   *Grid
 
+	tsize int
+
 	dimY, dimX int
 	vlen       int
 
@@ -52,6 +54,75 @@ func (su *SquaredUp) randomGird(gird *Grid, count int) {
 		}
 		gird.SwapValue(su.dimX, su.vlen, x, y)
 	}
+}
+
+func weight1(su *SquaredUp, cur *Grid) {
+	continuously := 1
+	for i, v := range cur.bits {
+		if su.end.bits[i] == v {
+			cur.weight += continuously
+			continuously += 8
+		} else {
+			continuously = 1
+		}
+	}
+	cur.weight -= cur.cost
+}
+
+func weight2(su *SquaredUp, cur *Grid) {
+	continuously := 1
+
+	min := su.dimX
+	if min > su.dimY {
+		min = su.dimY
+	}
+
+	for n := 0; n < min; n++ {
+
+		continuously = 1
+		for x := n; x < su.dimX; x++ {
+			msize := (n*su.dimX + x) * su.vlen
+			if cur.bits[msize] == su.end.bits[msize] {
+				cur.weight += continuously
+				continuously += 8
+
+			} else {
+				continuously = 1
+			}
+		}
+
+		for y := n + 1; y < su.dimY; y++ {
+			msize := (y*su.dimX + n) * su.vlen
+			if cur.bits[msize] == su.end.bits[msize] {
+				cur.weight += continuously
+				continuously += 8
+			} else {
+				continuously = 1
+			}
+		}
+
+	}
+	cur.weight -= cur.cost
+}
+
+func weight3(su *SquaredUp, cur *Grid) {
+	for y := 0; y < su.dimY; y++ {
+		continuously := 1
+		for x := 0; x < su.dimX; x++ {
+			msize := (y*su.dimX + x) * su.vlen
+			if cur.bits[msize] == su.end.bits[msize] {
+				cur.weight += continuously
+				continuously++
+			} else {
+				continuously = 1
+			}
+			if continuously >= su.dimX {
+				cur.weight += continuously * su.tsize
+			}
+		}
+	}
+
+	cur.weight -= cur.cost
 }
 
 // Search search path
@@ -96,24 +167,10 @@ func (su *SquaredUp) Search() {
 					// cost
 					// weight
 					dst.cost = gird.cost + 1
-					for i, v := range dst.bits {
-						if su.end.bits[i] == v {
-							dst.weight += 16
-						}
-					}
-
-					dst.weight -= dst.cost
+					weight3(su, dst)
 
 					su.openHeap.Put(dst)
 				}
-
-				// if ntile.IsCount == false && ntile.Attr != BLOCK {
-				// 	graph.countCost.Cost(graph, ntile, tile)
-				// 	graph.countWeight.Weight(graph, ntile, tile)
-				// 	ntile.IsCount = true
-				// 	// 处理ntile权值
-				// 	graph.openHeap.Put(ntile)
-				// }
 			}
 
 		} else {
