@@ -69,7 +69,7 @@ func main() {
     a := astar.New(5, 5)
     a.SetTarget(0, 0, 5-1, 5-1)
     if a.Search() {
-        log.Println(a.GetSingleStringTiles())
+        log.Println(a.GetSinglePathTiles())
         // soo..
         // ..o..
         // ..o..
@@ -89,7 +89,7 @@ func main() {
     `)
     if a.SearchMulti() { // get multi the path of same cost
         for _, p := range a.GetMultiPath() {
-            log.Println(a.GetStringTiles(p))
+            log.Println(a.GetPathTiles(p))
             // path 1:
             // s....
             // oxxx.
@@ -179,7 +179,7 @@ func main() {
 
     for _, p := range pl {
         log.Println(a.GetSteps(p))
-        log.Println(a.GetStringTiles(p))
+        log.Println(a.GetPathTiles(p))
     }
 }
 

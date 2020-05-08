@@ -179,6 +179,16 @@ func weightCompare(x1, x2 interface{}) int {
 	return -1
 }
 
+// GetAttr get tiles attribute not contain start end info
+func (graph *Graph) GetAttr(x, y int) byte {
+	return graph.Tiles[y][x].Attr
+}
+
+// SetAttr set tiles attribute
+func (graph *Graph) SetAttr(x, y int, attr byte) {
+	graph.Tiles[y][x].Attr = attr
+}
+
 // SetCountWeight use the function  different weight
 func (graph *Graph) SetCountWeight(count CountWeight) {
 	graph.countWeight = count
@@ -277,8 +287,68 @@ func (graph *Graph) GetDimension() (int, int) {
 	return graph.dimX, graph.dimY // contains start point so -1
 }
 
-// GetStringTiles get the string of tiles map info
-func (graph *Graph) GetStringTiles(path Path) string {
+// GetTiles get astar map info not contain target(start, end)
+func (graph *Graph) GetTiles() string {
+	var data [][]byte = make([][]byte, graph.dimY)
+
+	// content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		xdata := make([]byte, graph.dimX)
+		for x := 0; x < graph.dimX; x++ {
+			xdata[x] = graph.Tiles[y][x].Attr
+		}
+		data[y] = xdata
+		// content = append(content, '\n')
+	}
+
+	var content []byte
+	content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			content = append(content, data[y][x])
+		}
+		content = append(content, '\n')
+	}
+
+	return string(content)
+}
+
+// GetTilesWithTarget get astar map info with target
+func (graph *Graph) GetTilesWithTarget() string {
+	var data [][]byte = make([][]byte, graph.dimY)
+
+	// content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		xdata := make([]byte, graph.dimX)
+		for x := 0; x < graph.dimX; x++ {
+			xdata[x] = graph.Tiles[y][x].Attr
+		}
+		data[y] = xdata
+		// content = append(content, '\n')
+	}
+
+	if graph.start != nil {
+		data[graph.start.Y][graph.start.X] = START
+	}
+
+	if graph.end != nil {
+		data[graph.end.Y][graph.end.X] = END
+	}
+
+	var content []byte
+	content = append(content, '\n')
+	for y := 0; y < graph.dimY; y++ {
+		for x := 0; x < graph.dimX; x++ {
+			content = append(content, data[y][x])
+		}
+		content = append(content, '\n')
+	}
+
+	return string(content)
+}
+
+// GetPathTiles get the string of tiles map info
+func (graph *Graph) GetPathTiles(path Path) string {
 	var data [][]byte = make([][]byte, graph.dimY)
 
 	// content = append(content, '\n')
@@ -310,9 +380,9 @@ func (graph *Graph) GetStringTiles(path Path) string {
 	return string(content)
 }
 
-// GetSingleStringTiles get the string of tiles map info
-func (graph *Graph) GetSingleStringTiles() string {
-	return graph.GetStringTiles(graph.pathlist[0])
+// GetSinglePathTiles get the string of tiles map info
+func (graph *Graph) GetSinglePathTiles() string {
+	return graph.GetPathTiles(graph.pathlist[0])
 }
 
 // Clear astar 搜索
