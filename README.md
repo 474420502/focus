@@ -184,3 +184,29 @@ func main() {
 }
 
 ```
+
+* 8 direction
+
+```golang
+package main
+
+import (
+    "log"
+
+    "github.com/474420502/focus/graph/astar"
+)
+
+func main() {
+    a := astar.NewWithTiles(`
+    sx......
+    x.......
+    .xxxxxx.
+    .......x
+    .xxxxxxe
+    `)
+    a.SetNeighbor(&astar.Neighbor8{})
+    if a.SearchMulti() {
+        log.Println(a.GetSinglePathTiles())
+    }
+}
+```

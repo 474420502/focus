@@ -125,33 +125,33 @@ func TestSearch8Dir(t *testing.T) {
 eooo.o.o.o.oooooooooooooooo.....
 xxxxo.o.o.oxxxxxxxxxxxxxxxxoxxxx
 ...x.......x.oooooooooooooo.x...
-...x.......xoxxxxxxxxxxxxxxxx...
-...x.......x.oooooooooooooooooo.
+...x.......xoxxxxxxxxxxxxxxxxo..
+...x.......x.oooooooooooooooo.o.
 ...xxx.....xxxxxxxxxxxxxxxxxxxxo
 .....xx....x..ooooooooooooooooo.
 ......xx...x.oxxxxxxxxxxxxxxxxxx
-.......xx..x..o.................
-........xx.x...ooooooooooooooo..
+.......xx..x..o.o.o.o.o.o.o.o...
+........xx.x...o.o.o.o.o.o.o.o..
 .........xxxxxxxxxxxxxxxxxxxxxo.
 ..........xx...ooooooooooooooo..
 ...........xx.oxxxxxxxxxxxxxxxxx
 ............xx.oooooooooooooooo.
 .............xxxxxxxxxxxxxxxxxxo
-..............xx...............o
-...............xx..............o
-................xx.............o
-.................xx............o
-..................xx...........o
-.xxxxxxxxxxxxxxxxxxxx..........o
-....................xx.........o
-.....................xx........o
-xxxxxxxxxxxxxxxxxx....xx.......o
-.......................xx......o
-.xxxxxxxxxxxxxxxxxxxxxxxxx.....o
-.........................xx....o
-xxxxxxxxxxxxxxxxxx........xx...o
-...........................xx..o
-............................xx.o
+..............xx..............o.
+...............xx............o..
+................xx..........o...
+.................xx........o....
+..................xx......o.....
+.xxxxxxxxxxxxxxxxxxxx....o......
+....................xx..o.......
+.....................xxo........
+xxxxxxxxxxxxxxxxxx....xxo.......
+.......................xxo......
+.xxxxxxxxxxxxxxxxxxxxxxxxxo.....
+.........................xxo....
+xxxxxxxxxxxxxxxxxx........xxo...
+...........................xxo..
+............................xxo.
 .xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxo
 ...............................s
 `
@@ -357,4 +357,18 @@ s...
 		t.Error(graph.GetTilesWithTarget())
 	}
 
+}
+
+func Test8dir(t *testing.T) {
+	a := NewWithTiles(`
+	sx......
+	x.......
+	.xxxxxx.
+	.......x
+	.xxxxxxe
+	`)
+	a.SetNeighbor(&Neighbor8{})
+	if !a.SearchMulti() && len(a.GetMultiPath()) < 2 {
+		t.Error("check 8dir")
+	}
 }

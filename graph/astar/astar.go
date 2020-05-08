@@ -149,10 +149,10 @@ func NewWithTiles(tiles string) *Graph {
 					xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
 				case START:
 					graph.start = &Point{Y: y, X: x}
-					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
+					xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
 				case END:
 					graph.end = &Point{Y: y, X: x}
-					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
+					xtiles[x] = &Tile{Y: y, X: x, Attr: PLAIN}
 				default:
 					xtiles[x] = &Tile{Y: y, X: x, Attr: Attr}
 				}
