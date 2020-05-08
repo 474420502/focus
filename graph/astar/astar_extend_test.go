@@ -6,8 +6,8 @@ type MyCost struct {
 }
 
 const (
-	Marsh    = byte('M')
-	Mountain = byte('m')
+	MARSH    = byte('M')
+	MOUNTAIN = byte('m')
 	RIVER    = byte('r')
 )
 
@@ -15,9 +15,9 @@ const (
 func (cost *MyCost) Cost(graph *Graph, tile *Tile, ptile *Tile) {
 	moveCost := 0
 	switch tile.Attr {
-	case Marsh:
+	case MARSH:
 		moveCost = 6
-	case Mountain:
+	case MOUNTAIN:
 		moveCost = 3
 	case PLAIN:
 		moveCost = 1

@@ -1,6 +1,6 @@
 # structure
 
-暂时没时间整理, 后期才整理完整.
+there is a lot structure that easy by used
 
 ## PriorityQueue
 
@@ -39,16 +39,148 @@ func main() {
     values3 := pq.GetAround(5) // values3 = [<nil>, 5, 4]
     log.Println(values3)
 
-    iter := pq.Iterator() // Next 大到小 从root节点起始
+    iter := pq.Iterator() // Next big -> small 
     log.Println(pq.String())
-    // log.Println(iter.Value()) 直接使用会报错,
     iter.ToHead()
     iter.Next()
-    log.Println(iter.Value())              // 起始最大值. true 5
+    log.Println(iter.Value())              // Head is maxvalue. true 5
     log.Println(iter.Prev(), iter.Value()) // false 5
 
-    // Prev 大到小
+    // Prev big -> small
     log.Println(iter.Next(), iter.Value()) // true 4
 
 }
+```
+
+## Astar
+
+* Simple
+
+``` golang
+package main
+
+import (
+    "log"
+
+    "github.com/474420502/focus/graph/astar"
+)
+
+func main() {
+    a := astar.New(5, 5)
+    a.SetTarget(0, 0, 5-1, 5-1)
+    if a.Search() {
+        log.Println(a.GetSingleStringTiles())
+        // soo..
+        // ..o..
+        // ..o..
+        // ..ooo
+        // ....e
+        for _, p := range a.GetPath() {
+            log.Println(p.X, p.Y) // End Point -> Start Point
+        }
+    }
+
+    a = astar.NewWithTiles(`
+    s....
+    .xxx.
+    .xxx.
+    .xxx.
+    ....e
+    `)
+    if a.SearchMulti() { // get multi the path of same cost
+        for _, p := range a.GetMultiPath() {
+            log.Println(a.GetStringTiles(p))
+            // path 1:
+            // s....
+            // oxxx.
+            // oxxx.
+            // oxxx.
+            // ooooe
+
+            // path 2:
+            // soooo
+            // .xxxo
+            // .xxxo
+            // .xxxo
+            // ....e
+        }
+    }
+}
+
+```
+
+* custom
+
+```golang
+package main
+
+import (
+    "log"
+
+    "github.com/474420502/focus/graph/astar"
+)
+
+type MyCost struct {
+}
+
+const (
+    MARSH    = byte('M')
+    MOUNTAIN = byte('m')
+    RIVER    = byte('r')
+)
+
+// Cost ca
+func (cost *MyCost) Cost(graph *astar.Graph, tile *astar.Tile, ptile *astar.Tile) {
+    moveCost := 0
+    switch tile.Attr {
+    case MARSH:
+        moveCost = 6
+    case MOUNTAIN:
+        moveCost = 3
+    case astar.PLAIN:
+        moveCost = 1
+    case RIVER:
+        moveCost = 2
+    }
+    tile.Cost = ptile.Cost + moveCost
+}
+
+func main() {
+    a := astar.NewWithTiles(`
+    s..xmrrr
+    .x....xm
+    .xxxxxx.
+    ..Mrr...
+    .xxxxxxe
+    `)
+    a.SetCountCost(&MyCost{})
+    a.SearchMulti()
+
+    // result := []string{
+    //     `
+    // s..xmrrr
+    // ox....xm
+    // oxxxxxx.
+    // oooooooo
+    // .xxxxxxe
+    // `,
+    //     `
+    // sooxmooo
+    // .xooooxo
+    // .xxxxxxo
+    // ..Mrr..o
+    // .xxxxxxe
+    // `,
+    // }
+
+    pl := a.GetMultiPath()
+
+    log.Println(a.GetSteps(pl[0]), a.GetSteps(pl[1])) // 12 step 14 step, but they cost is equal
+
+    for _, p := range pl {
+        log.Println(a.GetSteps(p))
+        log.Println(a.GetStringTiles(p))
+    }
+}
+
 ```
