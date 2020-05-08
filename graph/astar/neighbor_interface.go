@@ -12,7 +12,7 @@ type Neighbor8 struct {
 // GetNeighbor must interface
 func (neighbor *Neighbor8) GetNeighbor(graph *Graph, tile *Tile) []*Tile {
 	var result []*Tile
-	for _, neighbor := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {-1, 1}, {1, -1}} {
+	for _, neighbor := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {-1, -1}, {1, -1}} {
 		x := tile.X + neighbor[0]
 		y := tile.Y + neighbor[1]
 		if x < 0 || y < 0 || x >= graph.dimX || y >= graph.dimY {
