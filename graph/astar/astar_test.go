@@ -24,7 +24,7 @@ func TestSimplePathLen(t *testing.T) {
 	graph.SetTarget(0, 0, graph.dimX-1, graph.dimY-1)
 	graph.Search()
 	if graph.GetSteps(graph.GetPath()) != 6 {
-		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSingleStringTiles())
+		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSinglePathTiles())
 	}
 
 	graph.Clear()
@@ -35,7 +35,7 @@ func TestSimplePathLen(t *testing.T) {
 	}
 
 	if graph.GetSteps(graph.GetPath()) != 4 {
-		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSingleStringTiles())
+		t.Error(graph.GetSteps(graph.GetPath()), graph.GetSinglePathTiles())
 	}
 }
 
@@ -120,7 +120,7 @@ func TestSearch8Dir(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetSingleStringTiles()
+	stiles := graph.GetSinglePathTiles()
 	wantTiles := `
 eooo.o.o.o.oooooooooooooooo.....
 xxxxo.o.o.oxxxxxxxxxxxxxxxxoxxxx
@@ -199,7 +199,7 @@ func TestSearch4Dir(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetSingleStringTiles()
+	stiles := graph.GetSinglePathTiles()
 	wantTiles := `
 eooooooooooooooooooooooooooo....
 xxxx.......xxxxxxxxxxxxxxxxoxxxx
@@ -282,7 +282,7 @@ func TestNewWithTiles(t *testing.T) {
 	if !graph.Search() {
 		t.Error("why not find the path?")
 	}
-	stiles := graph.GetSingleStringTiles()
+	stiles := graph.GetSinglePathTiles()
 	wantTiles := `
 eooooooooooooooooooooooooooo....
 xxxx.......xxxxxxxxxxxxxxxxoxxxx
@@ -320,4 +320,41 @@ xxxxxxxxxxxxxxxxxx........xx...o
 	if stiles != wantTiles {
 		t.Error("path is not that my want", stiles, wantTiles)
 	}
+}
+
+func TestSetAttr(t *testing.T) {
+	graph := NewWithTiles(`
+	....
+	....
+	....
+	....
+	`)
+
+	graph.SetAttr(1, 1, BLOCK)
+	graph.SetAttr(2, 1, BLOCK)
+	graph.SetAttr(2, 2, BLOCK)
+
+	if graph.GetTiles() != `
+....
+.xx.
+..x.
+....
+` {
+		t.Error(graph.GetTiles())
+	}
+
+	graph.SetTarget(0, 0, 3, 3)
+	if graph.GetAttr(3, 3) == END { // Get
+		t.Error(graph.GetTiles())
+	}
+
+	if graph.GetTilesWithTarget() != `
+s...
+.xx.
+..x.
+...e
+` {
+		t.Error(graph.GetTilesWithTarget())
+	}
+
 }

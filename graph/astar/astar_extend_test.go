@@ -45,7 +45,7 @@ xx.ommmm
 ...ommmm
 ...ooooe
 `
-	result = graph.GetSingleStringTiles()
+	result = graph.GetSinglePathTiles()
 	if result != should {
 		t.Error("result:\n", result, "\nshould:\n", should)
 	}
@@ -58,14 +58,14 @@ xx..mmmr
 ..rrrrre
 `)
 	graph.Search()
-	result = graph.GetSingleStringTiles()
+	result = graph.GetSinglePathTiles()
 	should = `
 sooooooo
 xx..mmmo
 ...rmmmo
 ..rrrrre
 `
-	result = graph.GetSingleStringTiles()
+	result = graph.GetSinglePathTiles()
 	if result != should {
 		t.Error("result:\n", result, "\nshould:\n", should)
 	}
@@ -109,9 +109,9 @@ xx.ommmm
 	}
 
 	for i, p := range graph.GetMultiPath() {
-		if result[i] != graph.GetStringTiles(p) {
+		if result[i] != graph.GetPathTiles(p) {
 			t.Error(graph.GetSteps(p))
-			t.Error(graph.GetStringTiles(p))
+			t.Error(graph.GetPathTiles(p))
 		}
 
 	}
@@ -142,9 +142,9 @@ xx..mmmo
 
 	graph.SearchMulti()
 	for i, p := range graph.GetMultiPath() {
-		if result[i] != graph.GetStringTiles(p) {
+		if result[i] != graph.GetPathTiles(p) {
 			t.Error(graph.GetSteps(p))
-			t.Error(graph.GetStringTiles(p))
+			t.Error(graph.GetPathTiles(p))
 		}
 
 	}
@@ -185,9 +185,9 @@ sooxmooo
 	}
 
 	for i, p := range pl {
-		if result[i] != graph.GetStringTiles(p) {
+		if result[i] != graph.GetPathTiles(p) {
 			t.Error(graph.GetSteps(p))
-			t.Error(graph.GetStringTiles(p))
+			t.Error(graph.GetPathTiles(p))
 		}
 	}
 }
