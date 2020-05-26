@@ -232,78 +232,81 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 // 	return nil, false
 // }
 
-// func (tree *Tree) RemoveNode(n *Node) {
-// 	if tree.root.size == 1 {
-// 		tree.root = nil
-// 		// return n
-// 		return
-// 	}
+// RemoveNode remove the node
+func (tree *Tree) RemoveNode(n *Node) {
+	if tree.root.size == 1 {
+		tree.root = nil
+		// return n
+		return
+	}
 
-// 	ls, rs := getChildrenSize(n)
-// 	if ls == 0 && rs == 0 {
-// 		p := n.parent
-// 		p.children[getRelationship(n)] = nil
-// 		tree.fixSizeWithRemove(p)
-// 		// return n
-// 		return
-// 	}
+	ls, rs := getChildrenSize(n)
+	if ls == 0 && rs == 0 {
+		p := n.parent
+		p.children[getRelationship(n)] = nil
+		tree.fixSizeWithRemove(p)
+		// return n
+		return
+	}
 
-// 	var cur *Node
-// 	if ls > rs {
-// 		cur = n.children[0]
-// 		for cur.children[1] != nil {
-// 			cur = cur.children[1]
-// 		}
+	var cur *Node
+	if ls > rs {
+		cur = n.children[0]
+		for cur.children[1] != nil {
+			cur = cur.children[1]
+		}
 
-// 		cleft := cur.children[0]
-// 		cur.parent.children[getRelationship(cur)] = cleft
-// 		if cleft != nil {
-// 			cleft.parent = cur.parent
-// 		}
+		cleft := cur.children[0]
+		cur.parent.children[getRelationship(cur)] = cleft
+		if cleft != nil {
+			cleft.parent = cur.parent
+		}
 
-// 	} else {
-// 		cur = n.children[1]
-// 		for cur.children[0] != nil {
-// 			cur = cur.children[0]
-// 		}
+	} else {
+		cur = n.children[1]
+		for cur.children[0] != nil {
+			cur = cur.children[0]
+		}
 
-// 		cright := cur.children[1]
-// 		cur.parent.children[getRelationship(cur)] = cright
+		cright := cur.children[1]
+		cur.parent.children[getRelationship(cur)] = cright
 
-// 		if cright != nil {
-// 			cright.parent = cur.parent
-// 		}
-// 	}
+		if cright != nil {
+			cright.parent = cur.parent
+		}
+	}
 
-// 	cparent := cur.parent
-// 	// 修改为interface 交换
-// 	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
+	cparent := cur.parent
+	// 修改为interface 交换
+	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
-// 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
-// 	if cparent == n {
-// 		tree.fixSizeWithRemove(n)
-// 	} else {
-// 		tree.fixSizeWithRemove(cparent)
-// 	}
+	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
+	if cparent == n {
+		tree.fixSizeWithRemove(n)
+	} else {
+		tree.fixSizeWithRemove(cparent)
+	}
 
-// 	// return cur
-// 	return
-// }
+	// return cur
+	return
+}
 
-// func (tree *Tree) Remove(key []byte) (interface{}, bool) {
+// Remove key
+func (tree *Tree) Remove(key []byte) ([]byte, bool) {
 
-// 	if n, ok := tree.GetNode(key); ok {
-// 		tree.RemoveNode(n)
-// 		return n.value, true
-// 	}
-// 	// return nil
-// 	return nil, false
-// }
+	if n, ok := tree.GetNode(key); ok {
+		tree.RemoveNode(n)
+		return n.value,  true
+	}
+	// return nil
+	return nil, false
+}
 
-// func (tree *Tree) Clear() {
-// 	tree.root = nil
-// 	tree.iter = NewIteratorWithCap(nil, 16)
-// }
+// Clear clear tree 
+func (tree *Tree) Clear() {
+	tree.root = nil
+	// tree.iter = NewIteratorWithCap(nil, 16)
+}
 
 // Values 返回先序遍历的值
 func (tree *Tree) Values() [][]byte {
@@ -319,182 +322,30 @@ func (tree *Tree) Values() [][]byte {
 	return result
 }
 
-// func (tree *Tree) GetRange(k1, k2 []byte) (result []interface{}) {
-// 	c := compare(k2, k1)
-// 	switch c {
-// 	case 1:
+func (tree *Tree) Get(key []byte) ([]byte, bool) {
+	n, ok := tree.GetNode(key)
+	if ok {
+		return n.value, true
+	}
+	return nil, false
+}
 
-// 		var min, max *Node
-// 		resultmin := tree.getArountNode(k1)
-// 		resultmax := tree.getArountNode(k2)
-// 		for i := 1; i < 3 && min == nil; i++ {
-// 			min = resultmin[i]
-// 		}
+func (tree *Tree) GetNode(key []byte) (*Node, bool) {
 
-// 		for i := 1; i > -1 && max == nil; i-- {
-// 			max = resultmax[i]
-// 		}
-
-// 		if max == nil {
-// 			return []interface{}{}
-// 		}
-
-// 		result = make([]interface{}, 0, 16)
-
-// 		tree.iter.SetNode(min)
-// 		iter := tree.iter
-// 		for iter.Next() {
-// 			result = append(result, iter.Value())
-// 			if iter.cur == max {
-// 				break
-// 			}
-// 		}
-// 	case -1:
-
-// 		var min, max *Node
-// 		resultmin := tree.getArountNode(k2)
-// 		resultmax := tree.getArountNode(k1)
-// 		for i := 1; i < 3 && min == nil; i++ {
-// 			min = resultmin[i]
-// 		}
-// 		for i := 1; i > -1 && max == nil; i-- {
-// 			max = resultmax[i]
-// 		}
-
-// 		if min == nil {
-// 			return []interface{}{}
-// 		}
-
-// 		result = make([]interface{}, 0, 16)
-
-// 		tree.iter.SetNode(max)
-// 		iter := tree.iter
-// 		for iter.Prev() {
-// 			result = append(result, iter.Value())
-// 			if iter.cur == min {
-// 				break
-// 			}
-// 		}
-// 	case 0:
-// 		if n, ok := tree.GetNode(k1); ok {
-// 			return []interface{}{n.value}
-// 		}
-// 		return []interface{}{}
-// 	}
-
-// 	return
-// }
-
-// func (tree *Tree) Get(key []byte) (interface{}, bool) {
-// 	n, ok := tree.GetNode(key)
-// 	if ok {
-// 		return n.value, true
-// 	}
-// 	return n, false
-// }
-
-// func (tree *Tree) GetAround(key []byte) (result [3]interface{}) {
-// 	an := tree.getArountNode(key)
-// 	for i, n := range an {
-// 		if n != nil {
-// 			result[i] = n.value
-// 		}
-// 	}
-// 	return
-// }
-
-// func (tree *Tree) getArountNode(key []byte) (result [3]*Node) {
-// 	var last *Node
-// 	var lastc int
-
-// 	for n := tree.root; n != nil; {
-// 		last = n
-// 		c := compare(key, n.key)
-// 		switch c {
-// 		case -1:
-// 			n = n.children[0]
-// 			lastc = c
-// 		case 1:
-// 			n = n.children[1]
-// 			lastc = c
-// 		case 0:
-// 			tree.iter.SetNode(n)
-// 			iter := tree.iter
-// 			iter.Prev()
-// 			for iter.Prev() {
-// 				if compare(iter.cur.value, n.value) == 0 {
-// 					n = iter.cur
-// 				} else {
-// 					break
-// 				}
-// 			}
-// 			result[1] = n
-// 			n = nil
-// 		default:
-// 			panic("Get Compare only is allowed in -1, 0, 1")
-// 		}
-// 	}
-
-// 	switch lastc {
-// 	case 1:
-
-// 		if result[1] != nil {
-
-// 			result[0] = tree.iter.GetPrev(result[1], 1)
-// 			result[2] = tree.iter.GetNext(result[1], 1)
-// 		} else {
-// 			result[0] = last
-// 			result[2] = tree.iter.GetNext(last, 1)
-// 		}
-
-// 	case -1:
-
-// 		if result[1] != nil {
-// 			result[0] = tree.iter.GetPrev(result[1], 1)
-// 			result[2] = tree.iter.GetNext(result[1], 1)
-// 		} else {
-// 			result[2] = last
-// 			result[0] = tree.iter.GetPrev(last, 1)
-// 		}
-
-// 	case 0:
-
-// 		if result[1] == nil {
-// 			return
-// 		}
-// 		result[0] = tree.iter.GetPrev(result[1], 1)
-// 		result[2] = tree.iter.GetNext(result[1], 1)
-// 	}
-// 	return
-// }
-
-// func (tree *Tree) GetNode(key []byte) (*Node, bool) {
-
-// 	for n := tree.root; n != nil; {
-// 		switch c := compare(key, n.key); c {
-// 		case -1:
-// 			n = n.children[0]
-// 		case 1:
-// 			n = n.children[1]
-// 		case 0:
-
-// 			tree.iter.SetNode(n)
-// 			iter := tree.iter
-// 			iter.Prev()
-// 			for iter.Prev() {
-// 				if compare(iter.cur.key, n.key) == 0 {
-// 					n = iter.cur
-// 				} else {
-// 					break
-// 				}
-// 			}
-// 			return n, true
-// 		default:
-// 			panic("Get Compare only is allowed in -1, 0, 1")
-// 		}
-// 	}
-// 	return nil, false
-// }
+	for n := tree.root; n != nil; {
+		switch c := compare(key, n.key); c {
+		case -1:
+			n = n.children[0]
+		case 1:
+			n = n.children[1]
+		case 0:
+			return n, true
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
+		}
+	}
+	return nil, false
+}
 
 func (tree *Tree) PutNotCover(key, value []byte) bool {
 

@@ -414,17 +414,6 @@ func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 		case 1:
 			n = n.children[1]
 		case 0:
-
-			tree.iter.SetNode(n)
-			iter := tree.iter
-			iter.Prev()
-			for iter.Prev() {
-				if tree.Compare(iter.cur.value, n.value) == 0 {
-					n = iter.cur
-				} else {
-					break
-				}
-			}
 			return n, true
 		default:
 			panic("Get Compare only is allowed in -1, 0, 1")
