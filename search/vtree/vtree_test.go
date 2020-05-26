@@ -224,3 +224,45 @@ func TestSeekOnlyOne(t *testing.T) {
 	})
 
 }
+
+func TestRemove(t *testing.T) {
+	tree := New()
+	for i := 0; i < 50; i++ {
+		istr := "key-" + strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+	for i := 0; i < 50; i++ {
+		istr := "xxx-" + strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	for i := 0; i < 50; i++ {
+		istr := "xixi-" + strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	iter := tree.SeekRange([]byte("key-"), []byte("key-aaa"))
+
+	var result [][]byte
+	for iter.NextLimit() {
+		result = append(result, iter.Value())
+	}
+
+	for _, v := range result {
+		tree.Remove(v)
+	}
+
+	if len(tree.GetRange([]byte("key-"), []byte("key-aaa"))) != 0 {
+		t.Error("remove is error")
+	}
+}
+
+func TestRemoveRange(t *testing.T) {
+	tree := New()
+	for i := 0; i < 50; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	t.Error(tree.debugString())
+}

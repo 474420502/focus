@@ -1,8 +1,6 @@
 package vtree
 
 import (
-	"bytes"
-
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -65,10 +63,47 @@ func (tree *Tree) Size() int {
 	return tree.root.size
 }
 
-func compare(k1 []byte, k2 []byte) int {
-	return bytes.Compare(k1, k2)
+func comparebyte(s1, s2 []byte) int {
+
+	switch {
+	case len(s1) > len(s2):
+		// for i := 0; i < len(s2); i++ {
+		// 	if s1[i] != s2[i] {
+		// 		if s1[i] > s2[i] {
+		// 			return 1
+		// 		}
+		// 		return -1
+		// 	}
+		// }
+		return 1
+	case len(s1) < len(s2):
+		// for i := 0; i < len(s1); i++ {
+		// 	if s1[i] != s2[i] {
+		// 		if s1[i] > s2[i] {
+		// 			return 1
+		// 		}
+		// 		return -1
+		// 	}
+		// }
+		return -1
+	default:
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 0
+	}
 }
 
+func compare(k1 []byte, k2 []byte) int {
+	return comparebyte(k1, k2)
+}
+
+// SeekRange start end
 func (tree *Tree) SeekRange(start, end []byte) *Iterator {
 	iter := tree.Seek(start)
 	if compare(start, end) == 1 {
@@ -250,7 +285,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 	}
 
 	var cur *Node
-	if ls > rs {
+	if ls > rs { // 该节点的有序下个或上个节点交换拼接
 		cur = n.children[0]
 		for cur.children[1] != nil {
 			cur = cur.children[1]
@@ -281,10 +316,97 @@ func (tree *Tree) RemoveNode(n *Node) {
 	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
-tree.fixSizeWithRemove(cparent)
+	tree.fixSizeWithRemove(cparent)
 
 	// return cur
 	return
+}
+
+// RemoveRange remove the node
+func (tree *Tree) RemoveRange(start, end []byte) {
+
+	if compare(start, end) == -1 {
+		start, end = end, start
+	}
+
+	siter := tree.Seek(start)
+	siter.SetLimit(start, end)
+
+	if siter.NextLimit() {
+
+		eiter := tree.Seek(end)
+		eiter.SetLimit(start, end)
+		max := eiter.GetNode()
+		min := siter.GetNode()
+
+		cur := min
+		preducesize := 0
+		var parent *Node
+
+		if cur.parent != nil {
+
+			parent = cur.parent
+
+			if parent.children[0] == cur { // left
+				for cur.parent != nil {
+					switch compare(max.key, cur.parent.key) {
+					case 1:
+						// cur.children[1] = nil
+						cleft := cur.children[0]
+						preducesize += (cur.size - cleft.size)
+						parent.size -= preducesize
+						parent.children[0] = cleft
+						cleft.parent = parent
+						cur = parent
+						// TOOD: 计算 size
+					case -1:
+
+						child := cur.children[1]
+						preducesize++
+						for child != nil {
+							switch compare(max.key, child.key) {
+							case 1:
+
+								// 删除左边
+								cright := child.children[1]
+								preducesize += child.size - cright.size
+								cright.parent = cur
+								cur.children[1] = cright
+								child = cright
+
+							case -1:
+								child = child.children[0]
+							default:
+
+								parent = child.parent
+								if parent == nil {
+									tree.root = nil
+									return
+								}
+
+								if parent.children[0] == child {
+									parent.children[0] = nil
+								} else {
+									parent.children[1] = nil
+								}
+								preducesize++
+								parent.size--
+							}
+						}
+
+					default:
+					}
+				}
+			} else { // cright
+
+			}
+		}
+
+		for temp := cur; temp != nil; temp = temp.parent {
+			temp.size -= preducesize
+		}
+
+	}
 }
 
 // Remove key
@@ -292,13 +414,13 @@ func (tree *Tree) Remove(key []byte) ([]byte, bool) {
 
 	if n, ok := tree.GetNode(key); ok {
 		tree.RemoveNode(n)
-		return n.value,  true
+		return n.value, true
 	}
 	// return nil
 	return nil, false
 }
 
-// Clear clear tree 
+// Clear clear tree
 func (tree *Tree) Clear() {
 	tree.root = nil
 	// tree.iter = NewIteratorWithCap(nil, 16)
@@ -318,6 +440,25 @@ func (tree *Tree) Values() [][]byte {
 	return result
 }
 
+// GetRange get key
+func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
+	iter := tree.Seek(start)
+	if compare(start, end) == 1 {
+		iter.SetLimit(end, start)
+		for iter.PrevLimit() {
+			result = append(result, iter.Value())
+		}
+	} else {
+		iter.SetLimit(start, end)
+		for iter.NextLimit() {
+			result = append(result, iter.Value())
+		}
+	}
+
+	return
+}
+
+// Get get key
 func (tree *Tree) Get(key []byte) ([]byte, bool) {
 	n, ok := tree.GetNode(key)
 	if ok {
@@ -326,6 +467,7 @@ func (tree *Tree) Get(key []byte) ([]byte, bool) {
 	return nil, false
 }
 
+// GetNode get node
 func (tree *Tree) GetNode(key []byte) (*Node, bool) {
 
 	for n := tree.root; n != nil; {
@@ -343,6 +485,7 @@ func (tree *Tree) GetNode(key []byte) (*Node, bool) {
 	return nil, false
 }
 
+// PutNotCover if key is exists, return false
 func (tree *Tree) PutNotCover(key, value []byte) bool {
 
 	if tree.root == nil {
@@ -409,6 +552,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 	}
 }
 
+// PutString put string
 func (tree *Tree) PutString(key, value string) bool {
 	return tree.Put([]byte(key), []byte(value))
 }
