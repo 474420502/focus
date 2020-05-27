@@ -1,6 +1,8 @@
 package vtree
 
 import (
+	"log"
+
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -268,6 +270,11 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 // }
 
 // RemoveNode remove the node
+func (tree *Tree) removeNodeWithNoFixSize(n *Node) {
+
+}
+
+// RemoveNode remove the node
 func (tree *Tree) RemoveNode(n *Node) {
 	if tree.root.size == 1 {
 		tree.root = nil
@@ -325,7 +332,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 // RemoveRange remove the node
 func (tree *Tree) RemoveRange(start, end []byte) {
 
-	if compare(start, end) == -1 {
+	if compare(start, end) == 1 {
 		start, end = end, start
 	}
 
@@ -333,73 +340,121 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 	siter.SetLimit(start, end)
 
 	if siter.NextLimit() {
+		min := siter.GetNode()
 
 		eiter := tree.Seek(end)
 		eiter.SetLimit(start, end)
+		if !eiter.PrevLimit() {
+			panic("max is not exist, check tree")
+		}
 		max := eiter.GetNode()
-		min := siter.GetNode()
+		log.Println(string(start), string(max.value))
 
 		cur := min
 		preducesize := 0
-		var parent *Node
+
+		checknode := min
+		for cur.parent != nil {
+			relation := getRelationship(cur)
+			if relation == 0 {
+				switch compare(max.key, cur.parent.key) {
+				case 1:
+
+					cright := cur.children[1]
+					if cright != nil {
+						preducesize += (cur.size - cright.size)
+						// cur.parent.size -= preducesize
+						cur.parent.children[1] = cright
+						cright.parent = cur.parent
+					}
+
+					for checknode != cur {
+						checknode.size -= preducesize
+						checknode = checknode.parent
+					}
+					cur.size -= preducesize
+					checknode = cur
+
+				case -1: // 确认39最大
+
+					child := cur.children[1]
+					for child != nil {
+						// cur.children[1] = nil
+						cright := child.children[1]
+						if cright != nil {
+							preducesize += (child.size - cright.size)
+							// cur.parent.size -= preducesize
+							child.parent.children[1] = cright
+							cright.parent = child.parent
+							child = cright
+						}
+						cur = cur.parent
+					}
+
+				default: // ==0的时候
+				}
+			}
+			cur = cur.parent
+		}
 
 		if cur.parent != nil {
+		FIND_RIGHT:
+			for cur.parent != nil {
+				switch compare(max.key, cur.parent.key) {
+				case 1:
 
-			parent = cur.parent
-
-			if parent.children[0] == cur { // left
-				for cur.parent != nil {
-					switch compare(max.key, cur.parent.key) {
-					case 1:
-						// cur.children[1] = nil
-						cleft := cur.children[0]
+					// cur.children[1] = nil
+					cleft := cur.children[0]
+					if cleft != nil {
 						preducesize += (cur.size - cleft.size)
-						parent.size -= preducesize
-						parent.children[0] = cleft
-						cleft.parent = parent
-						cur = parent
-						// TOOD: 计算 size
-					case -1:
-
-						child := cur.children[1]
-						preducesize++
-						for child != nil {
-							switch compare(max.key, child.key) {
-							case 1:
-
-								// 删除左边
-								cright := child.children[1]
-								preducesize += child.size - cright.size
-								cright.parent = cur
-								cur.children[1] = cright
-								child = cright
-
-							case -1:
-								child = child.children[0]
-							default:
-
-								parent = child.parent
-								if parent == nil {
-									tree.root = nil
-									return
-								}
-
-								if parent.children[0] == child {
-									parent.children[0] = nil
-								} else {
-									parent.children[1] = nil
-								}
-								preducesize++
-								parent.size--
-							}
-						}
-
-					default:
+						// cur.parent.size -= preducesize
+						cur.parent.children[0] = cleft
+						cleft.parent = cur.parent
 					}
-				}
-			} else { // cright
+					cur = cur.parent
 
+					// TOOD: 计算 size
+				case -1:
+
+					child := cur.children[1]
+					// preducesize++
+
+					for child != nil {
+						switch compare(max.key, child.key) {
+						case 1:
+
+							// 删除左边
+							cright := child.children[1]
+							preducesize += child.size - cright.size
+							cright.parent = cur
+							cur.children[1] = cright
+							child = cright
+
+						case -1:
+							child = child.children[0]
+						default:
+							tree.RemoveNode(child)
+							break FIND_RIGHT
+						}
+					}
+
+				default:
+					parent := cur.parent
+					if parent == nil {
+						tree.root = nil
+						return
+					}
+
+					cleft := cur.children[0]
+					if cleft != nil {
+						preducesize += (cur.size - cleft.size) + 1
+						cleft.parent = parent.parent
+					}
+					parent.children[0] = cleft
+					break FIND_RIGHT
+				}
 			}
+
 		}
 
 		for temp := cur; temp != nil; temp = temp.parent {
