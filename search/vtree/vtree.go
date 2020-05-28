@@ -352,114 +352,152 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 		cur := min
 		preducesize := 0
+		checknode := min
+
 
 		checknode := min
-		for cur.parent != nil {
-			relation := getRelationship(cur)
-			if relation == 0 {
-				switch compare(max.key, cur.parent.key) {
-				case 1:
 
-					cright := cur.children[1]
-					if cright != nil {
-						preducesize += (cur.size - cright.size)
-						// cur.parent.size -= preducesize
-						cur.parent.children[1] = cright
-						cright.parent = cur.parent
-					}
+		for cur != nil {
+			parent := cur.parent 
 
-					for checknode != cur {
-						checknode.size -= preducesize
-						checknode = checknode.parent
-					}
-					cur.size -= preducesize
-					checknode = cur
-
-				case -1: // 确认39最大
-
-					child := cur.children[1]
-					for child != nil {
-						// cur.children[1] = nil
-						cright := child.children[1]
-						if cright != nil {
-							preducesize += (child.size - cright.size)
-							// cur.parent.size -= preducesize
-							child.parent.children[1] = cright
-							cright.parent = child.parent
-							child = cright
-						}
-						cur = cur.parent
-					}
-
-				default: // ==0的时候
-				}
+			cright := cur.children[1]
+			if cright != nil {
+				preducesize += cright.size 
 			}
-			cur = cur.parent
-		}
+			preducesize++
 
-		if cur.parent != nil {
-		FIND_RIGHT:
-			for cur.parent != nil {
-				switch compare(max.key, cur.parent.key) {
-				case 1:
+			cleft := cur.children[0]
+			if cleft != nil {
+				cleft.parent = cur.parent
+			} 
 
-					// cur.children[1] = nil
-					cleft := cur.children[0]
-					if cleft != nil {
-						preducesize += (cur.size - cleft.size)
-						// cur.parent.size -= preducesize
-						cur.parent.children[0] = cleft
-						cleft.parent = cur.parent
+			if cur.parent != nil {
+				relation := getRelationship(cur)
+				cur.parent.children[relation] = cleft
+				
+				if relation == 0 {
+					switch compare(max.key, cur.parent.key) {
+					case 1:
+						
 					}
-					cur = cur.parent
-
-					// TOOD: 计算 size
-				case -1:
-
-					child := cur.children[1]
-					// preducesize++
-
-					for child != nil {
-						switch compare(max.key, child.key) {
-						case 1:
-
-							// 删除左边
-							cright := child.children[1]
-							preducesize += child.size - cright.size
-							cright.parent = cur
-							cur.children[1] = cright
-							child = cright
-
-						case -1:
-							child = child.children[0]
-						default:
-							tree.RemoveNode(child)
-							break FIND_RIGHT
-						}
-					}
-
-				default:
-					parent := cur.parent
-					if parent == nil {
-						tree.root = nil
-						return
-					}
-
-					cleft := cur.children[0]
-					if cleft != nil {
-						preducesize += (cur.size - cleft.size) + 1
-						cleft.parent = parent.parent
-					}
-					parent.children[0] = cleft
-					break FIND_RIGHT
 				}
+
+			}else {
+				tree.root = cleft
 			}
-
 		}
 
-		for temp := cur; temp != nil; temp = temp.parent {
-			temp.size -= preducesize
-		}
+		// for cur.parent != nil {
+		// 	relation := getRelationship(cur)
+		// 	if relation == 0 {
+		// 		switch compare(max.key, cur.parent.key) {
+		// 		case 1:
+
+		// 			cright := cur.children[1]
+		// 			if cright != nil {
+		// 				preducesize += (cur.size - cright.size)
+		// 				// cur.parent.size -= preducesize
+		// 				cur.parent.children[1] = cright
+		// 				cright.parent = cur.parent
+		// 			}
+
+		// 			for checknode != cur {
+		// 				checknode.size -= preducesize
+		// 				checknode = checknode.parent
+		// 			}
+		// 			cur.size -= preducesize
+		// 			checknode = cur
+
+		// 		case -1: // 确认39最大
+
+		// 			child := cur.children[1]
+		// 			for child != nil {
+		// 				// cur.children[1] = nil
+		// 				cright := child.children[1]
+		// 				if cright != nil {
+		// 					switch compare(max.key, cur.parent.key) { 
+		// 					case 1:
+		// 						preducesize += (child.size - cright.size)
+		// 						// cur.parent.size -= preducesize
+		// 						child.parent.children[1] = cright
+		// 						cright.parent = child.parent
+		// 						child = cright
+		// 					case -1:
+		// 						child = child.children[0]
+		// 					}
+		// 				}
+		// 				cur = cur.parent
+		// 			}
+
+		// 		default: // ==0的时候
+		// 		}
+		// 	}
+		// 	cur = cur.parent
+		// }
+
+		// if cur.parent != nil {
+		// FIND_RIGHT:
+		// 	for cur.parent != nil {
+		// 		switch compare(max.key, cur.parent.key) {
+		// 		case 1:
+
+		// 			// cur.children[1] = nil
+		// 			cleft := cur.children[0]
+		// 			if cleft != nil {
+		// 				preducesize += (cur.size - cleft.size)
+		// 				// cur.parent.size -= preducesize
+		// 				cur.parent.children[0] = cleft
+		// 				cleft.parent = cur.parent
+		// 			}
+		// 			cur = cur.parent
+
+		// 			// TOOD: 计算 size
+		// 		case -1:
+
+		// 			child := cur.children[1]
+		// 			// preducesize++
+
+		// 			for child != nil {
+		// 				switch compare(max.key, child.key) {
+		// 				case 1:
+
+		// 					// 删除左边
+		// 					cright := child.children[1]
+		// 					preducesize += child.size - cright.size
+		// 					cright.parent = cur
+		// 					cur.children[1] = cright
+		// 					child = cright
+
+		// 				case -1:
+		// 					child = child.children[0]
+		// 				default:
+		// 					tree.RemoveNode(child)
+		// 					break FIND_RIGHT
+		// 				}
+		// 			}
+
+		// 		default:
+		// 			parent := cur.parent
+		// 			if parent == nil {
+		// 				tree.root = nil
+		// 				return
+		// 			}
+
+		// 			cleft := cur.children[0]
+		// 			if cleft != nil {
+		// 				preducesize += (cur.size - cleft.size) + 1
+		// 				cleft.parent = parent.parent
+		// 			}
+		// 			parent.children[0] = cleft
+		// 			break FIND_RIGHT
+		// 		}
+		// 	}
+
+		// }
+
+		// for temp := cur; temp != nil; temp = temp.parent {
+		// 	temp.size -= preducesize
+		// }
 
 	}
 }
