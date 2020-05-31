@@ -329,177 +329,94 @@ func (tree *Tree) RemoveNode(n *Node) {
 	return
 }
 
+type pnode struct {
+	node      *Node
+	leftright int
+}
+
+type searchpath struct {
+	paths []*pnode
+}
+
+func (sp *searchpath) Append(n *Node, leftright int) {
+	sp.paths = append(sp.paths, &pnode{n, leftright})
+}
+
 // RemoveRange remove the node
 func (tree *Tree) RemoveRange(start, end []byte) {
 
-	if compare(start, end) == 1 {
-		start, end = end, start
+	var minpath = &searchpath{}
+	var maxpath = &searchpath{}
+
+	for n := tree.root; n != nil; {
+		switch c := compare(start, n.key); c {
+		case -1:
+			minpath.Append(n, 0)
+			n = n.children[0]
+		case 1:
+			minpath.Append(n, 1)
+			n = n.children[1]
+		case 0:
+			minpath.Append(n, 0)
+			n = n.children[0]
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
+		}
 	}
 
-	siter := tree.Seek(start)
-	siter.SetLimit(start, end)
+	for n := tree.root; n != nil; {
 
-	if siter.NextLimit() {
-		min := siter.GetNode()
-
-		eiter := tree.Seek(end)
-		eiter.SetLimit(start, end)
-		if !eiter.PrevLimit() {
-			panic("max is not exist, check tree")
+		switch c := compare(end, n.key); c {
+		case -1:
+			maxpath.Append(n, 0)
+			n = n.children[0]
+		case 1:
+			maxpath.Append(n, 1)
+			n = n.children[1]
+		case 0:
+			maxpath.Append(n, 1)
+			n = n.children[1]
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
 		}
-		max := eiter.GetNode()
-		log.Println(string(start), string(max.value))
+	}
 
-		cur := min
-		preducesize := 0
-		checknode := min
+	var rootpath *Node
+	for i, min := range minpath.paths {
+		if i < len(maxpath.paths) {
+			max := maxpath.paths[i]
+			if compare(min.node.key, max.node.key) != 0 {
+				log.Println(i)
 
-
-		checknode := min
-
-		for cur != nil {
-			parent := cur.parent 
-
-			cright := cur.children[1]
-			if cright != nil {
-				preducesize += cright.size 
-			}
-			preducesize++
-
-			cleft := cur.children[0]
-			if cleft != nil {
-				cleft.parent = cur.parent
-			} 
-
-			if cur.parent != nil {
-				relation := getRelationship(cur)
-				cur.parent.children[relation] = cleft
-				
-				if relation == 0 {
-					switch compare(max.key, cur.parent.key) {
-					case 1:
-						
+				reducesize := 0
+				parent := rootpath
+				for ii := i; ii < len(minpath.paths); ii++ {
+					p := minpath.paths[i]
+					if p.leftright == 1 {
+						// TODO: 拼接 parent + p
+						for ii++; ii < len(minpath.paths); ii++ {
+							p := minpath.paths[i]
+							if p.leftright == 0 {
+								parent = rootpath
+								break
+							}
+						}
+					} else {
+						reducesize = p.node.children[1].size + 1
 					}
 				}
 
-			}else {
-				tree.root = cleft
+				break
+			} else {
+				rootpath = min.node
 			}
+		} else {
+			break
 		}
-
-		// for cur.parent != nil {
-		// 	relation := getRelationship(cur)
-		// 	if relation == 0 {
-		// 		switch compare(max.key, cur.parent.key) {
-		// 		case 1:
-
-		// 			cright := cur.children[1]
-		// 			if cright != nil {
-		// 				preducesize += (cur.size - cright.size)
-		// 				// cur.parent.size -= preducesize
-		// 				cur.parent.children[1] = cright
-		// 				cright.parent = cur.parent
-		// 			}
-
-		// 			for checknode != cur {
-		// 				checknode.size -= preducesize
-		// 				checknode = checknode.parent
-		// 			}
-		// 			cur.size -= preducesize
-		// 			checknode = cur
-
-		// 		case -1: // 确认39最大
-
-		// 			child := cur.children[1]
-		// 			for child != nil {
-		// 				// cur.children[1] = nil
-		// 				cright := child.children[1]
-		// 				if cright != nil {
-		// 					switch compare(max.key, cur.parent.key) { 
-		// 					case 1:
-		// 						preducesize += (child.size - cright.size)
-		// 						// cur.parent.size -= preducesize
-		// 						child.parent.children[1] = cright
-		// 						cright.parent = child.parent
-		// 						child = cright
-		// 					case -1:
-		// 						child = child.children[0]
-		// 					}
-		// 				}
-		// 				cur = cur.parent
-		// 			}
-
-		// 		default: // ==0的时候
-		// 		}
-		// 	}
-		// 	cur = cur.parent
-		// }
-
-		// if cur.parent != nil {
-		// FIND_RIGHT:
-		// 	for cur.parent != nil {
-		// 		switch compare(max.key, cur.parent.key) {
-		// 		case 1:
-
-		// 			// cur.children[1] = nil
-		// 			cleft := cur.children[0]
-		// 			if cleft != nil {
-		// 				preducesize += (cur.size - cleft.size)
-		// 				// cur.parent.size -= preducesize
-		// 				cur.parent.children[0] = cleft
-		// 				cleft.parent = cur.parent
-		// 			}
-		// 			cur = cur.parent
-
-		// 			// TOOD: 计算 size
-		// 		case -1:
-
-		// 			child := cur.children[1]
-		// 			// preducesize++
-
-		// 			for child != nil {
-		// 				switch compare(max.key, child.key) {
-		// 				case 1:
-
-		// 					// 删除左边
-		// 					cright := child.children[1]
-		// 					preducesize += child.size - cright.size
-		// 					cright.parent = cur
-		// 					cur.children[1] = cright
-		// 					child = cright
-
-		// 				case -1:
-		// 					child = child.children[0]
-		// 				default:
-		// 					tree.RemoveNode(child)
-		// 					break FIND_RIGHT
-		// 				}
-		// 			}
-
-		// 		default:
-		// 			parent := cur.parent
-		// 			if parent == nil {
-		// 				tree.root = nil
-		// 				return
-		// 			}
-
-		// 			cleft := cur.children[0]
-		// 			if cleft != nil {
-		// 				preducesize += (cur.size - cleft.size) + 1
-		// 				cleft.parent = parent.parent
-		// 			}
-		// 			parent.children[0] = cleft
-		// 			break FIND_RIGHT
-		// 		}
-		// 	}
-
-		// }
-
-		// for temp := cur; temp != nil; temp = temp.parent {
-		// 	temp.size -= preducesize
-		// }
-
 	}
+
+	log.Println(minpath, maxpath, string(rootpath.key))
+
 }
 
 // Remove key
