@@ -349,6 +349,7 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 	var maxpath = &searchpath{}
 
 	for n := tree.root; n != nil; {
+		log.Println(string(n.key))
 		switch c := compare(start, n.key); c {
 		case -1:
 			minpath.Append(n, 0)
@@ -386,26 +387,10 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 		if i < len(maxpath.paths) {
 			max := maxpath.paths[i]
 			if compare(min.node.key, max.node.key) != 0 {
-				log.Println(i)
 
-				reducesize := 0
 				parent := rootpath
-				for ii := i; ii < len(minpath.paths); ii++ {
-					p := minpath.paths[i]
-					if p.leftright == 1 {
-						// TODO: 拼接 parent + p
-						for ii++; ii < len(minpath.paths); ii++ {
-							p := minpath.paths[i]
-							if p.leftright == 0 {
-								parent = rootpath
-								break
-							}
-						}
-					} else {
-						reducesize = p.node.children[1].size + 1
-					}
-				}
-
+				tree.removebranch(minpath, parent, i, 0)
+				tree.removebranch(maxpath, parent, i, 1)
 				break
 			} else {
 				rootpath = min.node
@@ -417,6 +402,50 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 	log.Println(minpath, maxpath, string(rootpath.key))
 
+}
+
+func (tree *Tree) removebranch(minpath *searchpath, parent *Node, i int, selchild int) int {
+	reducesize := 0
+	var LEFT = 0
+	var RIGHT = 1
+	if selchild == 1 {
+		LEFT = 1
+		RIGHT = 0
+	}
+
+	for ii := i; ii < len(minpath.paths); ii++ {
+		p := minpath.paths[ii]
+		log.Println(ii, string(p.node.key))
+		if p.leftright == RIGHT {
+			// TODO: 拼接 parent + p
+
+			p.node.parent = parent
+			parent.children[LEFT] = p.node
+			for ii++; ii < len(minpath.paths); ii++ {
+				p := minpath.paths[ii]
+				if p.leftright == LEFT {
+					parent = p.node
+					break
+				}
+			}
+		} else {
+			reducesize += p.node.children[RIGHT].size + 1
+		}
+	}
+
+	last := minpath.paths[len(minpath.paths)-1]
+	if last.leftright == LEFT {
+		pleft := last.node.children[LEFT]
+		last.node.parent.children[getRelationship(last.node)] = pleft
+		if pleft != nil {
+			pleft.parent = last.node.parent
+			reducesize += last.node.size - pleft.size
+		} else {
+			reducesize += last.node.size
+		}
+	}
+
+	return reducesize
 }
 
 // Remove key

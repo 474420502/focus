@@ -259,13 +259,13 @@ func TestRemove(t *testing.T) {
 
 func TestRemoveRange(t *testing.T) {
 	tree := New()
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 50; i++ {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
 	t.Error(tree.debugString())
-	tree.RemoveRange([]byte("467"), []byte("491"))
+	tree.RemoveRange([]byte("34"), []byte("48"))
 
 	t.Error(tree.debugString())
 }
