@@ -265,7 +265,7 @@ func TestRemoveRange(t *testing.T) {
 	}
 
 	t.Error(tree.debugString())
-	tree.RemoveRange([]byte("34"), []byte("48"))
+	tree.RemoveRange([]byte("15"), []byte("31"))
 
 	t.Error(tree.debugString())
 }

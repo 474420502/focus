@@ -349,7 +349,7 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 	var maxpath = &searchpath{}
 
 	for n := tree.root; n != nil; {
-		log.Println(string(n.key))
+		// log.Println(string(n.key))
 		switch c := compare(start, n.key); c {
 		case -1:
 			minpath.Append(n, 0)
@@ -383,14 +383,14 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 	}
 
 	var rootpath *Node
+	reducesize := 0
 	for i, min := range minpath.paths {
 		if i < len(maxpath.paths) {
 			max := maxpath.paths[i]
 			if compare(min.node.key, max.node.key) != 0 {
-
 				parent := rootpath
-				tree.removebranch(minpath, parent, i, 0)
-				tree.removebranch(maxpath, parent, i, 1)
+				reducesize += tree.removebranch(minpath, parent, i, 0)
+				reducesize += tree.removebranch(maxpath, parent, i, 1)
 				break
 			} else {
 				rootpath = min.node
@@ -400,7 +400,9 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 		}
 	}
 
-	log.Println(minpath, maxpath, string(rootpath.key))
+	// rootpath.size -= reducesize
+
+	log.Println(reducesize, string(rootpath.key))
 
 }
 
@@ -415,7 +417,7 @@ func (tree *Tree) removebranch(minpath *searchpath, parent *Node, i int, selchil
 
 	for ii := i; ii < len(minpath.paths); ii++ {
 		p := minpath.paths[ii]
-		log.Println(ii, string(p.node.key))
+		// log.Println(ii, string(p.node.key))
 		if p.leftright == RIGHT {
 			// TODO: 拼接 parent + p
 
@@ -429,7 +431,12 @@ func (tree *Tree) removebranch(minpath *searchpath, parent *Node, i int, selchil
 				}
 			}
 		} else {
-			reducesize += p.node.children[RIGHT].size + 1
+			right := p.node.children[RIGHT]
+			if right != nil {
+				reducesize += right.size + 1
+			} else {
+				reducesize++
+			}
 		}
 	}
 
