@@ -1,8 +1,6 @@
 package vtree
 
 import (
-	"log"
-
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -348,8 +346,15 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 	var minpath = &searchpath{}
 	var maxpath = &searchpath{}
 
-	for n := tree.root; n != nil; {
+BREAK_LEFT:
+	for n := tree.root; ; {
 		// log.Println(string(n.key))
+
+		if n == nil {
+			minpath.Append(nil, 1)
+			break
+		}
+
 		switch c := compare(start, n.key); c {
 		case -1:
 			minpath.Append(n, 0)
@@ -360,13 +365,19 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 		case 0:
 			minpath.Append(n, 0)
 			minpath.Append(n.children[0], 1)
-			n = nil
+			break BREAK_LEFT
 		default:
 			panic("Compare only is allowed in -1, 0, 1")
 		}
 	}
 
-	for n := tree.root; n != nil; {
+BREAK_RIGHT:
+	for n := tree.root; ; {
+
+		if n == nil {
+			maxpath.Append(nil, 0)
+			break
+		}
 
 		switch c := compare(end, n.key); c {
 		case -1:
@@ -378,7 +389,7 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 		case 0:
 			maxpath.Append(n, 1)
 			maxpath.Append(n.children[1], 0)
-			n = nil
+			break BREAK_RIGHT
 		default:
 			panic("Compare only is allowed in -1, 0, 1")
 		}
@@ -401,9 +412,11 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 				// minpath.paths[0] = rootpath
 				reducesize += tree.removebranch(minpath, i, 0)
+				// log.Println(tree.debugString())
 				reducesize += tree.removebranch(maxpath, i, 1)
+				// log.Println(tree.debugString())
 				// rootpath.node.size -= reducesize
-				log.Println("reduce", reducesize)
+				// log.Println("reduce", reducesize)
 
 				up := rootpath.node.parent
 
@@ -426,7 +439,7 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 	// rootpath.size -= reducesize
 
-	log.Println(reducesize, string(rootpath.node.key))
+	// log.Println(reducesize, string(rootpath.node.key))
 
 }
 
@@ -1200,7 +1213,7 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 		*str += "┌── "
 	}
 
-	*str += spew.Sprint(node.key) + ":" + spew.Sprint(node.value) + "\n"
+	*str += "(" + spew.Sprint(string(node.key)) + "->" + spew.Sprint(string(node.value)) + ")" + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix

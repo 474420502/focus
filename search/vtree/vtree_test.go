@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/Pallinder/go-randomdata"
 )
 
 func TestSeek(t *testing.T) {
@@ -257,6 +259,26 @@ func TestRemove(t *testing.T) {
 	}
 }
 
+func checkValues(t *testing.T, tree *Tree, strvalue string) {
+	var str string = "["
+	for _, v := range tree.Values() {
+		str += string(v) + " "
+	}
+	if len(str) > 1 {
+		str = str[0 : len(str)-1]
+	}
+	str += "]"
+	if str != strvalue {
+		t.Error("error, should be", strvalue, "but values is ", str)
+	}
+}
+
+func checkSize(t *testing.T, tree *Tree, size int) {
+	if tree.Size() != size {
+		t.Error("tree size is error, should be", size, "but size is ", tree.Size())
+	}
+}
+
 func TestRemoveRange(t *testing.T) {
 	tree := New()
 	for i := 0; i < 50; i++ {
@@ -264,9 +286,19 @@ func TestRemoveRange(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	t.Error(tree.debugString())
 	tree.RemoveRange([]byte("15"), []byte("31"))
-	t.Error(tree.debugString())
+	checkSize(t, tree, 50-17)
+	checkValues(t, tree, "[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49]")
+
+	tree = New()
+	for i := 0; i < 50; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+	checkSize(t, tree, 50)
+	tree.RemoveRange([]byte("15"), []byte("40"))
+	checkSize(t, tree, 40-15-1)
+	checkValues(t, tree, "[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 41 42 43 44 45 46 47 48 49]")
 }
 
 func TestRemoveRangeCase1(t *testing.T) {
@@ -276,7 +308,82 @@ func TestRemoveRangeCase1(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	t.Error(tree.debugString())
-	tree.RemoveRange([]byte("15"), []byte("40"))
-	t.Error(tree.debugString())
+	tree.RemoveRange([]byte("0"), []byte("46"))
+	checkSize(t, tree, 3)
+	checkValues(t, tree, "[47 48 49]")
+
+	tree.RemoveRange([]byte("0"), []byte("49"))
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
+}
+
+func TestRemoveRangeCase2(t *testing.T) {
+	tree := New()
+	for i := 47; i < 50; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	tree.RemoveRange([]byte("0"), []byte("49"))
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
+}
+
+func TestRemoveRangeCase3(t *testing.T) {
+	tree := New()
+	for i := 47; i < 50; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	tree.RemoveRange([]byte("0"), []byte("49"))
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
+}
+
+func TestRemoveRangeForce(t *testing.T) {
+	checksize := 100
+	for ; checksize > 0; checksize-- {
+		tree := New()
+
+		var min, max int
+
+		for min == max {
+			min = randomdata.Number(0, 500)
+			max = randomdata.Number(0, 500)
+		}
+
+		if min > max {
+			min, max = max, min
+		}
+
+		size := max - min
+		for i := min; i < max; i++ {
+			istr := strconv.Itoa(i)
+			tree.Put([]byte(istr), []byte(istr))
+		}
+
+		var minl, maxr int
+		for minl == maxr {
+			minl = randomdata.Number(min, max)
+			maxr = randomdata.Number(min, max)
+		}
+
+		if minl > maxr {
+			minl, maxr = maxr, minl
+		}
+
+		var result []int
+		for i := min; i < max; i++ {
+			if i >= minl && i <= maxr {
+				continue
+			}
+			result = append(result, i)
+		}
+
+		checkSize(t, tree, size)
+		tree.RemoveRange([]byte(strconv.Itoa(minl)), []byte(strconv.Itoa(maxr)))
+		checkSize(t, tree, size-maxr+minl-1)
+		checkValues(t, tree, fmt.Sprint(result))
+	}
 }
