@@ -327,6 +327,16 @@ func TestRemoveRangeCase2(t *testing.T) {
 	tree.RemoveRange([]byte("0"), []byte("49"))
 	checkSize(t, tree, 0)
 	checkValues(t, tree, "[]")
+
+	tree = New()
+	for i := 47; i < 50; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	tree.RemoveRange([]byte("48"), []byte("48"))
+	checkSize(t, tree, 2)
+	checkValues(t, tree, "[47 49]")
 }
 
 func TestRemoveRangeCase3(t *testing.T) {
@@ -348,10 +358,8 @@ func TestRemoveRangeForce(t *testing.T) {
 
 		var min, max int
 
-		for min == max {
-			min = randomdata.Number(0, 500)
-			max = randomdata.Number(0, 500)
-		}
+		min = randomdata.Number(0, 500)
+		max = randomdata.Number(0, 500)
 
 		if min > max {
 			min, max = max, min
@@ -363,27 +371,28 @@ func TestRemoveRangeForce(t *testing.T) {
 			tree.Put([]byte(istr), []byte(istr))
 		}
 
-		var minl, maxr int
-		for minl == maxr {
-			minl = randomdata.Number(min, max)
-			maxr = randomdata.Number(min, max)
+		var rmin, rmax int
+
+		rmin = randomdata.Number(min, max)
+		rmax = randomdata.Number(min, max)
+
+		if rmin > rmax {
+			rmin, rmax = rmax, rmin
 		}
 
-		if minl > maxr {
-			minl, maxr = maxr, minl
-		}
+		t.Log("min:", min, "max:", max, "rmin:", rmin, "rmax:", rmax)
 
 		var result []int
 		for i := min; i < max; i++ {
-			if i >= minl && i <= maxr {
+			if i >= rmin && i <= rmax {
 				continue
 			}
 			result = append(result, i)
 		}
 
 		checkSize(t, tree, size)
-		tree.RemoveRange([]byte(strconv.Itoa(minl)), []byte(strconv.Itoa(maxr)))
-		checkSize(t, tree, size-maxr+minl-1)
+		tree.RemoveRange([]byte(strconv.Itoa(rmin)), []byte(strconv.Itoa(rmax)))
+		checkSize(t, tree, size-rmax+rmin-1)
 		checkValues(t, tree, fmt.Sprint(result))
 	}
 }

@@ -343,6 +343,16 @@ func (sp *searchpath) Append(n *Node, leftright int) {
 // RemoveRange remove the node
 func (tree *Tree) RemoveRange(start, end []byte) {
 
+	switch compare(start, end) {
+	case 0:
+		tree.Remove(start)
+		return
+	case 1:
+		start, end = end, start
+	case -1:
+
+	}
+
 	var minpath = &searchpath{}
 	var maxpath = &searchpath{}
 
