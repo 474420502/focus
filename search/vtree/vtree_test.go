@@ -351,15 +351,45 @@ func TestRemoveRangeCase3(t *testing.T) {
 	checkValues(t, tree, "[]")
 }
 
+func TestRemoveRangeCase4(t *testing.T) {
+	tree := New()
+	for i := 14; i < 25; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	t.Error(tree.debugString())
+	tree.RemoveRange([]byte("19"), []byte("24"))
+	t.Error(tree.debugString())
+	// checkSize(t, tree, 0)
+	// checkValues(t, tree, "[]")
+}
+
+func TestRemoveRangeCase5(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 10; i < 12; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	t.Error(tree.debugString())
+	tree.RemoveRange([]byte("10"), []byte("11"))
+	t.Error(tree.debugString())
+	// checkSize(t, tree, 0)
+	// checkValues(t, tree, "[]")
+}
+
 func TestRemoveRangeForce(t *testing.T) {
-	checksize := 100
+	checksize := 1000
 	for ; checksize > 0; checksize-- {
 		tree := New()
 
 		var min, max int
 
-		min = randomdata.Number(0, 500)
-		max = randomdata.Number(0, 500)
+		for min == max {
+			min = randomdata.Number(0, 50)
+			max = randomdata.Number(0, 50)
+		}
 
 		if min > max {
 			min, max = max, min
