@@ -359,9 +359,10 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 			n = n.children[1]
 		case 0:
 			minpath.Append(n, 0)
-			n = n.children[0]
+			minpath.Append(n.children[0], 1)
+			n = nil
 		default:
-			panic("Get Compare only is allowed in -1, 0, 1")
+			panic("Compare only is allowed in -1, 0, 1")
 		}
 	}
 
@@ -376,19 +377,20 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 			n = n.children[1]
 		case 0:
 			maxpath.Append(n, 1)
-			n = n.children[1]
+			maxpath.Append(n.children[1], 0)
+			n = nil
 		default:
-			panic("Get Compare only is allowed in -1, 0, 1")
+			panic("Compare only is allowed in -1, 0, 1")
 		}
 	}
 
-	for i, min := range minpath.paths {
-		log.Println(i, string(min.node.key))
-	}
+	// for i, min := range minpath.paths {
+	// 	log.Print(i, " ", string(min.node.key), " ")
+	// }
 
-	for i, max := range maxpath.paths {
-		log.Println(i, string(max.node.key))
-	}
+	// for i, max := range maxpath.paths {
+	// 	log.Print(i, " ", string(max.node.key), " ")
+	// }
 
 	var rootpath *pnode
 	reducesize := 0
@@ -397,8 +399,21 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 			max := maxpath.paths[i]
 			if compare(min.node.key, max.node.key) != 0 {
 
-				reducesize += tree.removebranch(minpath, rootpath, i, 0)
-				reducesize += tree.removebranch(maxpath, rootpath, i, 1)
+				// minpath.paths[0] = rootpath
+				reducesize += tree.removebranch(minpath, i, 0)
+				reducesize += tree.removebranch(maxpath, i, 1)
+				// rootpath.node.size -= reducesize
+				log.Println("reduce", reducesize)
+
+				up := rootpath.node.parent
+
+				tree.RemoveNode(rootpath.node)
+				reducesize++
+
+				for up != nil {
+					up.size -= reducesize
+					up = up.parent
+				}
 
 				break
 			} else {
@@ -415,82 +430,63 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 }
 
-func (tree *Tree) removebranch(minpath *searchpath, parent *pnode, i int, selchild int) int {
+func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
 	reducesize := 0
-	var LEFT = 0
+	curreduce := 0
+
+	var LEFT = selchild
 	var RIGHT = 1
 	if selchild == 1 {
 		LEFT = 1
 		RIGHT = 0
 	}
-
-	var up = parent
-	for ii := i; ii < len(minpath.paths); ii++ {
+	// log.Println(RIGHT)
+	var top = minpath.paths[i-1]
+	var last = minpath.paths[len(minpath.paths)-1]
+	var up = top
+	for ii := i; ii < len(minpath.paths)-1; ii++ {
 		p := minpath.paths[ii]
+		// log.Println(string(up.node.key), string(p.node.key))
 		if p.leftright == LEFT {
+			pright := p.node.children[RIGHT]
+			if pright != nil {
+				curreduce += pright.size + 1
+				// reducesize += pright.size + 1
+			} else {
+				curreduce++
+			}
+
 			continue
 		}
 
-		if p.node.parent != up.node.parent {
+		if p.node.parent != up.node {
 			p.node.parent = up.node
 			up.node.children[up.leftright] = p.node
-		} else {
-			up = p
+			for rup := up.node; rup != top.node.parent; rup = rup.parent {
+				rup.size -= curreduce
+			}
 		}
-
+		up = p
+		reducesize += curreduce
+		curreduce = 0
 	}
 
-	log.Println(LEFT, RIGHT)
+	if last.node != nil {
+		if last.node.parent != up.node {
+			last.node.parent = up.node
+			up.node.children[up.leftright] = last.node
+			for rup := up.node; rup != top.node.parent; rup = rup.parent {
+				rup.size -= curreduce
+			}
+		}
+	} else {
+		up.node.children[up.leftright] = nil
+		for rup := up.node; rup != top.node.parent; rup = rup.parent {
+			rup.size -= curreduce
+		}
+	}
 
-	// var up = parent
-	// var down *pnode
-	// for ii := i; ii < len(minpath.paths); ii++ {
-	// 	p := minpath.paths[ii]
-	// 	log.Println("p", string(p.node.key), p.leftright)
-	// 	if p.leftright == RIGHT {
-	// 		// TODO: 拼接 parent + p
-	// 		log.Println("p", string(p.node.key), "parent", string(up.node.key))
-	// 		// p.node.parent = parent
-	// 		// parent.children[RIGHT] = p.node
-	// 		for ii++; ii < len(minpath.paths); ii++ {
-	// 			nextp := minpath.paths[ii]
-	// 			if nextp.leftright == LEFT {
-	// 				down = parent
-	// 				parent = p
-	// 				break
-	// 			}
-	// 		}
-
-	// 	} else {
-
-	// 		right := p.node.children[RIGHT]
-	// 		if right != nil {
-	// 			reducesize += right.size + 1
-	// 		} else {
-	// 			reducesize++
-	// 		}
-
-	// 		if down != nil {
-	// 			down.node.parent = up.node
-	// 			up.node.children[up.leftright] = down.node
-	// 			// parent.children[RIGHT] = p.node
-	// 		}
-
-	// 	}
-	// }
-
-	// last := minpath.paths[len(minpath.paths)-1]
-	// log.Println(string(last.node.key), RIGHT)
-	// if last.leftright == LEFT {
-	// 	pleft := last.node.children[LEFT]
-	// 	last.node.parent.children[getRelationship(last.node)] = pleft
-	// 	if pleft != nil {
-	// 		pleft.parent = last.node.parent
-	// 		reducesize += last.node.size - pleft.size
-	// 	} else {
-	// 		reducesize += last.node.size
-	// 	}
-	// }
+	reducesize += curreduce
 
 	return reducesize
 }
