@@ -343,6 +343,10 @@ func (sp *searchpath) Append(n *Node, leftright int) {
 // RemoveRange remove the node
 func (tree *Tree) RemoveRange(start, end []byte) {
 
+	if tree.root.size == 0 {
+		return
+	}
+
 	switch compare(start, end) {
 	case 0:
 		tree.Remove(start)
@@ -410,9 +414,6 @@ BREAK_RIGHT:
 	// for i, max := range maxpath.paths {
 	// 	log.Print(i, " ", string(max.node.key), " ")
 	// }
-	if len(minpath.paths) == 2 {
-
-	}
 
 	var rootpath *pnode
 	reducesize := 0
@@ -420,33 +421,26 @@ BREAK_RIGHT:
 
 		if i < len(maxpath.paths) {
 			max := maxpath.paths[i]
-			if compare(min.node.key, max.node.key) != 0 {
 
-				// minpath.paths[0] = rootpath
+			if min.node != max.node {
 				reducesize += tree.removebranch(minpath, i, 0)
-				//log.Println(tree.debugString())
 				reducesize += tree.removebranch(maxpath, i, 1)
-				//log.Println(tree.debugString())
-				// rootpath.node.size -= reducesize
-				// log.Println("reduce", reducesize)
-
 				up := rootpath.node.parent
-				reducesize++
 				for up != nil {
 					up.size -= reducesize
 					up = up.parent
 				}
-
 				tree.RemoveNode(rootpath.node)
-				// log.Println(tree.debugString())
-
-				break
-			} else {
-				rootpath = min
+				return
 			}
+			rootpath = min
 		} else {
 			break
 		}
+	}
+
+	if minpath.paths[len(minpath.paths)-2].leftright != maxpath.paths[len(maxpath.paths)-2].leftright {
+		tree.RemoveNode(rootpath.node)
 	}
 
 	// rootpath.size -= reducesize

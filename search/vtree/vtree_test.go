@@ -259,15 +259,20 @@ func TestRemove(t *testing.T) {
 	}
 }
 
-func checkValues(t *testing.T, tree *Tree, strvalue string) {
+func getValues(values [][]byte) string {
 	var str string = "["
-	for _, v := range tree.Values() {
+	for _, v := range values {
 		str += string(v) + " "
 	}
 	if len(str) > 1 {
 		str = str[0 : len(str)-1]
 	}
 	str += "]"
+	return str
+}
+
+func checkValues(t *testing.T, tree *Tree, strvalue string) {
+	var str string = getValues(tree.Values())
 	if str != strvalue {
 		t.Error("error, should be", strvalue, "but values is ", str)
 	}
@@ -358,25 +363,67 @@ func TestRemoveRangeCase4(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	t.Error(tree.debugString())
-	tree.RemoveRange([]byte("19"), []byte("24"))
-	t.Error(tree.debugString())
-	// checkSize(t, tree, 0)
-	// checkValues(t, tree, "[]")
-}
+	checkSize(t, tree, 11)
 
-func TestRemoveRangeCase5(t *testing.T) {
-	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	tree.RemoveRange([]byte("19"), []byte("24"))
+
+	checkSize(t, tree, 11-(6))
+	checkValues(t, tree, "[14 15 16 17 18]")
+
+	tree = New() // min: 10 max: 12 rmin: 10 rmax: 11
 	for i := 10; i < 12; i++ {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	t.Error(tree.debugString())
 	tree.RemoveRange([]byte("10"), []byte("11"))
-	t.Error(tree.debugString())
-	// checkSize(t, tree, 0)
-	// checkValues(t, tree, "[]")
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
+}
+
+func TestRemoveRangeCase5(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	istr := strconv.Itoa(12)
+	tree.Put([]byte(istr), []byte(istr))
+
+	tree.RemoveRange([]byte("0"), []byte("14"))
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
+
+	tree.Put([]byte(istr), []byte(istr))
+	tree.RemoveRange([]byte("13"), []byte("25"))
+	checkSize(t, tree, 1)
+	checkValues(t, tree, "[12]")
+
+	tree.Put([]byte(istr), []byte(istr))
+	tree.RemoveRange([]byte("0"), []byte("11"))
+	checkSize(t, tree, 1)
+	checkValues(t, tree, "[12]")
+}
+
+func TestRemoveRangeCase6(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 100; i < 1000; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	values := tree.Values()
+	tree.RemoveRange([]byte("0"), []byte("99"))
+	checkSize(t, tree, 900)
+	checkValues(t, tree, getValues(values))
+
+	tree.RemoveRange([]byte("1000"), []byte("5000"))
+	checkSize(t, tree, 900)
+	checkValues(t, tree, getValues(values))
+
+	tree.RemoveRange([]byte("0"), []byte("500"))
+	checkSize(t, tree, 499)
+	checkValues(t, tree, getValues(values[401:]))
+
+	tree.RemoveRange([]byte("800"), []byte("5000")) // 有错
+	checkSize(t, tree, 299)
+	checkValues(t, tree, getValues(values[401:799]))
 }
 
 func TestRemoveRangeForce(t *testing.T) {
@@ -387,8 +434,8 @@ func TestRemoveRangeForce(t *testing.T) {
 		var min, max int
 
 		for min == max {
-			min = randomdata.Number(0, 50)
-			max = randomdata.Number(0, 50)
+			min = randomdata.Number(0, 500)
+			max = randomdata.Number(0, 500)
 		}
 
 		if min > max {
