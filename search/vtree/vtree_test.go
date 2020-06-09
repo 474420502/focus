@@ -423,7 +423,18 @@ func TestRemoveRangeCase6(t *testing.T) {
 
 	tree.RemoveRange([]byte("800"), []byte("5000")) // 有错
 	checkSize(t, tree, 299)
-	checkValues(t, tree, getValues(values[401:799]))
+	checkValues(t, tree, getValues(values[401:700]))
+}
+
+func TestRemoveRangeCase7(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 0; i < 10; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+	tree.RemoveRange([]byte("9"), []byte("14"))
+	checkSize(t, tree, 0)
+	checkValues(t, tree, "[]")
 }
 
 func TestRemoveRangeForce(t *testing.T) {
