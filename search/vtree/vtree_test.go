@@ -433,8 +433,12 @@ func TestRemoveRangeCase7(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 	tree.RemoveRange([]byte("9"), []byte("14"))
-	checkSize(t, tree, 0)
-	checkValues(t, tree, "[]")
+	checkSize(t, tree, 9)
+	checkValues(t, tree, "[0 1 2 3 4 5 6 7 8]")
+
+	tree.RemoveRange([]byte("!"), []byte("0"))
+	checkSize(t, tree, 8)
+	checkValues(t, tree, "[1 2 3 4 5 6 7 8]")
 }
 
 func TestRemoveRangeForce(t *testing.T) {

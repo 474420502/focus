@@ -439,8 +439,10 @@ BREAK_RIGHT:
 		}
 	}
 
-	if minpath.paths[len(minpath.paths)-2].leftright != maxpath.paths[len(maxpath.paths)-2].leftright {
-		tree.RemoveNode(rootpath.node)
+	minlast := minpath.paths[len(minpath.paths)-2]
+	maxlast := maxpath.paths[len(maxpath.paths)-2]
+	if minlast.leftright != maxlast.leftright {
+		tree.RemoveNode(minlast.node)
 	}
 
 	// rootpath.size -= reducesize

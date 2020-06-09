@@ -11,53 +11,46 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
+// BenchmarkRemove-12    	   26240	     45248 ns/op	    1280 B/op	     400 allocs/op
 func BenchmarkRemove(t *testing.B) {
 	for n := 0; n < t.N; n++ {
 		t.StopTimer()
 		tree := New()
 
-		for i := 0; i < 1000; i += 2 {
+		for i := 0; i < 1000; i++ {
 			istr := strconv.Itoa(i)
 			tree.Put([]byte(istr), []byte(istr))
 		}
 
-		values := tree.Values()
-		for i := len(values) - 1; i > 0; i-- {
-			num := rand.Intn(i + 1)
-			values[i], values[num] = values[num], values[i]
-		}
-
 		t.StartTimer()
 
-		for _, v := range values[0 : len(values)/2] {
-			tree.Remove(v)
+		for i := 430; i < 830; i++ {
+			istr := strconv.Itoa(i)
+			tree.Remove([]byte(istr))
 		}
+
 	}
 
 	// t.StopTimer()
 }
 
+// BenchmarkRemoveRange-12    	  420288	      2712 ns/op	     896 B/op	      36 allocs/op
 func BenchmarkRemoveRange(t *testing.B) {
 
 	for n := 0; n < t.N; n++ {
 		t.StopTimer()
 		tree := New()
 
-		for i := 0; i < 1000; i += 2 {
+		for i := 0; i < 1000; i++ {
 			istr := strconv.Itoa(i)
 			tree.Put([]byte(istr), []byte(istr))
 		}
 
-		values := tree.Values()
-
-		min := rand.Intn(1000)
-		max := min + len(values)/2
-
 		t.StartTimer()
-		t.Log(strconv.Itoa(min), strconv.Itoa(max))
-		tree.RemoveRange([]byte(strconv.Itoa(min)), []byte(strconv.Itoa(max)))
+		// t.Log(strconv.Itoa(min), strconv.Itoa(max))
+		tree.RemoveRange([]byte(strconv.Itoa(430)), []byte(strconv.Itoa(830)))
 
 	}
-
+	t.Log(t.N)
 	// t.StopTimer()
 }
