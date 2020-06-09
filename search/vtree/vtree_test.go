@@ -441,6 +441,21 @@ func TestRemoveRangeCase7(t *testing.T) {
 	checkValues(t, tree, "[1 2 3 4 5 6 7 8]")
 }
 
+func TestRemoveRangeCase8(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 0; i < 10; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	tree.RemoveRange([]byte("0"), []byte("2"))
+	checkSize(t, tree, 7)
+	checkValues(t, tree, "[3 4 5 6 7 8 9]")
+	tree.RemoveRange([]byte("3"), []byte("8"))
+	checkSize(t, tree, 1)
+	checkValues(t, tree, "[9]")
+}
+
 func TestRemoveRangeForce(t *testing.T) {
 	checksize := 1000
 	for ; checksize > 0; checksize-- {
@@ -486,5 +501,43 @@ func TestRemoveRangeForce(t *testing.T) {
 		tree.RemoveRange([]byte(strconv.Itoa(rmin)), []byte(strconv.Itoa(rmax)))
 		checkSize(t, tree, size-rmax+rmin-1)
 		checkValues(t, tree, fmt.Sprint(result))
+	}
+}
+
+func TestIndexNode(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 0; i < 100; i++ {
+		istr := strconv.Itoa(i)
+		tree.PutString(istr, istr)
+	}
+
+	for i := 0; i < 100; i++ {
+		n := tree.IndexNode(i)
+		if string(n.Key()) != strconv.Itoa(i) {
+			t.Error("error", string(n.Key()), i)
+		}
+	}
+
+	for i := -1; i >= -100; i-- {
+		n := tree.IndexNode(i)
+		if string(n.Value()) != strconv.Itoa(100+i) {
+			t.Error("error", string(n.Value()), i)
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		n := tree.IndexNode(i)
+		key, _ := tree.IndexKey(i)
+		if string(n.Key()) != string(key) {
+			t.Error("error", string(key), i)
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		n := tree.IndexNode(i)
+		v, _ := tree.IndexValue(i)
+		if string(n.Key()) != string(v) {
+			t.Error("error", string(v), i)
+		}
 	}
 }

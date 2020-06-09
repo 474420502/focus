@@ -9,10 +9,6 @@ type stack struct {
 	size     int
 }
 
-// func assertImplementation() {
-// 	// var _ stack.IStack = (*stack)(nil)
-// }
-
 func (as *stack) grow() {
 	if len(as.elements) == as.size {
 		temp := make([]*Node, as.size<<1)
@@ -41,41 +37,6 @@ func (as *stack) Empty() bool {
 func (as *stack) Size() int {
 	return as.size
 }
-
-// func (as *stack) Values() []interface{} {
-// 	result := make([]interface{}, as.size, as.size)
-
-// 	cur := as.top
-// 	n := 0
-// 	for ; cur != nil; cur = cur.down {
-// 		for i := range cur.elements {
-// 			if cur.cur >= i {
-// 				result[n] = cur.elements[cur.cur-i]
-// 				n++
-// 			}
-// 		}
-// 	}
-
-// 	return result
-// }
-
-// func (as *stack) Index(idx int) (interface{}, bool) {
-// 	if idx < 0 {
-// 		return nil, false
-// 	}
-
-// 	cur := as.top
-// 	for cur != nil && idx-cur.cur > 0 {
-// 		idx = idx - cur.cur - 1
-// 		cur = cur.down
-// 	}
-
-// 	if cur == nil {
-// 		return nil, false
-// 	}
-
-// 	return cur.elements[cur.cur-idx], true
-// }
 
 func (as *stack) Push(v *Node) {
 	as.grow()

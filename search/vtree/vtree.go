@@ -5,6 +5,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+// Node tree的节点
 type Node struct {
 	children [2]*Node
 	parent   *Node
@@ -13,11 +14,30 @@ type Node struct {
 	value    []byte
 }
 
+// Iterator return iterator and start by node
 func (n *Node) Iterator() *Iterator {
 	return NewIterator(n)
 }
 
+// Key get node key
+func (n *Node) Key() []byte {
+	return n.value
+}
+
+// Value get node value
+func (n *Node) Value() []byte {
+	return n.value
+}
+
 func (n *Node) String() string {
+	if n == nil {
+		return "nil"
+	}
+
+	return spew.Sprint(string(n.key)) + ":" + spew.Sprint(string(n.value))
+}
+
+func (n *Node) debugString() string {
 	if n == nil {
 		return "nil"
 	}
@@ -56,6 +76,7 @@ func (tree *Tree) String() string {
 // 	return initIterator(tree)
 // }
 
+// Size get tree size
 func (tree *Tree) Size() int {
 	if tree.root == nil {
 		return 0
@@ -159,44 +180,55 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 	// return switchParent.Iterator()
 }
 
-// func (tree *Tree) IndexNode(idx int) *Node {
-// 	cur := tree.root
-// 	if idx >= 0 {
-// 		for cur != nil {
-// 			ls := getSize(cur.children[0])
-// 			if idx == ls {
-// 				return cur
-// 			} else if idx < ls {
-// 				cur = cur.children[0]
-// 			} else {
-// 				idx = idx - ls - 1
-// 				cur = cur.children[1]
-// 			}
-// 		}
-// 	} else {
-// 		idx = -idx - 1
-// 		for cur != nil {
-// 			rs := getSize(cur.children[1])
-// 			if idx == rs {
-// 				return cur
-// 			} else if idx < rs {
-// 				cur = cur.children[1]
-// 			} else {
-// 				idx = idx - rs - 1
-// 				cur = cur.children[0]
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+// IndexNode get the node by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
+func (tree *Tree) IndexNode(idx int) *Node {
+	cur := tree.root
+	if idx >= 0 {
+		for cur != nil {
+			ls := getSize(cur.children[0])
+			if idx == ls {
+				return cur
+			} else if idx < ls {
+				cur = cur.children[0]
+			} else {
+				idx = idx - ls - 1
+				cur = cur.children[1]
+			}
+		}
+	} else {
+		idx = -idx - 1
+		for cur != nil {
+			rs := getSize(cur.children[1])
+			if idx == rs {
+				return cur
+			} else if idx < rs {
+				cur = cur.children[1]
+			} else {
+				idx = idx - rs - 1
+				cur = cur.children[0]
+			}
+		}
+	}
+	return nil
+}
 
-// func (tree *Tree) Index(idx int) (interface{}, bool) {
-// 	n := tree.IndexNode(idx)
-// 	if n != nil {
-// 		return n.value, true
-// 	}
-// 	return nil, false
-// }
+// IndexKey 第idx个节点的Key值
+func (tree *Tree) IndexKey(idx int) ([]byte, bool) {
+	n := tree.IndexNode(idx)
+	if n != nil {
+		return n.key, true
+	}
+	return nil, false
+}
+
+// IndexValue 第idx个节点的Value值
+func (tree *Tree) IndexValue(idx int) ([]byte, bool) {
+	n := tree.IndexNode(idx)
+	if n != nil {
+		return n.value, true
+	}
+	return nil, false
+}
 
 // func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { // 0 -1
 
@@ -340,7 +372,7 @@ func (sp *searchpath) Append(n *Node, leftright int) {
 	sp.paths = append(sp.paths, &pnode{n, leftright})
 }
 
-// RemoveRange remove the node
+// RemoveRange remove the node [start, end], contain end. not [start, end)
 func (tree *Tree) RemoveRange(start, end []byte) {
 
 	if tree.root.size == 0 {
@@ -407,14 +439,6 @@ BREAK_RIGHT:
 		}
 	}
 
-	// for i, min := range minpath.paths {
-	// 	log.Print(i, " ", string(min.node.key), " ")
-	// }
-
-	// for i, max := range maxpath.paths {
-	// 	log.Print(i, " ", string(max.node.key), " ")
-	// }
-
 	var rootpath *pnode
 	reducesize := 0
 	for i, min := range minpath.paths {
@@ -439,10 +463,10 @@ BREAK_RIGHT:
 		}
 	}
 
-	minlast := minpath.paths[len(minpath.paths)-2]
+	minlast := minpath.paths[len(minpath.paths)-2] // 倒数第二个为最后一个可能删除的节点
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
 	if minlast.leftright != maxlast.leftright {
-		tree.RemoveNode(minlast.node)
+		tree.RemoveNode(minlast.node) // 删除最后一个相同
 	}
 
 	// rootpath.size -= reducesize
@@ -660,6 +684,7 @@ func (tree *Tree) PutString(key, value string) bool {
 	return tree.Put([]byte(key), []byte(value))
 }
 
+// Put  put bytes
 func (tree *Tree) Put(key, value []byte) bool {
 
 	if tree.root == nil {
@@ -726,6 +751,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 	}
 }
 
+// TraversalMethod 遍历的方式
 type TraversalMethod int
 
 const (

@@ -9,12 +9,6 @@ type Iterator struct {
 	max    []byte
 }
 
-// func initIterator(avltree *Tree) *Iterator {
-// 	iter := &Iterator{tstack: newStack()}
-// 	iter.up = avltree.root
-// 	return iter
-// }
-
 func NewIterator(n *Node) *Iterator {
 	iter := &Iterator{tstack: newStack()}
 	iter.up = n
@@ -109,14 +103,16 @@ func (iter *Iterator) Value() []byte {
 // 	return cur
 // }
 
+// SetLimit 设置限制条件
 func (iter *Iterator) SetLimit(min, max []byte) {
-	iter.min = min
+	iter.min = min // 可以修改为 先Seek Node节点. 然后用Node的指针地址判断是否相当. 减少PrevLimit的消耗
 	iter.max = max
 }
 
+// PrevLimit 带Prev限制的Prev()
 func (iter *Iterator) PrevLimit() (result bool) {
 	if iter.Prev() {
-		if compare(iter.cur.key, iter.min) == -1 {
+		if compare(iter.cur.key, iter.min) == -1 { // 可以优化减少消耗
 			return false
 		}
 		return true
@@ -124,6 +120,7 @@ func (iter *Iterator) PrevLimit() (result bool) {
 	return false
 }
 
+// NextLimit 带Next限制的Next()
 func (iter *Iterator) NextLimit() (result bool) {
 	if iter.Next() {
 		if compare(iter.cur.key, iter.max) == 1 {
@@ -134,6 +131,7 @@ func (iter *Iterator) NextLimit() (result bool) {
 	return false
 }
 
+// Next 下一个 从小到大
 func (iter *Iterator) Next() (result bool) {
 
 	if iter.dir > -1 {
@@ -193,6 +191,7 @@ func (iter *Iterator) Next() (result bool) {
 // 	return cur
 // }
 
+// Prev 上一个 从大到小
 func (iter *Iterator) Prev() (result bool) {
 
 	if iter.dir < 1 { // 非 1(next 方向定义 -1 为 prev)
