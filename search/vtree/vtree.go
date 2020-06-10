@@ -635,7 +635,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 			factor := cur.size / 10 // or factor = 1
 			ls, rs := cur.children[0].size, cur.children[1].size
 			if rs >= ls*2+factor || ls >= rs*2+factor {
-				tree.fixSize(cur, ls, rs)
+				cur = tree.fixSize(cur, ls, rs)
 			}
 		}
 
@@ -653,9 +653,9 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[0] == nil {
-						tree.lrrotate3(cur.parent)
+						cur = tree.lrrotate3(cur.parent)
 					} else {
-						tree.rrotate3(cur.parent)
+						cur = tree.rrotate3(cur.parent)
 					}
 				}
 				return true
@@ -674,9 +674,9 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[1] == nil {
-						tree.rlrotate3(cur.parent)
+						cur = tree.rlrotate3(cur.parent)
 					} else {
-						tree.lrotate3(cur.parent)
+						cur = tree.lrotate3(cur.parent)
 					}
 				}
 				return true
@@ -707,7 +707,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 			factor := cur.size / 10 // or factor = 1
 			ls, rs := cur.children[0].size, cur.children[1].size
 			if rs >= ls*2+factor || ls >= rs*2+factor {
-				tree.fixSize(cur, ls, rs)
+				cur = tree.fixSize(cur, ls, rs)
 			}
 		}
 
@@ -725,9 +725,9 @@ func (tree *Tree) Put(key, value []byte) bool {
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[0] == nil {
-						tree.lrrotate3(cur.parent)
+						cur = tree.lrrotate3(cur.parent)
 					} else {
-						tree.rrotate3(cur.parent)
+						cur = tree.rrotate3(cur.parent)
 					}
 				}
 				return true
@@ -745,9 +745,9 @@ func (tree *Tree) Put(key, value []byte) bool {
 
 				if cur.parent != nil && cur.parent.size == 3 {
 					if cur.parent.children[1] == nil {
-						tree.rlrotate3(cur.parent)
+						cur = tree.rlrotate3(cur.parent)
 					} else {
-						tree.lrotate3(cur.parent)
+						cur = tree.lrotate3(cur.parent)
 					}
 				}
 				return true
@@ -947,234 +947,198 @@ func (tree *Tree) Traversal(every func(k, v []byte) bool, traversalMethod ...Tra
 	}
 }
 
-func (tree *Tree) lrrotate3(cur *Node) {
+func (tree *Tree) lrrotate3(cur *Node) *Node {
+	const l = 1
+	const r = 0
+
+	mov := cur.children[l]
+	movright := mov.children[r]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+	} else {
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
+	}
+
+	cur.children[l] = nil
+	cur.parent = mov
+	mov.children[r] = cur
+
+	mov.children[l] = movright
+
+	mov.size = 3
+	cur.size = 1
+	return mov
+}
+
+func (tree *Tree) lrrotate(cur *Node) *Node {
+
 	const l = 1
 	const r = 0
 
 	movparent := cur.children[l]
 	mov := movparent.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	tree.rrotate(movparent)
+	tree.lrotate(cur)
 
-	cur.children[r] = mov
-	mov.parent = cur
-
-	cur.children[l] = movparent
-	movparent.children[r] = nil
-
-	cur.children[r] = mov
-	mov.parent = cur
-
-	// cur.size = 3
-	// cur.children[r].size = 1
-	cur.children[l].size = 1
+	return mov
 }
 
-func (tree *Tree) lrrotate(cur *Node) {
-
-	const l = 1
-	const r = 0
-
-	movparent := cur.children[l]
-	mov := movparent.children[r]
-
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	if mov.children[l] != nil {
-		movparent.children[r] = mov.children[l]
-		movparent.children[r].parent = movparent
-		//movparent.children[r].child = l
-	} else {
-		movparent.children[r] = nil
-	}
-
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
-		//mov.children[l].child = l
-	} else {
-		mov.children[l] = nil
-	}
-
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
-	} else {
-		mov.children[r] = nil
-	}
-
-	cur.children[r] = mov
-	mov.parent = cur
-
-	movparent.size = getChildrenSumSize(movparent) + 1
-	mov.size = getChildrenSumSize(mov) + 1
-	cur.size = getChildrenSumSize(cur) + 1
-}
-
-func (tree *Tree) rlrotate3(cur *Node) {
-	const l = 0
-	const r = 1
-
-	movparent := cur.children[l]
-	mov := movparent.children[r]
-
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	cur.children[r] = mov
-	mov.parent = cur
-
-	cur.children[l] = movparent
-	movparent.children[r] = nil
-
-	cur.children[r] = mov
-	mov.parent = cur
-
-	// cur.size = 3
-	// cur.children[r].size = 1
-	cur.children[l].size = 1
-}
-
-func (tree *Tree) rlrotate(cur *Node) {
-
-	const l = 0
-	const r = 1
-
-	movparent := cur.children[l]
-	mov := movparent.children[r]
-
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	if mov.children[l] != nil {
-		movparent.children[r] = mov.children[l]
-		movparent.children[r].parent = movparent
-	} else {
-		movparent.children[r] = nil
-	}
-
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
-	} else {
-		mov.children[l] = nil
-	}
-
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
-	} else {
-		mov.children[r] = nil
-	}
-
-	cur.children[r] = mov
-	mov.parent = cur
-
-	movparent.size = getChildrenSumSize(movparent) + 1
-	mov.size = getChildrenSumSize(mov) + 1
-	cur.size = getChildrenSumSize(cur) + 1
-}
-
-func (tree *Tree) rrotate3(cur *Node) {
-	const l = 0
-	const r = 1
-	// 1 right 0 left
-	mov := cur.children[l]
-
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	cur.children[r] = mov
-
-	cur.children[l] = mov.children[l]
-	cur.children[l].parent = cur
-
-	mov.children[l] = nil
-
-	mov.size = 1
-}
-
-func (tree *Tree) rrotate(cur *Node) {
-
-	const l = 0
-	const r = 1
-	// 1 right 0 left
-	mov := cur.children[l]
-
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	//  mov.children[l]不可能为nil
-	mov.children[l].parent = cur
-
-	cur.children[l] = mov.children[l]
-
-	// 解决mov节点孩子转移的问题
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
-	} else {
-		mov.children[l] = nil
-	}
-
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
-	} else {
-		mov.children[r] = nil
-	}
-
-	// 连接转移后的节点 由于mov只是与cur交换值,parent不变
-	cur.children[r] = mov
-
-	mov.size = getChildrenSumSize(mov) + 1
-	cur.size = getChildrenSumSize(cur) + 1
-}
-
-func (tree *Tree) lrotate3(cur *Node) {
+func (tree *Tree) lrotate3(cur *Node) *Node {
 	const l = 1
 	const r = 0
 	// 1 right 0 left
 	mov := cur.children[l]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+	} else {
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
+	}
 
-	cur.children[r] = mov
+	cur.children[l] = nil
 
-	cur.children[l] = mov.children[l]
-	cur.children[l].parent = cur
+	mov.children[r] = cur
+	cur.parent = mov
 
-	mov.children[l] = nil
+	mov.size = 3
+	cur.size = 1
 
-	mov.size = 1
+	return mov
 }
 
-func (tree *Tree) lrotate(cur *Node) {
+func (tree *Tree) lrotate(cur *Node) *Node {
 
 	const l = 1
 	const r = 0
 	// 1 right 0 left
 	mov := cur.children[l]
+	movright := mov.children[r]
 
-	mov.key, mov.value, cur.key, cur.value = cur.key, cur.value, mov.key, mov.value //交换值达到, 相对位移
-
-	//  mov.children[l]不可能为nil
-	mov.children[l].parent = cur
-
-	cur.children[l] = mov.children[l]
-
-	// 解决mov节点孩子转移的问题
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
 	} else {
-		mov.children[l] = nil
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
 	}
 
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
+	if movright != nil {
+		cur.children[l] = movright
+		movright.parent = cur
 	} else {
-		mov.children[r] = nil
+		cur.children[l] = nil
 	}
 
-	// 连接转移后的节点 由于mov只是与cur交换值,parent不变
-	cur.children[r] = mov
+	mov.children[r] = cur
+	cur.parent = mov
 
-	mov.size = getChildrenSumSize(mov) + 1
 	cur.size = getChildrenSumSize(cur) + 1
+	mov.size = getChildrenSumSize(mov) + 1
+
+	return mov
+}
+
+func (tree *Tree) rlrotate3(cur *Node) *Node {
+	const l = 0
+	const r = 1
+
+	mov := cur.children[l]
+	movright := mov.children[r]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+	} else {
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
+	}
+
+	cur.children[l] = nil
+	cur.parent = mov
+	mov.children[r] = cur
+
+	mov.children[l] = movright
+
+	mov.size = 3
+	cur.size = 1
+	return mov
+}
+
+func (tree *Tree) rlrotate(cur *Node) *Node {
+
+	const l = 0
+	const r = 1
+
+	movparent := cur.children[l]
+	mov := movparent.children[r]
+
+	tree.lrotate(movparent)
+	tree.rrotate(cur)
+
+	return mov
+}
+
+func (tree *Tree) rrotate3(cur *Node) *Node {
+	const l = 0
+	const r = 1
+	// 1 right 0 left
+	mov := cur.children[l]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+	} else {
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
+	}
+
+	cur.children[l] = nil
+
+	mov.children[r] = cur
+	cur.parent = mov
+
+	mov.size = 3
+	cur.size = 1
+
+	return mov
+}
+
+func (tree *Tree) rrotate(cur *Node) *Node {
+
+	const l = 0
+	const r = 1
+	// 1 right 0 left
+	mov := cur.children[l]
+	movright := mov.children[r]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+	} else {
+		cur.parent.children[getRelationship(cur)] = mov
+		mov.parent = cur.parent
+	}
+
+	if movright != nil {
+		cur.children[l] = movright
+		movright.parent = cur
+	} else {
+		cur.children[l] = nil
+	}
+
+	mov.children[r] = cur
+	cur.parent = mov
+
+	cur.size = getChildrenSumSize(cur) + 1
+	mov.size = getChildrenSumSize(mov) + 1
+
+	return mov
 }
 
 func getChildrenSumSize(cur *Node) int {
@@ -1199,20 +1163,20 @@ func (tree *Tree) fixSizeWithRemove(cur *Node) {
 			factor := cur.size / 10 // or factor = 1
 			ls, rs := getChildrenSize(cur)
 			if rs >= ls*2+factor || ls >= rs*2+factor {
-				tree.fixSize(cur, ls, rs)
+				cur = tree.fixSize(cur, ls, rs)
 			}
 		} else if cur.size == 3 {
 			if cur.children[0] == nil {
 				if cur.children[1].children[0] == nil {
-					tree.lrotate3(cur)
+					cur = tree.lrotate3(cur)
 				} else {
-					tree.lrrotate3(cur)
+					cur = tree.lrrotate3(cur)
 				}
 			} else if cur.children[1] == nil {
 				if cur.children[0].children[1] == nil {
-					tree.rrotate3(cur)
+					cur = tree.rrotate3(cur)
 				} else {
-					tree.rlrotate3(cur)
+					cur = tree.rlrotate3(cur)
 				}
 			}
 		}
@@ -1220,20 +1184,20 @@ func (tree *Tree) fixSizeWithRemove(cur *Node) {
 	}
 }
 
-func (tree *Tree) fixSize(cur *Node, ls, rs int) {
+func (tree *Tree) fixSize(cur *Node, ls, rs int) *Node {
 	if ls > rs {
 		llsize, lrsize := getChildrenSize(cur.children[0])
 		if lrsize > llsize {
-			tree.rlrotate(cur)
+			return tree.rlrotate(cur)
 		} else {
-			tree.rrotate(cur)
+			return tree.rrotate(cur)
 		}
 	} else {
 		rlsize, rrsize := getChildrenSize(cur.children[1])
 		if rlsize > rrsize {
-			tree.lrrotate(cur)
+			return tree.lrrotate(cur)
 		} else {
-			tree.lrotate(cur)
+			return tree.lrotate(cur)
 		}
 	}
 }

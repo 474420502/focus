@@ -46,6 +46,31 @@ func TestSeek(t *testing.T) {
 	}
 }
 
+func TestPutSimple(t *testing.T) {
+	tree := New()
+	for i := 0; i < 100; i++ {
+		istr := strconv.Itoa(i)
+		if !tree.Put([]byte(istr), []byte(istr)) {
+			t.Error("str is cover", istr)
+		}
+	}
+
+	var result [][]byte
+
+	iter := tree.SeekRange([]byte("40"), []byte("80"))
+	for iter.NextLimit() {
+		result = append(result, iter.Key())
+	}
+
+	for _, v := range result {
+		tree.Remove(v)
+	}
+
+	if len(tree.GetRange([]byte("40"), []byte("80"))) != 0 {
+		t.Error(tree.debugString())
+	}
+}
+
 func TestPut(t *testing.T) {
 	tree := New()
 
@@ -244,7 +269,16 @@ func TestSeekOnlyOne(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
+
 	tree := New()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+
+	// 		t.Error(tree.debugString())
+	// 		panic(err)
+	// 	}
+	// }()
+
 	for i := 0; i < 50; i++ {
 		istr := "key-" + strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
@@ -263,14 +297,20 @@ func TestRemove(t *testing.T) {
 
 	var result [][]byte
 	for iter.NextLimit() {
-		result = append(result, iter.Value())
+		result = append(result, iter.Key())
 	}
 
 	for _, v := range result {
 		tree.Remove(v)
 	}
 
-	if len(tree.GetRange([]byte("key-"), []byte("key-aaa"))) != 0 {
+	result = tree.GetRange([]byte("key-"), []byte("key-aaa"))
+	if len(result) != 0 {
+		t.Error(tree.debugString())
+		for _, v := range result {
+			t.Error(string(v))
+		}
+
 		t.Error("remove is error")
 	}
 }
