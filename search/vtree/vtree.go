@@ -21,7 +21,7 @@ func (n *Node) Iterator() *Iterator {
 
 // Key get node key
 func (n *Node) Key() []byte {
-	return n.value
+	return n.key
 }
 
 // Value get node value
@@ -182,15 +182,15 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 
 // Index get the Iterator by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
 func (tree *Tree) Index(idx int) *Iterator {
-	node := tree.indexNode(idx)
+	node := tree.IndexNode(idx)
 	if node != nil {
 		return node.Iterator()
 	}
 	return nil
 }
 
-// indexNode get the node by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
-func (tree *Tree) indexNode(idx int) *Node {
+// IndexNode get the node by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
+func (tree *Tree) IndexNode(idx int) *Node {
 	cur := tree.root
 	if idx >= 0 {
 		for cur != nil {
@@ -223,7 +223,7 @@ func (tree *Tree) indexNode(idx int) *Node {
 
 // IndexKey 第idx个节点的Key值
 func (tree *Tree) IndexKey(idx int) ([]byte, bool) {
-	n := tree.indexNode(idx)
+	n := tree.IndexNode(idx)
 	if n != nil {
 		return n.key, true
 	}
@@ -232,7 +232,7 @@ func (tree *Tree) IndexKey(idx int) ([]byte, bool) {
 
 // IndexValue 第idx个节点的Value值
 func (tree *Tree) IndexValue(idx int) ([]byte, bool) {
-	n := tree.indexNode(idx)
+	n := tree.IndexNode(idx)
 	if n != nil {
 		return n.value, true
 	}

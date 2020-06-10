@@ -28,6 +28,22 @@ func TestSeek(t *testing.T) {
 			}
 		}
 	}
+
+	if v, ok := tree.Get([]byte("50")); ok {
+		if string(v) != "50" {
+			t.Error("value error")
+		}
+	} else {
+		t.Error("value error")
+	}
+
+	if v, ok := tree.Get([]byte("1")); !ok {
+		if string(v) == "1" {
+			t.Error("value error")
+		}
+	} else {
+		t.Error("value error")
+	}
 }
 
 func TestPut(t *testing.T) {
@@ -501,6 +517,25 @@ func TestRemoveRangeForce(t *testing.T) {
 		tree.RemoveRange([]byte(strconv.Itoa(rmin)), []byte(strconv.Itoa(rmax)))
 		checkSize(t, tree, size-rmax+rmin-1)
 		checkValues(t, tree, fmt.Sprint(result))
+	}
+}
+
+func TestIndex(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 0; i < 100; i++ {
+		istr := strconv.Itoa(i)
+		tree.PutString(istr, istr)
+	}
+
+	iter := tree.Index(50)
+	if !iter.Next() {
+		t.Error("50 error")
+	}
+	if string(iter.Key()) != "50" {
+		t.Error("key = 50")
+	}
+	if string(iter.Value()) != "50" {
+		t.Error("key = 50")
 	}
 }
 
