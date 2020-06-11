@@ -1,6 +1,8 @@
 package vtree
 
 import (
+	"log"
+
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -44,9 +46,9 @@ func (n *Node) debugString() string {
 
 	p := "nil"
 	if n.parent != nil {
-		p = spew.Sprint(n.parent.value)
+		p = spew.Sprint(string(n.parent.value))
 	}
-	return spew.Sprint(n.value) + "(" + p + "|" + spew.Sprint(n.size) + ")"
+	return spew.Sprint(string(n.value)) + "(" + p + "|" + spew.Sprint(n.size) + ")"
 }
 
 // Tree increasing
@@ -88,24 +90,24 @@ func comparebyte(s1, s2 []byte) int {
 
 	switch {
 	case len(s1) > len(s2):
-		// for i := 0; i < len(s2); i++ {
-		// 	if s1[i] != s2[i] {
-		// 		if s1[i] > s2[i] {
-		// 			return 1
-		// 		}
-		// 		return -1
-		// 	}
-		// }
+		for i := 0; i < len(s2); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
 		return 1
 	case len(s1) < len(s2):
-		// for i := 0; i < len(s1); i++ {
-		// 	if s1[i] != s2[i] {
-		// 		if s1[i] > s2[i] {
-		// 			return 1
-		// 		}
-		// 		return -1
-		// 	}
-		// }
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
 		return -1
 	default:
 		for i := 0; i < len(s1); i++ {
@@ -463,6 +465,7 @@ BREAK_RIGHT:
 					up.size -= reducesize
 					up = up.parent
 				}
+				log.Println(tree.debugString())
 				tree.RemoveNode(rootpath.node)
 				return
 			}
@@ -475,6 +478,7 @@ BREAK_RIGHT:
 	minlast := minpath.paths[len(minpath.paths)-2] // 倒数第二个为最后一个可能删除的节点
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
 	if minlast.leftright != maxlast.leftright {
+		log.Println(tree.debugString())
 		tree.RemoveNode(minlast.node) // 删除最后一个相同
 	}
 
@@ -586,6 +590,7 @@ func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
 		}
 	} else {
 		iter.SetLimit(start, end)
+		log.Println(string(start), string(end))
 		for iter.NextLimit() {
 			result = append(result, iter.Value())
 		}
@@ -607,6 +612,7 @@ func (tree *Tree) Get(key []byte) ([]byte, bool) {
 func (tree *Tree) GetNode(key []byte) (*Node, bool) {
 
 	for n := tree.root; n != nil; {
+		// log.Println(n.debugString())
 		switch c := compare(key, n.key); c {
 		case -1:
 			n = n.children[0]
@@ -951,8 +957,8 @@ func (tree *Tree) lrrotate3(cur *Node) *Node {
 	const l = 1
 	const r = 0
 
-	mov := cur.children[l]
-	movright := mov.children[r]
+	movparent := cur.children[l]
+	mov := movparent.children[r]
 
 	if cur.parent == nil {
 		tree.root = mov
@@ -963,13 +969,17 @@ func (tree *Tree) lrrotate3(cur *Node) *Node {
 	}
 
 	cur.children[l] = nil
+
 	cur.parent = mov
 	mov.children[r] = cur
 
-	mov.children[l] = movright
+	mov.children[l] = movparent
+	movparent.parent = mov
+	movparent.children[r] = nil
 
 	mov.size = 3
 	cur.size = 1
+	movparent.size = 1
 	return mov
 }
 
@@ -1048,8 +1058,8 @@ func (tree *Tree) rlrotate3(cur *Node) *Node {
 	const l = 0
 	const r = 1
 
-	mov := cur.children[l]
-	movright := mov.children[r]
+	movparent := cur.children[l]
+	mov := movparent.children[r]
 
 	if cur.parent == nil {
 		tree.root = mov
@@ -1061,12 +1071,16 @@ func (tree *Tree) rlrotate3(cur *Node) *Node {
 
 	cur.children[l] = nil
 	cur.parent = mov
+
 	mov.children[r] = cur
 
-	mov.children[l] = movright
+	mov.children[l] = movparent
+	movparent.parent = mov
+	movparent.children[r] = nil
 
 	mov.size = 3
 	cur.size = 1
+	movparent.size = 1
 	return mov
 }
 

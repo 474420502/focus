@@ -1,5 +1,7 @@
 package vtree
 
+import "log"
+
 type Iterator struct {
 	dir    int
 	up     *Node
@@ -126,6 +128,7 @@ func (iter *Iterator) NextLimit() (result bool) {
 		if compare(iter.cur.key, iter.max) == 1 {
 			return false
 		}
+		log.Println(string(iter.cur.key), string(iter.max))
 		return true
 	}
 	return false

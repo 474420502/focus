@@ -1,7 +1,9 @@
 package vtree
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -281,16 +283,23 @@ func TestRemove(t *testing.T) {
 
 	for i := 0; i < 50; i++ {
 		istr := "key-" + strconv.Itoa(i)
+		if istr == "key-11" {
+			//log.Println(tree.debugString())
+		}
 		tree.Put([]byte(istr), []byte(istr))
+		// log.Println(tree.debugString())
+		// log.Println(istr)
 	}
 	for i := 0; i < 50; i++ {
 		istr := "xxx-" + strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
+		//log.Println(tree.debugString())
 	}
 
 	for i := 0; i < 50; i++ {
 		istr := "xixi-" + strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
+		//log.Println(tree.debugString())
 	}
 
 	iter := tree.SeekRange([]byte("key-"), []byte("key-aaa"))
@@ -301,8 +310,23 @@ func TestRemove(t *testing.T) {
 	}
 
 	for _, v := range result {
+
+		// if string(v) == "key-11" {
+		// 	log.Println(tree.debugString())
+		// 	log.Println(string(v))
+		// }
+		// log.Println(tree.debugString())
+		// log.Println("remove:", string(v))
 		tree.Remove(v)
+		// log.Println(tree.debugString())
+		// if string(v) == "key-11" {
+		// 	log.Println(tree.Get([]byte("key-11")))
+
+		// 	log.Println(string(v))
+		// }
 	}
+
+	log.Println(tree.debugString())
 
 	result = tree.GetRange([]byte("key-"), []byte("key-aaa"))
 	if len(result) != 0 {
@@ -330,13 +354,15 @@ func getValues(values [][]byte) string {
 func checkValues(t *testing.T, tree *Tree, strvalue string) {
 	var str string = getValues(tree.Values())
 	if str != strvalue {
-		t.Error("error, should be", strvalue, "but values is ", str)
+		t.Error(tree.debugString())
+		panic(errors.New(fmt.Sprint("error, should be ", strvalue, " but values is ", str)))
 	}
 }
 
 func checkSize(t *testing.T, tree *Tree, size int) {
 	if tree.Size() != size {
-		t.Error("tree size is error, should be", size, "but size is ", tree.Size())
+		t.Error(tree.debugString())
+		panic(errors.New(fmt.Sprint("tree size is error, should be ", size, " but size is ", tree.Size())))
 	}
 }
 
@@ -345,11 +371,14 @@ func TestRemoveRange(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
+		// log.Println(istr)
+		// log.Println(tree.debugString())
+		// log.Println()
 	}
 
 	tree.RemoveRange([]byte("15"), []byte("31"))
-	checkSize(t, tree, 50-17)
-	checkValues(t, tree, "[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49]")
+	checkSize(t, tree, 50-17-2)
+	checkValues(t, tree, "[0 1 10 11 12 13 14 32 33 34 35 36 37 38 39 4 40 41 42 43 44 45 46 47 48 49 5 6 7 8 9]")
 
 	tree = New()
 	for i := 0; i < 50; i++ {
@@ -358,8 +387,8 @@ func TestRemoveRange(t *testing.T) {
 	}
 	checkSize(t, tree, 50)
 	tree.RemoveRange([]byte("15"), []byte("40"))
-	checkSize(t, tree, 40-15-1)
-	checkValues(t, tree, "[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 41 42 43 44 45 46 47 48 49]")
+	checkSize(t, tree, 40-15-1-3)
+	checkValues(t, tree, "[0 1 10 11 12 13 14 41 42 43 44 45 46 47 48 49 5 6 7 8 9]")
 }
 
 func TestRemoveRangeCase1(t *testing.T) {
@@ -370,12 +399,13 @@ func TestRemoveRangeCase1(t *testing.T) {
 	}
 
 	tree.RemoveRange([]byte("0"), []byte("46"))
-	checkSize(t, tree, 3)
-	checkValues(t, tree, "[47 48 49]")
+	checkValues(t, tree, "[47 48 49 5 6 7 8 9]")
+	checkSize(t, tree, 8)
 
 	tree.RemoveRange([]byte("0"), []byte("49"))
-	checkSize(t, tree, 0)
-	checkValues(t, tree, "[]")
+
+	checkValues(t, tree, "[5 6 7 8 9]")
+	checkSize(t, tree, 5)
 }
 
 func TestRemoveRangeCase2(t *testing.T) {
@@ -510,6 +540,25 @@ func TestRemoveRangeCase8(t *testing.T) {
 	tree.RemoveRange([]byte("3"), []byte("8"))
 	checkSize(t, tree, 1)
 	checkValues(t, tree, "[9]")
+}
+
+func TestRemoveRangeCase9(t *testing.T) {
+	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
+	for i := 0; i < 1000; i++ {
+		istr := strconv.Itoa(i)
+		tree.Put([]byte(istr), []byte(istr))
+	}
+
+	values := tree.Values()
+	tree.RemoveRange([]byte("900"), []byte("999"))
+	for i := 0; i < 1000; i++ {
+		istr := strconv.Itoa(i)
+		if _, ok := tree.Get([]byte(istr)); !ok {
+			log.Println(istr)
+		}
+	}
+	checkSize(t, tree, 90)
+	checkValues(t, tree, getValues(values))
 }
 
 func TestRemoveRangeForce(t *testing.T) {
