@@ -1,8 +1,6 @@
 package vtree
 
 import (
-	"log"
-
 	linkedlist "github.com/474420502/focus/list/linked_list"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -108,6 +106,42 @@ func comparebyte(s1, s2 []byte) int {
 				return -1
 			}
 		}
+		return -1
+	default:
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				if s1[i] > s2[i] {
+					return 1
+				}
+				return -1
+			}
+		}
+		return 0
+	}
+}
+
+func comparemath(s1, s2 []byte) int {
+
+	switch {
+	case len(s1) > len(s2):
+		// for i := 0; i < len(s2); i++ {
+		// 	if s1[i] != s2[i] {
+		// 		if s1[i] > s2[i] {
+		// 			return 1
+		// 		}
+		// 		return -1
+		// 	}
+		// }
+		return 1
+	case len(s1) < len(s2):
+		// for i := 0; i < len(s1); i++ {
+		// 	if s1[i] != s2[i] {
+		// 		if s1[i] > s2[i] {
+		// 			return 1
+		// 		}
+		// 		return -1
+		// 	}
+		// }
 		return -1
 	default:
 		for i := 0; i < len(s1); i++ {
@@ -465,7 +499,7 @@ BREAK_RIGHT:
 					up.size -= reducesize
 					up = up.parent
 				}
-				log.Println(tree.debugString())
+				// log.Println(tree.debugString())
 				tree.RemoveNode(rootpath.node)
 				return
 			}
@@ -478,7 +512,7 @@ BREAK_RIGHT:
 	minlast := minpath.paths[len(minpath.paths)-2] // 倒数第二个为最后一个可能删除的节点
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
 	if minlast.leftright != maxlast.leftright {
-		log.Println(tree.debugString())
+		// log.Println(tree.debugString())
 		tree.RemoveNode(minlast.node) // 删除最后一个相同
 	}
 
@@ -590,7 +624,7 @@ func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
 		}
 	} else {
 		iter.SetLimit(start, end)
-		log.Println(string(start), string(end))
+		// log.Println(string(start), string(end))
 		for iter.NextLimit() {
 			result = append(result, iter.Value())
 		}
@@ -1288,7 +1322,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 }
 
 func (tree *Tree) debugString() string {
-	str := "AVLTree\n"
+	str := "VTree\n"
 	if tree.root == nil {
 		return str + "nil"
 	}
