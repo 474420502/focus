@@ -2,10 +2,34 @@
 
 there is a lot structure that easy by used
 
-## ArrayStack
+## Tried
 
 ```golang
 
+```
+
+## ArrayStack ListStack ListArrayStack
+
+```golang
+package main
+
+import (
+    "log"
+
+    arraystack "github.com/474420502/focus/stack/arraystack"
+)
+
+func main() {
+
+    // simple use
+    s := arraystack.New()
+    s.Push(1)
+    s.Push(2)
+    log.Println(s.Peek()) // 2 true
+    log.Println(s.Pop())  // 2 true
+    log.Println(s.Pop())  // 1 true
+    log.Println(s.Pop())  // <nil> false
+}
 ```
 
 ## ArrayList
