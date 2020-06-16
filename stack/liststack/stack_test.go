@@ -1,4 +1,4 @@
-package lastack
+package liststack
 
 import "testing"
 

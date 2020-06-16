@@ -1,4 +1,4 @@
-package astack
+package arraystack
 
 import (
 	"github.com/474420502/focus/stack"
