@@ -98,7 +98,7 @@ func (tree *Tree) SeekRange(start, end []byte) *Iterator {
 	return iter
 }
 
-// Seek TODO: 错误
+// Seek search key . like rocksdb/leveldb api
 func (tree *Tree) Seek(key []byte) *Iterator {
 	lastc := 0
 	var n, switchParent, lastn *Node
@@ -554,6 +554,15 @@ func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
 // Get get key
 func (tree *Tree) Get(key []byte) ([]byte, bool) {
 	n, ok := tree.GetNode(key)
+	if ok {
+		return n.value, true
+	}
+	return nil, false
+}
+
+// GetString get key by string
+func (tree *Tree) GetString(key string) ([]byte, bool) {
+	n, ok := tree.GetNode([]byte(key))
 	if ok {
 		return n.value, true
 	}

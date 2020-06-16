@@ -68,10 +68,6 @@ func TestTried_CountWord(t *testing.T) {
 		t.Error("tried error")
 	}
 
-	// log.Println(tr.Get("dog").(*triedcount).count)
-	// log.Println(tr.Get("cat").(*triedcount).count)
-	// log.Println(tr.Get("doc").(*triedcount).count)
-	// log.Println(tr.Get("apple"))
 }
 
 func TestTried_Has(t *testing.T) {

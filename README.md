@@ -5,6 +5,36 @@ there is a lot structure that easy by used
 ## Tried
 
 ```golang
+package main
+
+import (
+    "log"
+
+    "github.com/474420502/focus/tree/tried"
+)
+
+type triedcount struct {
+    count int
+}
+
+func main() {
+
+    // simple use
+    tr := tried.NewWithWordType(tried.WordIndexLower) // default tried.New() with tried.WordIndexLower
+    l := []string{"dog", "cat", "dog", "doc"}
+    for _, v := range l {
+        if tr.Get(v) == nil {
+            tr.PutWithValue(v, &triedcount{count: 1}) // tr.Put(v) only save the word. but save a lot word with  a little memory
+        } else {
+            tr.Get(v).(*triedcount).count++
+        }
+    }
+
+    log.Println(tr.Get("dog").(*triedcount).count) // 2
+    log.Println(tr.Get("cat").(*triedcount).count) // 1
+    log.Println(tr.Get("doc").(*triedcount).count) // 1
+    log.Println(tr.Get("apple"))                   // nil
+}
 
 ```
 
