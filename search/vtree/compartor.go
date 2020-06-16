@@ -1,5 +1,6 @@
 package vtree
 
+// CompatorByte 默认比较字节
 func CompatorByte(s1, s2 []byte) int {
 
 	switch {
@@ -36,6 +37,7 @@ func CompatorByte(s1, s2 []byte) int {
 	}
 }
 
+// CompatorMath 字节看书法的差异, 使用与数学类比较
 func CompatorMath(s1, s2 []byte) int {
 
 	switch {

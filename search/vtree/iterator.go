@@ -2,7 +2,7 @@ package vtree
 
 import "log"
 
-// Iterator
+// Iterator 迭代器
 type Iterator struct {
 	tree   *Tree
 	dir    int
