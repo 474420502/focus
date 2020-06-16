@@ -371,9 +371,6 @@ func TestRemoveRange(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
-		// log.Println(istr)
-		// log.Println(tree.debugString())
-		// log.Println()
 	}
 
 	tree.RemoveRange([]byte("15"), []byte("31"))
@@ -609,15 +606,20 @@ func TestIndex(t *testing.T) {
 		tree.PutString(istr, istr)
 	}
 
-	iter := tree.Index(50)
+	iter := tree.Index(0)
 	if !iter.Next() {
-		t.Error("50 error")
+		t.Error("0 error")
 	}
-	if string(iter.Key()) != "50" {
-		t.Error("key = 50")
+	if string(iter.Key()) != "0" {
+		t.Error("key = 0 but value 0", string(iter.Key()))
 	}
-	if string(iter.Value()) != "50" {
-		t.Error("key = 50")
+
+	iter = tree.Index(99)
+	if !iter.Next() {
+		t.Error("99 error")
+	}
+	if string(iter.Value()) != "99" {
+		t.Error("key = 99 but value is", string(iter.Key()))
 	}
 }
 
@@ -628,21 +630,25 @@ func TestIndexNode(t *testing.T) {
 		tree.PutString(istr, istr)
 	}
 
-	for i := 0; i < 100; i++ {
+	var result []int
+
+	result = []int{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
+
+	for i := 0; i < 10; i++ {
 		n := tree.IndexNode(i)
-		if string(n.Key()) != strconv.Itoa(i) {
+		if string(n.Key()) != strconv.Itoa(result[i]) {
 			t.Error("error", string(n.Key()), i)
 		}
 	}
 
-	for i := -1; i >= -100; i-- {
+	for i := -1; i >= -10; i-- {
 		n := tree.IndexNode(i)
 		if string(n.Value()) != strconv.Itoa(100+i) {
 			t.Error("error", string(n.Value()), i)
 		}
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		n := tree.IndexNode(i)
 		key, _ := tree.IndexKey(i)
 		if string(n.Key()) != string(key) {
@@ -650,7 +656,7 @@ func TestIndexNode(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		n := tree.IndexNode(i)
 		v, _ := tree.IndexValue(i)
 		if string(n.Key()) != string(v) {

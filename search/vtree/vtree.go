@@ -15,8 +15,8 @@ type Node struct {
 }
 
 // Iterator return iterator and start by node
-func (n *Node) Iterator() *Iterator {
-	return NewIterator(n)
+func (n *Node) Iterator(tree *Tree) *Iterator {
+	return NewIterator(tree, n)
 }
 
 // Key get node key
@@ -51,7 +51,8 @@ func (n *Node) debugString() string {
 
 // Tree increasing
 type Tree struct {
-	root *Node
+	compartor func([]byte, []byte) int
+	root      *Node
 	// iter *Iterator
 }
 
@@ -59,8 +60,14 @@ func assertImplementation() {
 
 }
 
+// NewWithCompartor Create a vtree with diffent compare func
+func NewWithCompartor(compartor func([]byte, []byte) int) *Tree {
+	return &Tree{compartor: compartor}
+}
+
+// New Create a vtree
 func New() *Tree {
-	return &Tree{}
+	return &Tree{compartor: CompatorByte}
 }
 
 func (tree *Tree) String() string {
@@ -72,10 +79,6 @@ func (tree *Tree) String() string {
 	return str
 }
 
-// func (tree *Tree) Iterator() *Iterator {
-// 	return initIterator(tree)
-// }
-
 // Size get tree size
 func (tree *Tree) Size() int {
 	if tree.root == nil {
@@ -84,86 +87,10 @@ func (tree *Tree) Size() int {
 	return tree.root.size
 }
 
-func comparebyte(s1, s2 []byte) int {
-
-	switch {
-	case len(s1) > len(s2):
-		for i := 0; i < len(s2); i++ {
-			if s1[i] != s2[i] {
-				if s1[i] > s2[i] {
-					return 1
-				}
-				return -1
-			}
-		}
-		return 1
-	case len(s1) < len(s2):
-		for i := 0; i < len(s1); i++ {
-			if s1[i] != s2[i] {
-				if s1[i] > s2[i] {
-					return 1
-				}
-				return -1
-			}
-		}
-		return -1
-	default:
-		for i := 0; i < len(s1); i++ {
-			if s1[i] != s2[i] {
-				if s1[i] > s2[i] {
-					return 1
-				}
-				return -1
-			}
-		}
-		return 0
-	}
-}
-
-func comparemath(s1, s2 []byte) int {
-
-	switch {
-	case len(s1) > len(s2):
-		// for i := 0; i < len(s2); i++ {
-		// 	if s1[i] != s2[i] {
-		// 		if s1[i] > s2[i] {
-		// 			return 1
-		// 		}
-		// 		return -1
-		// 	}
-		// }
-		return 1
-	case len(s1) < len(s2):
-		// for i := 0; i < len(s1); i++ {
-		// 	if s1[i] != s2[i] {
-		// 		if s1[i] > s2[i] {
-		// 			return 1
-		// 		}
-		// 		return -1
-		// 	}
-		// }
-		return -1
-	default:
-		for i := 0; i < len(s1); i++ {
-			if s1[i] != s2[i] {
-				if s1[i] > s2[i] {
-					return 1
-				}
-				return -1
-			}
-		}
-		return 0
-	}
-}
-
-func compare(k1 []byte, k2 []byte) int {
-	return comparebyte(k1, k2)
-}
-
 // SeekRange start end
 func (tree *Tree) SeekRange(start, end []byte) *Iterator {
 	iter := tree.Seek(start)
-	if compare(start, end) == 1 {
+	if tree.compartor(start, end) == 1 {
 		iter.SetLimit(end, start)
 	} else {
 		iter.SetLimit(start, end)
@@ -177,7 +104,7 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 	var n, switchParent, lastn *Node
 	for n = tree.root; n != nil; {
 
-		c := compare(key, n.key)
+		c := tree.compartor(key, n.key)
 		if lastc*c == -1 {
 			switchParent = n.parent
 		}
@@ -191,7 +118,7 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 			lastn = n
 			n = n.children[1]
 		case 0:
-			return n.Iterator()
+			return n.Iterator(tree)
 		default:
 			panic("Get Compare only is allowed in -1, 0, 1")
 		}
@@ -200,19 +127,17 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 
 	switch lastc {
 	case -1:
-		return lastn.Iterator()
+		return lastn.Iterator(tree)
 	case 1:
 		if switchParent != nil {
-			return switchParent.Iterator()
-		} else {
-			return lastn.Iterator()
+			return switchParent.Iterator(tree)
 		}
+		return lastn.Iterator(tree)
 
 	default:
 		return nil
 	}
 
-	// log.Println(lastc, string(lastn.key))
 	// return switchParent.Iterator()
 }
 
@@ -220,7 +145,7 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 func (tree *Tree) Index(idx int) *Iterator {
 	node := tree.IndexNode(idx)
 	if node != nil {
-		return node.Iterator()
+		return node.Iterator(tree)
 	}
 	return nil
 }
@@ -424,7 +349,7 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 		return
 	}
 
-	switch compare(start, end) {
+	switch tree.compartor(start, end) {
 	case 0:
 		tree.Remove(start)
 		return
@@ -437,14 +362,12 @@ func (tree *Tree) RemoveRange(start, end []byte) {
 
 BREAK_LEFT:
 	for n := tree.root; ; {
-		// log.Println(string(n.key))
-
 		if n == nil {
 			minpath.Append(nil, 1)
 			break
 		}
 
-		switch c := compare(start, n.key); c {
+		switch c := tree.compartor(start, n.key); c {
 		case -1:
 			minpath.Append(n, 0)
 			n = n.children[0]
@@ -468,7 +391,7 @@ BREAK_RIGHT:
 			break
 		}
 
-		switch c := compare(end, n.key); c {
+		switch c := tree.compartor(end, n.key); c {
 		case -1:
 			maxpath.Append(n, 0)
 			n = n.children[0]
@@ -499,7 +422,7 @@ BREAK_RIGHT:
 					up.size -= reducesize
 					up = up.parent
 				}
-				// log.Println(tree.debugString())
+
 				tree.RemoveNode(rootpath.node)
 				return
 			}
@@ -512,14 +435,10 @@ BREAK_RIGHT:
 	minlast := minpath.paths[len(minpath.paths)-2] // 倒数第二个为最后一个可能删除的节点
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
 	if minlast.leftright != maxlast.leftright {
-		// log.Println(tree.debugString())
 		tree.RemoveNode(minlast.node) // 删除最后一个相同
 	}
 
 	// rootpath.size -= reducesize
-
-	// log.Println(reducesize, string(rootpath.node.key))
-
 }
 
 func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
@@ -532,13 +451,13 @@ func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
 		LEFT = 1
 		RIGHT = 0
 	}
-	// log.Println(RIGHT)
+
 	var top = minpath.paths[i-1]
 	var last = minpath.paths[len(minpath.paths)-1]
 	var up = top
 	for ii := i; ii < len(minpath.paths)-1; ii++ {
 		p := minpath.paths[ii]
-		// log.Println(string(up.node.key), string(p.node.key))
+
 		if p.leftright == LEFT {
 			pright := p.node.children[RIGHT]
 			if pright != nil {
@@ -617,14 +536,13 @@ func (tree *Tree) Values() [][]byte {
 // GetRange get key
 func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
 	iter := tree.Seek(start)
-	if compare(start, end) == 1 {
+	if tree.compartor(start, end) == 1 {
 		iter.SetLimit(end, start)
 		for iter.PrevLimit() {
 			result = append(result, iter.Value())
 		}
 	} else {
 		iter.SetLimit(start, end)
-		// log.Println(string(start), string(end))
 		for iter.NextLimit() {
 			result = append(result, iter.Value())
 		}
@@ -646,8 +564,7 @@ func (tree *Tree) Get(key []byte) ([]byte, bool) {
 func (tree *Tree) GetNode(key []byte) (*Node, bool) {
 
 	for n := tree.root; n != nil; {
-		// log.Println(n.debugString())
-		switch c := compare(key, n.key); c {
+		switch c := tree.compartor(key, n.key); c {
 		case -1:
 			n = n.children[0]
 		case 1:
@@ -679,7 +596,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 			}
 		}
 
-		c := compare(key, cur.key)
+		c := tree.compartor(key, cur.key)
 		switch {
 		case c < 0:
 			if cur.children[0] == nil {
@@ -751,7 +668,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 			}
 		}
 
-		c := compare(key, cur.key)
+		c := tree.compartor(key, cur.key)
 		switch {
 		case c < 0:
 			if cur.children[0] == nil {

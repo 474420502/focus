@@ -32,7 +32,7 @@ func BenchmarkCase2(t *testing.B) {
 		l = append(l, istr)
 		if len(l) > 500 {
 			for _, x := range l[len(l)-100:] {
-				if comparebyte(istr, x) > 0 {
+				if CompatorByte(istr, x) > 0 {
 					istr = nil
 				}
 			}

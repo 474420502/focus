@@ -2,7 +2,9 @@ package vtree
 
 import "log"
 
+// Iterator
 type Iterator struct {
+	tree   *Tree
 	dir    int
 	up     *Node
 	cur    *Node
@@ -11,51 +13,15 @@ type Iterator struct {
 	max    []byte
 }
 
-func NewIterator(n *Node) *Iterator {
+// NewIterator create iterator by *Node
+func NewIterator(tree *Tree, n *Node) *Iterator {
 	iter := &Iterator{tstack: newStack()}
 	iter.up = n
+	iter.tree = tree
 	return iter
 }
 
-// func NewIteratorWithCap(n *Node, cap int) *Iterator {
-// 	iter := &Iterator{tstack: newStackWithCap(cap)}
-// 	iter.up = n
-// 	return iter
-// }
-
-// func (iter *Iterator) ToHead() {
-// 	if iter.cur == nil {
-// 		iter.cur = iter.up
-// 	}
-
-// 	for iter.cur.parent != nil {
-// 		iter.cur = iter.cur.parent
-// 	}
-
-// 	for iter.cur.children[0] != nil {
-// 		iter.cur = iter.cur.children[0]
-// 	}
-// 	iter.SetNode(iter.cur)
-// 	iter.cur = nil
-// }
-
-// func (iter *Iterator) ToTail() {
-
-// 	if iter.cur == nil {
-// 		iter.cur = iter.up
-// 	}
-
-// 	for iter.cur.parent != nil {
-// 		iter.cur = iter.cur.parent
-// 	}
-
-// 	for iter.cur.children[1] != nil {
-// 		iter.cur = iter.cur.children[1]
-// 	}
-// 	iter.SetNode(iter.cur)
-// 	iter.cur = nil
-// }
-
+// GetNode iter get current node
 func (iter *Iterator) GetNode() *Node {
 	return iter.cur
 }
@@ -66,10 +32,12 @@ func (iter *Iterator) GetNode() *Node {
 // 	iter.tstack.Clear()
 // }
 
+// Key get iter current key
 func (iter *Iterator) Key() []byte {
 	return iter.cur.key
 }
 
+// Value get iter current value
 func (iter *Iterator) Value() []byte {
 	return iter.cur.value
 }
@@ -114,7 +82,7 @@ func (iter *Iterator) SetLimit(min, max []byte) {
 // PrevLimit 带Prev限制的Prev()
 func (iter *Iterator) PrevLimit() (result bool) {
 	if iter.Prev() {
-		if compare(iter.cur.key, iter.min) == -1 { // 可以优化减少消耗
+		if iter.tree.compartor(iter.cur.key, iter.min) == -1 { // 可以优化减少消耗
 			return false
 		}
 		return true
@@ -125,7 +93,7 @@ func (iter *Iterator) PrevLimit() (result bool) {
 // NextLimit 带Next限制的Next()
 func (iter *Iterator) NextLimit() (result bool) {
 	if iter.Next() {
-		if compare(iter.cur.key, iter.max) == 1 {
+		if iter.tree.compartor(iter.cur.key, iter.max) == 1 {
 			return false
 		}
 		log.Println(string(iter.cur.key), string(iter.max))
