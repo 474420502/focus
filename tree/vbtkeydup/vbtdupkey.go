@@ -218,11 +218,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
-	if cparent == n {
-		tree.fixSizeWithRemove(n)
-	} else {
-		tree.fixSizeWithRemove(cparent)
-	}
+tree.fixSizeWithRemove(cparent)
 
 	// return cur
 	return
@@ -415,17 +411,6 @@ func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 		case 1:
 			n = n.children[1]
 		case 0:
-
-			tree.iter.SetNode(n)
-			iter := tree.iter
-			iter.Prev()
-			for iter.Prev() {
-				if tree.Compare(iter.cur.key, n.key) == 0 {
-					n = iter.cur
-				} else {
-					break
-				}
-			}
 			return n, true
 		default:
 			panic("Get Compare only is allowed in -1, 0, 1")
@@ -599,10 +584,10 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if !every(cur.key, cur.value) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.children[0]) {
 				return false
 			}
 			return true

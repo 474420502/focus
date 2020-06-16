@@ -78,7 +78,6 @@ func TestTreeSet_Remove(t *testing.T) {
 		fields fields
 		args   args
 	}{
-		// TODO: Add test cases.
 		{name: "remove 1", result: "()",
 			args: args{
 				addItems:    []interface{}{5, 7, 5, 3, 2},

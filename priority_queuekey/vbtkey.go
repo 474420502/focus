@@ -592,10 +592,10 @@ func (tree *vbTree) Traversal(every func(k, v interface{}) bool, traversalMethod
 			if !every(cur.key, cur.value) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.children[1]) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.children[0]) {
 				return false
 			}
 			return true
