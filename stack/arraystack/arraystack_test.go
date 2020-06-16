@@ -1,4 +1,4 @@
-package astack
+package arraystack
 
 import (
 	"testing"

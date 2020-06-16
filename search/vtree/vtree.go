@@ -1154,17 +1154,17 @@ func (tree *Tree) fixSize(cur *Node, ls, rs int) *Node {
 		llsize, lrsize := getChildrenSize(cur.children[0])
 		if lrsize > llsize {
 			return tree.rlrotate(cur)
-		} else {
-			return tree.rrotate(cur)
 		}
-	} else {
-		rlsize, rrsize := getChildrenSize(cur.children[1])
-		if rlsize > rrsize {
-			return tree.lrrotate(cur)
-		} else {
-			return tree.lrotate(cur)
-		}
+		return tree.rrotate(cur)
+
 	}
+
+	rlsize, rrsize := getChildrenSize(cur.children[1])
+	if rlsize > rrsize {
+		return tree.lrrotate(cur)
+	}
+	return tree.lrotate(cur)
+
 }
 
 func output(node *Node, prefix string, isTail bool, str *string) {
