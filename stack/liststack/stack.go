@@ -1,4 +1,4 @@
-package lastack
+package liststack
 
 import (
 	"github.com/474420502/focus/stack"
@@ -18,7 +18,6 @@ type Stack struct {
 func assertImplementation() {
 	var _ stack.IStack = (*Stack)(nil)
 }
-
 
 func New() *Stack {
 	s := &Stack{}
