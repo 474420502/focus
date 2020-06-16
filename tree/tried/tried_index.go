@@ -20,14 +20,23 @@ type WordIndexType int
 
 const (
 	_ WordIndexType = iota
+	// WordIndexLower 小写
 	WordIndexLower
+	// WordIndexUpper 大写
 	WordIndexUpper
+	// WordIndexDigital 数字
 	WordIndexDigital
+	// WordIndexUpperLower 大+小写
 	WordIndexUpperLower
+	// WordIndexLowerDigital 小写+数字
 	WordIndexLowerDigital
+	// WordIndexUpperDigital 大写+数字
 	WordIndexUpperDigital
+	// WordIndexUpperLowerDigital 大小写+数字
 	WordIndexUpperLowerDigital
+	// WordIndex256 256个字符 0-255 ascii
 	WordIndex256
+	// WordIndex32to126  32-126 ascii
 	WordIndex32to126
 )
 

@@ -36,6 +36,44 @@ func CompareSliceWithSorted(source, words []string) (bool, string) {
 	return true, ""
 }
 
+type triedcount struct {
+	count int
+}
+
+func TestTried_CountWord(t *testing.T) {
+	var tr *Tried
+	tr = NewWithWordType(WordIndexLower)
+	l := []string{"dog", "cat", "dog", "doc"}
+	for _, v := range l {
+		if tr.Get(v) == nil {
+			tr.PutWithValue(v, &triedcount{count: 1})
+		} else {
+			tr.Get(v).(*triedcount).count++
+		}
+	}
+
+	if tr.Get("dog").(*triedcount).count != 2 {
+		t.Error("tried error")
+	}
+
+	if tr.Get("cat").(*triedcount).count != 1 {
+		t.Error("tried error")
+	}
+
+	if tr.Get("doc").(*triedcount).count != 1 {
+		t.Error("tried error")
+	}
+
+	if tr.Get("apple") != nil {
+		t.Error("tried error")
+	}
+
+	// log.Println(tr.Get("dog").(*triedcount).count)
+	// log.Println(tr.Get("cat").(*triedcount).count)
+	// log.Println(tr.Get("doc").(*triedcount).count)
+	// log.Println(tr.Get("apple"))
+}
+
 func TestTried_Has(t *testing.T) {
 	var tried *Tried
 	tried = NewWithWordType(WordIndexLower)
@@ -233,8 +271,8 @@ func TestTried_PutAndGet1(t *testing.T) {
 	tried := New()
 
 	tried.Put(("asdf"))
-	tried.Put(("hehe"), "hehe")
-	tried.Put(("xixi"), 3)
+	tried.PutWithValue(("hehe"), "hehe")
+	tried.PutWithValue(("xixi"), 3)
 
 	var result interface{}
 
@@ -267,9 +305,9 @@ func TestTried_PutAndGet1(t *testing.T) {
 func TestTried_Traversal(t *testing.T) {
 	tried := New()
 	tried.Put("asdf")
-	tried.Put(("abdf"), "ab")
-	tried.Put(("hehe"), "hehe")
-	tried.Put(("xixi"), 3)
+	tried.PutWithValue(("abdf"), "ab")
+	tried.PutWithValue(("hehe"), "hehe")
+	tried.PutWithValue(("xixi"), 3)
 
 	var result []interface{}
 	tried.Traversal(func(idx uint, v interface{}) bool {

@@ -41,7 +41,31 @@ func NewWithWordType(t WordIndexType) *Tried {
 	return tried
 }
 
-func (tried *Tried) Put(words string, values ...interface{}) {
+// Put the word in tried
+func (tried *Tried) Put(words string) {
+	cur := tried.root
+	var n *Node
+
+	bytes := []byte(words)
+
+	for i := 0; i < len(bytes); i++ {
+		w := tried.wiStore.Byte2Index(bytes[i])
+
+		if cur.data == nil {
+			cur.data = make([]*Node, tried.wiStore.DataSize)
+		}
+
+		if n = cur.data[w]; n == nil {
+			n = new(Node)
+			cur.data[w] = n
+		}
+		cur = n
+	}
+	cur.value = tried
+}
+
+// PutWithValue the word with value in tried.eg. you can count word in value
+func (tried *Tried) PutWithValue(words string, value interface{}) {
 	cur := tried.root
 	var n *Node
 
@@ -61,15 +85,15 @@ func (tried *Tried) Put(words string, values ...interface{}) {
 		cur = n
 	}
 
-	if values != nil {
-		cur.value = values[0]
-	} else {
-		cur.value = tried
-	}
+	cur.value = value
 }
 
 func (tried *Tried) Get(words string) interface{} {
 	cur := tried.root
+	if cur.data == nil {
+		return nil
+	}
+
 	var n *Node
 	bytes := []byte(words)
 
