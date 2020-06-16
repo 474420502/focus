@@ -2,6 +2,82 @@
 
 there is a lot structure that easy by used
 
+## ArrayStack
+
+```golang
+
+```
+
+## ArrayList
+
+```golang
+package main
+
+import (
+    "log"
+
+    arraylist "github.com/474420502/focus/list/array_list"
+)
+
+func main() {
+
+    // simple use
+    l := arraylist.New()
+    for i := 0; i < 10; i++ {
+        l.Push(i)
+    }
+
+    log.Println(l.Values()) // [0 1 2 3 4 5 6 7 8 9]
+    l.PushBack(0)
+    log.Println(l.Values()) // [0 1 2 3 4 5 6 7 8 9 0]
+    l.PushFront(-1)
+    log.Println(l.Values()) // [-1 0 1 2 3 4 5 6 7 8 9 0]
+
+    // iterator
+    iter := l.Iterator()
+    if iter.Next() {
+        log.Println(iter.Value()) // -1
+    }
+
+    for i := 0; i < 8; i++ {
+        l.Remove(0)
+    }
+
+    log.Println(l.Values()) // [7 8 9 0]
+
+    citer := l.CircularIterator()
+    for i := 0; i < 8; i++ {
+        if citer.Next() {
+            log.Println(citer.Value()) // 7 8 9 0 7 8 9 0
+        }
+    }
+}
+```
+
+## Heap
+
+```golang
+package main
+
+import (
+    "log"
+
+    "github.com/474420502/focus/compare"
+    "github.com/474420502/focus/tree/heap"
+)
+
+func main() {
+    h := heap.New(compare.Int)
+    h.Put(4)
+    h.Put(5)
+    h.Put(1)
+    log.Println(h.Pop()) // 5 true
+    log.Println(h.Pop()) // 4 true
+    log.Println(h.Pop()) // 1 true
+    log.Println(h.Pop()) // <nil> false
+}
+```
+
 ## PriorityQueue
 
 ``` golang
@@ -39,7 +115,7 @@ func main() {
     values3 := pq.GetAround(5) // values3 = [<nil>, 5, 4]
     log.Println(values3)
 
-    iter := pq.Iterator() // Next big -> small 
+    iter := pq.Iterator() // Next big -> small
     log.Println(pq.String())
     iter.ToHead()
     iter.Next()
