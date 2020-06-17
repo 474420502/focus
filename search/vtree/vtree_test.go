@@ -60,7 +60,7 @@ func TestPutSimple(t *testing.T) {
 	var result [][]byte
 
 	iter := tree.SeekRange([]byte("40"), []byte("80"))
-	for iter.NextLimit() {
+	for iter.Next() {
 		result = append(result, iter.Key())
 	}
 
@@ -213,7 +213,7 @@ func TestSeekRange(t *testing.T) {
 	}
 
 	iter := tree.SeekRange([]byte("key-"), []byte("key-50"))
-	if iter.NextLimit() {
+	if iter.Next() {
 		ivalue := string(iter.Value())
 		if ivalue != "key-0" {
 			t.Error(ivalue)
@@ -221,7 +221,7 @@ func TestSeekRange(t *testing.T) {
 	}
 
 	iter = tree.SeekRange([]byte("xxx-50"), []byte("xxx-"))
-	if iter.NextLimit() {
+	if iter.Next() {
 		t.Error(string(iter.Value()))
 	}
 
@@ -305,7 +305,7 @@ func TestRemove(t *testing.T) {
 	iter := tree.SeekRange([]byte("key-"), []byte("key-aaa"))
 
 	var result [][]byte
-	for iter.NextLimit() {
+	for iter.Next() {
 		result = append(result, iter.Key())
 	}
 
@@ -662,5 +662,48 @@ func TestIndexNode(t *testing.T) {
 		if string(n.Key()) != string(v) {
 			t.Error("error", string(v), i)
 		}
+	}
+}
+
+func TestSeekPrefix(t *testing.T) {
+	tree := New()
+	for i := 0; i < 50; i++ {
+		v := "cat-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	for i := 0; i < 50; i++ {
+		v := "dog-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	for i := 0; i < 10; i++ {
+		v := "doc-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	iter := tree.SeekPrefix([]byte("cat-"))
+
+	checksize := 50
+	for iter.Next() {
+		checksize--
+		if !strings.HasPrefix(string(iter.Key()), "cat-") {
+			t.Error("cat- is error", string(iter.Key()))
+		}
+	}
+	if checksize != 0 {
+		t.Error("size is error")
+	}
+
+	iter = tree.SeekPrefix([]byte("doc-"))
+	checksize = 10
+	for iter.Next() {
+		checksize--
+		if !strings.HasPrefix(string(iter.Value()), "doc-") {
+			t.Error("cat- is error", string(iter.Key()))
+		}
+	}
+	if checksize != 0 {
+		t.Error("size is error")
 	}
 }

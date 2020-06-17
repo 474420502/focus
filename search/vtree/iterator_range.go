@@ -1,33 +1,27 @@
 package vtree
 
-type Iterator interface {
-	// GetNode iter get current node
-	GetNode() *Node
-	Key() []byte
-	Value() []byte
-	Prev() bool
-	Next() bool
-}
-
-// IteratorBase 迭代器
-type IteratorBase struct {
+// IteratorRange 迭代器
+type IteratorRange struct {
 	tree   *Tree
 	dir    int
 	up     *Node
 	cur    *Node
 	tstack *stack
+
+	min []byte
+	max []byte
 }
 
-// NewIteratorBase create iterator by *Node
-func NewIteratorBase(tree *Tree, n *Node) *IteratorBase {
-	iter := &IteratorBase{tstack: newStack()}
+// NewIteratorRange create iterator by *Node
+func NewIteratorRange(tree *Tree, n *Node) *IteratorRange {
+	iter := &IteratorRange{tstack: newStack()}
 	iter.up = n
 	iter.tree = tree
 	return iter
 }
 
 // GetNode iter get current node
-func (iter *IteratorBase) GetNode() *Node {
+func (iter *IteratorRange) GetNode() *Node {
 	return iter.cur
 }
 
@@ -38,17 +32,46 @@ func (iter *IteratorBase) GetNode() *Node {
 // }
 
 // Key get iter current key
-func (iter *IteratorBase) Key() []byte {
+func (iter *IteratorRange) Key() []byte {
 	return iter.cur.key
 }
 
 // Value get iter current value
-func (iter *IteratorBase) Value() []byte {
+func (iter *IteratorRange) Value() []byte {
 	return iter.cur.value
 }
 
-// Next 下一个 从小到大
-func (iter *IteratorBase) Next() (result bool) {
+// SetLimit 设置限制条件
+func (iter *IteratorRange) SetLimit(min, max []byte) {
+	iter.min = min // 可以修改为 先Seek Node节点. 然后用Node的指针地址判断是否相当. 减少PrevLimit的消耗
+	iter.max = max
+}
+
+// Prev 带Prev限制的Prev()
+func (iter *IteratorRange) Prev() (result bool) {
+	if iter.prev() {
+		if iter.tree.compartor(iter.cur.key, iter.min) == -1 { // 可以优化减少消耗
+			return false
+		}
+		return true
+	}
+	return false
+}
+
+// Next 带Next限制的Next()
+func (iter *IteratorRange) Next() (result bool) {
+	if iter.next() {
+		if iter.tree.compartor(iter.cur.key, iter.max) == 1 {
+			return false
+		}
+		// log.Println(string(iter.cur.key), string(iter.max))
+		return true
+	}
+	return false
+}
+
+// next 下一个 从小到大
+func (iter *IteratorRange) next() (result bool) {
 
 	if iter.dir > -1 {
 		if iter.dir == 1 && iter.cur != nil {
@@ -76,8 +99,8 @@ func (iter *IteratorBase) Next() (result bool) {
 	return false
 }
 
-// Prev 上一个 从大到小
-func (iter *IteratorBase) Prev() (result bool) {
+// prev 上一个 从大到小
+func (iter *IteratorRange) prev() (result bool) {
 
 	if iter.dir < 1 { // 非 1(next 方向定义 -1 为 prev)
 		if iter.dir == -1 && iter.cur != nil { // 如果上次为prev方向, 则清空辅助计算的栈
@@ -107,14 +130,7 @@ func (iter *IteratorBase) Prev() (result bool) {
 	return false
 }
 
-func getRelationship(cur *Node) int {
-	if cur.parent.children[1] == cur {
-		return 1
-	}
-	return 0
-}
-
-func (iter *IteratorBase) getPrevUp(cur *Node) *Node {
+func (iter *IteratorRange) getPrevUp(cur *Node) *Node {
 	for cur.parent != nil {
 		if getRelationship(cur) == 1 { // next 在 降序 小值. 如果child在右边, parent 比 child 小, parent才有效, 符合降序
 			return cur.parent
@@ -124,7 +140,7 @@ func (iter *IteratorBase) getPrevUp(cur *Node) *Node {
 	return nil
 }
 
-func (iter *IteratorBase) curPushPrevStack(cur *Node) {
+func (iter *IteratorRange) curPushPrevStack(cur *Node) {
 	Prev := cur.children[0] // 当前的左然后向右找, 找到最大, 就是最接近cur 并且小于cur的值
 
 	if Prev != nil {
@@ -136,7 +152,7 @@ func (iter *IteratorBase) curPushPrevStack(cur *Node) {
 	}
 }
 
-func (iter *IteratorBase) getNextUp(cur *Node) *Node {
+func (iter *IteratorRange) getNextUp(cur *Node) *Node {
 	for cur.parent != nil {
 		if getRelationship(cur) == 0 { // Prev 在 降序 大值. 如果child在左边, parent 比 child 大, parent才有效 , 符合降序
 			return cur.parent
@@ -146,7 +162,7 @@ func (iter *IteratorBase) getNextUp(cur *Node) *Node {
 	return nil
 }
 
-func (iter *IteratorBase) curPushNextStack(cur *Node) {
+func (iter *IteratorRange) curPushNextStack(cur *Node) {
 	next := cur.children[1]
 
 	if next != nil {

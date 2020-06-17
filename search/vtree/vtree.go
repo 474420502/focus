@@ -14,9 +14,19 @@ type Node struct {
 	value    []byte
 }
 
-// Iterator return iterator and start by node
-func (n *Node) Iterator(tree *Tree) *Iterator {
-	return NewIterator(tree, n)
+// IteratorBase return iterator and start by node
+func (n *Node) IteratorBase(tree *Tree) *IteratorBase {
+	return NewIteratorBase(tree, n)
+}
+
+// IteratorRange return iterator and start by node
+func (n *Node) IteratorRange(tree *Tree) *IteratorRange {
+	return NewIteratorRange(tree, n)
+}
+
+// IteratorPrefix return iterator and start by node
+func (n *Node) IteratorPrefix(tree *Tree) *IteratorPrefix {
+	return NewIteratorPrefix(tree, n)
 }
 
 // Key get node key
@@ -88,18 +98,43 @@ func (tree *Tree) Size() int {
 }
 
 // SeekRange start end
-func (tree *Tree) SeekRange(start, end []byte) *Iterator {
-	iter := tree.Seek(start)
-	if tree.compartor(start, end) == 1 {
-		iter.SetLimit(end, start)
-	} else {
-		iter.SetLimit(start, end)
+func (tree *Tree) SeekRange(start, end []byte) Iterator {
+	node := tree.seekNode(start)
+
+	var iter *IteratorRange
+	if node != nil {
+		iter = node.IteratorRange(tree)
+		if tree.compartor(start, end) == 1 {
+			iter.SetLimit(end, start)
+		} else {
+			iter.SetLimit(start, end)
+		}
 	}
 	return iter
 }
 
-// Seek TODO: 错误
-func (tree *Tree) Seek(key []byte) *Iterator {
+// SeekRangeString start end
+func (tree *Tree) SeekRangeString(start, end string) Iterator {
+	return tree.SeekRange([]byte(start), []byte(end))
+}
+
+// SeekPrefix prefix range
+func (tree *Tree) SeekPrefix(prefix []byte) Iterator {
+	if node := tree.seekNode(prefix); node != nil {
+		iter := node.IteratorPrefix(tree)
+		iter.SetLimit(prefix)
+		return iter
+	}
+	return nil
+}
+
+// SeekPrefixString prefix range
+func (tree *Tree) SeekPrefixString(prefix string) Iterator {
+	return tree.SeekPrefix([]byte(prefix))
+}
+
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) seekNode(key []byte) *Node {
 	lastc := 0
 	var n, switchParent, lastn *Node
 	for n = tree.root; n != nil; {
@@ -118,7 +153,7 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 			lastn = n
 			n = n.children[1]
 		case 0:
-			return n.Iterator(tree)
+			return n
 		default:
 			panic("Get Compare only is allowed in -1, 0, 1")
 		}
@@ -127,25 +162,36 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 
 	switch lastc {
 	case -1:
-		return lastn.Iterator(tree)
+		return lastn
 	case 1:
 		if switchParent != nil {
-			return switchParent.Iterator(tree)
+			return switchParent
 		}
-		return lastn.Iterator(tree)
+		return lastn
 
 	default:
 		return nil
 	}
+}
 
-	// return switchParent.Iterator()
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) Seek(key []byte) Iterator {
+	if node := tree.seekNode(key); node != nil {
+		return node.IteratorBase(tree)
+	}
+	return nil
+}
+
+// SeekString search key(string) . like rocksdb/leveldb api
+func (tree *Tree) SeekString(key string) Iterator {
+	return tree.Seek([]byte(key))
 }
 
 // Index get the Iterator by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
-func (tree *Tree) Index(idx int) *Iterator {
+func (tree *Tree) Index(idx int) Iterator {
 	node := tree.IndexNode(idx)
 	if node != nil {
-		return node.Iterator(tree)
+		return node.IteratorBase(tree)
 	}
 	return nil
 }
@@ -535,25 +581,36 @@ func (tree *Tree) Values() [][]byte {
 
 // GetRange get key
 func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
-	iter := tree.Seek(start)
-	if tree.compartor(start, end) == 1 {
-		iter.SetLimit(end, start)
-		for iter.PrevLimit() {
-			result = append(result, iter.Value())
-		}
-	} else {
-		iter.SetLimit(start, end)
-		for iter.NextLimit() {
-			result = append(result, iter.Value())
+
+	if node := tree.seekNode(start); node != nil {
+		iter := node.IteratorRange(tree)
+		if tree.compartor(start, end) == 1 {
+			iter.SetLimit(end, start)
+			for iter.Prev() {
+				result = append(result, iter.Value())
+			}
+		} else {
+			iter.SetLimit(start, end)
+			for iter.Next() {
+				result = append(result, iter.Value())
+			}
 		}
 	}
-
 	return
 }
 
 // Get get key
 func (tree *Tree) Get(key []byte) ([]byte, bool) {
 	n, ok := tree.GetNode(key)
+	if ok {
+		return n.value, true
+	}
+	return nil, false
+}
+
+// GetString get key by string
+func (tree *Tree) GetString(key string) ([]byte, bool) {
+	n, ok := tree.GetNode([]byte(key))
 	if ok {
 		return n.value, true
 	}
