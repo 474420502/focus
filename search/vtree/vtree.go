@@ -14,9 +14,19 @@ type Node struct {
 	value    []byte
 }
 
-// Iterator return iterator and start by node
-func (n *Node) Iterator(tree *Tree) *Iterator {
-	return NewIterator(tree, n)
+// IteratorBase return iterator and start by node
+func (n *Node) IteratorBase(tree *Tree) *IteratorBase {
+	return NewIteratorBase(tree, n)
+}
+
+// IteratorRange return iterator and start by node
+func (n *Node) IteratorRange(tree *Tree) *IteratorRange {
+	return NewIteratorRange(tree, n)
+}
+
+// IteratorPrefix return iterator and start by node
+func (n *Node) IteratorPrefix(tree *Tree) *IteratorPrefix {
+	return NewIteratorPrefix(tree, n)
 }
 
 // Key get node key
@@ -88,18 +98,34 @@ func (tree *Tree) Size() int {
 }
 
 // SeekRange start end
-func (tree *Tree) SeekRange(start, end []byte) *Iterator {
-	iter := tree.Seek(start)
-	if tree.compartor(start, end) == 1 {
-		iter.SetLimit(end, start)
-	} else {
-		iter.SetLimit(start, end)
+func (tree *Tree) SeekRange(start, end []byte) Iterator {
+	node := tree.seekNode(start)
+
+	var iter *IteratorRange
+	if node != nil {
+		iter = node.IteratorRange(tree)
+		if tree.compartor(start, end) == 1 {
+			iter.SetLimit(end, start)
+		} else {
+			iter.SetLimit(start, end)
+		}
 	}
 	return iter
 }
 
+// SeekPrefix prefix range
+// func (tree *Tree) SeekPrefix(prefix []byte) *IteratorRange {
+// 	iter := tree.Seek(prefix)
+// 	if tree.compartor(start, end) == 1 {
+// 		iter.SetLimit(end, start)
+// 	} else {
+// 		iter.SetLimit(start, end)
+// 	}
+// 	return iter
+// }
+
 // Seek search key . like rocksdb/leveldb api
-func (tree *Tree) Seek(key []byte) *Iterator {
+func (tree *Tree) seekNode(key []byte) *Node {
 	lastc := 0
 	var n, switchParent, lastn *Node
 	for n = tree.root; n != nil; {
@@ -118,7 +144,7 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 			lastn = n
 			n = n.children[1]
 		case 0:
-			return n.Iterator(tree)
+			return n
 		default:
 			panic("Get Compare only is allowed in -1, 0, 1")
 		}
@@ -127,25 +153,34 @@ func (tree *Tree) Seek(key []byte) *Iterator {
 
 	switch lastc {
 	case -1:
-		return lastn.Iterator(tree)
+		return lastn
 	case 1:
 		if switchParent != nil {
-			return switchParent.Iterator(tree)
+			return switchParent
 		}
-		return lastn.Iterator(tree)
+		return lastn
 
 	default:
 		return nil
 	}
+}
 
-	// return switchParent.Iterator()
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) Seek(key []byte) *IteratorBase {
+	node := tree.seekNode(key)
+
+	var iter *IteratorBase
+	if node != nil {
+		iter = node.IteratorBase(tree)
+	}
+	return iter
 }
 
 // Index get the Iterator by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
-func (tree *Tree) Index(idx int) *Iterator {
+func (tree *Tree) Index(idx int) *IteratorRange {
 	node := tree.IndexNode(idx)
 	if node != nil {
-		return node.Iterator(tree)
+		return node.IteratorRange(tree)
 	}
 	return nil
 }
@@ -533,21 +568,28 @@ func (tree *Tree) Values() [][]byte {
 	return result
 }
 
+// GetPrefixRange
+func (tree *Tree) GetPrefixRange(prefix []byte) (result [][]byte) {
+	return nil
+}
+
 // GetRange get key
 func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
-	iter := tree.Seek(start)
-	if tree.compartor(start, end) == 1 {
-		iter.SetLimit(end, start)
-		for iter.PrevLimit() {
-			result = append(result, iter.Value())
-		}
-	} else {
-		iter.SetLimit(start, end)
-		for iter.NextLimit() {
-			result = append(result, iter.Value())
+
+	if node := tree.seekNode(start); node != nil {
+		iter := node.IteratorRange(tree)
+		if tree.compartor(start, end) == 1 {
+			iter.SetLimit(end, start)
+			for iter.Prev() {
+				result = append(result, iter.Value())
+			}
+		} else {
+			iter.SetLimit(start, end)
+			for iter.Next() {
+				result = append(result, iter.Value())
+			}
 		}
 	}
-
 	return
 }
 

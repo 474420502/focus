@@ -60,7 +60,7 @@ func TestPutSimple(t *testing.T) {
 	var result [][]byte
 
 	iter := tree.SeekRange([]byte("40"), []byte("80"))
-	for iter.NextLimit() {
+	for iter.Next() {
 		result = append(result, iter.Key())
 	}
 
@@ -213,7 +213,7 @@ func TestSeekRange(t *testing.T) {
 	}
 
 	iter := tree.SeekRange([]byte("key-"), []byte("key-50"))
-	if iter.NextLimit() {
+	if iter.Next() {
 		ivalue := string(iter.Value())
 		if ivalue != "key-0" {
 			t.Error(ivalue)
@@ -221,7 +221,7 @@ func TestSeekRange(t *testing.T) {
 	}
 
 	iter = tree.SeekRange([]byte("xxx-50"), []byte("xxx-"))
-	if iter.NextLimit() {
+	if iter.Next() {
 		t.Error(string(iter.Value()))
 	}
 
@@ -305,7 +305,7 @@ func TestRemove(t *testing.T) {
 	iter := tree.SeekRange([]byte("key-"), []byte("key-aaa"))
 
 	var result [][]byte
-	for iter.NextLimit() {
+	for iter.Next() {
 		result = append(result, iter.Key())
 	}
 
@@ -607,7 +607,7 @@ func TestIndex(t *testing.T) {
 	}
 
 	iter := tree.Index(0)
-	if !iter.Next() {
+	if !iter.next() {
 		t.Error("0 error")
 	}
 	if string(iter.Key()) != "0" {
@@ -615,7 +615,7 @@ func TestIndex(t *testing.T) {
 	}
 
 	iter = tree.Index(99)
-	if !iter.Next() {
+	if !iter.next() {
 		t.Error("99 error")
 	}
 	if string(iter.Value()) != "99" {
