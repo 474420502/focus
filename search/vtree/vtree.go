@@ -113,16 +113,25 @@ func (tree *Tree) SeekRange(start, end []byte) Iterator {
 	return iter
 }
 
+// SeekRangeString start end
+func (tree *Tree) SeekRangeString(start, end string) Iterator {
+	return tree.SeekRange([]byte(start), []byte(end))
+}
+
 // SeekPrefix prefix range
-// func (tree *Tree) SeekPrefix(prefix []byte) *IteratorRange {
-// 	iter := tree.Seek(prefix)
-// 	if tree.compartor(start, end) == 1 {
-// 		iter.SetLimit(end, start)
-// 	} else {
-// 		iter.SetLimit(start, end)
-// 	}
-// 	return iter
-// }
+func (tree *Tree) SeekPrefix(prefix []byte) Iterator {
+	if node := tree.seekNode(prefix); node != nil {
+		iter := node.IteratorPrefix(tree)
+		iter.SetLimit(prefix)
+		return iter
+	}
+	return nil
+}
+
+// SeekPrefixString prefix range
+func (tree *Tree) SeekPrefixString(prefix string) Iterator {
+	return tree.SeekPrefix([]byte(prefix))
+}
 
 // Seek search key . like rocksdb/leveldb api
 func (tree *Tree) seekNode(key []byte) *Node {
@@ -166,21 +175,23 @@ func (tree *Tree) seekNode(key []byte) *Node {
 }
 
 // Seek search key . like rocksdb/leveldb api
-func (tree *Tree) Seek(key []byte) *IteratorBase {
-	node := tree.seekNode(key)
-
-	var iter *IteratorBase
-	if node != nil {
-		iter = node.IteratorBase(tree)
+func (tree *Tree) Seek(key []byte) Iterator {
+	if node := tree.seekNode(key); node != nil {
+		return node.IteratorBase(tree)
 	}
-	return iter
+	return nil
+}
+
+// SeekString search key(string) . like rocksdb/leveldb api
+func (tree *Tree) SeekString(key string) Iterator {
+	return tree.Seek([]byte(key))
 }
 
 // Index get the Iterator by index(0, 1, 2, 3 ... or -1, -2, -3 ...)
-func (tree *Tree) Index(idx int) *IteratorRange {
+func (tree *Tree) Index(idx int) Iterator {
 	node := tree.IndexNode(idx)
 	if node != nil {
-		return node.IteratorRange(tree)
+		return node.IteratorBase(tree)
 	}
 	return nil
 }
@@ -566,11 +577,6 @@ func (tree *Tree) Values() [][]byte {
 		return true
 	}, LDR)
 	return result
-}
-
-// GetPrefixRange
-func (tree *Tree) GetPrefixRange(prefix []byte) (result [][]byte) {
-	return nil
 }
 
 // GetRange get key

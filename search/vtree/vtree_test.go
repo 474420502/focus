@@ -607,7 +607,7 @@ func TestIndex(t *testing.T) {
 	}
 
 	iter := tree.Index(0)
-	if !iter.next() {
+	if !iter.Next() {
 		t.Error("0 error")
 	}
 	if string(iter.Key()) != "0" {
@@ -615,7 +615,7 @@ func TestIndex(t *testing.T) {
 	}
 
 	iter = tree.Index(99)
-	if !iter.next() {
+	if !iter.Next() {
 		t.Error("99 error")
 	}
 	if string(iter.Value()) != "99" {
@@ -662,5 +662,48 @@ func TestIndexNode(t *testing.T) {
 		if string(n.Key()) != string(v) {
 			t.Error("error", string(v), i)
 		}
+	}
+}
+
+func TestSeekPrefix(t *testing.T) {
+	tree := New()
+	for i := 0; i < 50; i++ {
+		v := "cat-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	for i := 0; i < 50; i++ {
+		v := "dog-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	for i := 0; i < 10; i++ {
+		v := "doc-" + strconv.Itoa(i)
+		tree.PutString(v, v)
+	}
+
+	iter := tree.SeekPrefix([]byte("cat-"))
+
+	checksize := 50
+	for iter.Next() {
+		checksize--
+		if !strings.HasPrefix(string(iter.Key()), "cat-") {
+			t.Error("cat- is error", string(iter.Key()))
+		}
+	}
+	if checksize != 0 {
+		t.Error("size is error")
+	}
+
+	iter = tree.SeekPrefix([]byte("doc-"))
+	checksize = 10
+	for iter.Next() {
+		checksize--
+		if !strings.HasPrefix(string(iter.Value()), "doc-") {
+			t.Error("cat- is error", string(iter.Key()))
+		}
+	}
+	if checksize != 0 {
+		t.Error("size is error")
 	}
 }
