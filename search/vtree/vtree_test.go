@@ -310,20 +310,7 @@ func TestRemove(t *testing.T) {
 	}
 
 	for _, v := range result {
-
-		// if string(v) == "key-11" {
-		// 	log.Println(tree.debugString())
-		// 	log.Println(string(v))
-		// }
-		// log.Println(tree.debugString())
-		// log.Println("remove:", string(v))
 		tree.Remove(v)
-		// log.Println(tree.debugString())
-		// if string(v) == "key-11" {
-		// 	log.Println(tree.Get([]byte("key-11")))
-
-		// 	log.Println(string(v))
-		// }
 	}
 
 	log.Println(tree.debugString())
@@ -395,14 +382,16 @@ func TestRemoveRangeCase1(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	tree.RemoveRange([]byte("0"), []byte("46"))
+	size := tree.Size()
+	rsize := tree.RemoveRange([]byte("0"), []byte("46"))
 	checkValues(t, tree, "[47 48 49 5 6 7 8 9]")
-	checkSize(t, tree, 8)
+	checkSize(t, tree, size-rsize)
 
-	tree.RemoveRange([]byte("0"), []byte("49"))
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("0"), []byte("49"))
 
 	checkValues(t, tree, "[5 6 7 8 9]")
-	checkSize(t, tree, 5)
+	checkSize(t, tree, size-rsize)
 }
 
 func TestRemoveRangeCase2(t *testing.T) {
@@ -422,8 +411,9 @@ func TestRemoveRangeCase2(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	tree.RemoveRange([]byte("48"), []byte("48"))
-	checkSize(t, tree, 2)
+	size := tree.Size()
+	rsize := tree.RemoveRange([]byte("48"), []byte("48"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[47 49]")
 }
 
@@ -434,8 +424,9 @@ func TestRemoveRangeCase3(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	tree.RemoveRange([]byte("0"), []byte("49"))
-	checkSize(t, tree, 0)
+	size := tree.Size()
+	rsize := tree.RemoveRange([]byte("0"), []byte("49"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[]")
 }
 
@@ -446,11 +437,12 @@ func TestRemoveRangeCase4(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
+	size := tree.Size()
 	checkSize(t, tree, 11)
 
-	tree.RemoveRange([]byte("19"), []byte("24"))
+	rsize := tree.RemoveRange([]byte("19"), []byte("24"))
 
-	checkSize(t, tree, 11-(6))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[14 15 16 17 18]")
 
 	tree = New() // min: 10 max: 12 rmin: 10 rmax: 11
@@ -459,8 +451,10 @@ func TestRemoveRangeCase4(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	tree.RemoveRange([]byte("10"), []byte("11"))
-	checkSize(t, tree, 0)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("10"), []byte("11"))
+
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[]")
 }
 
@@ -468,19 +462,22 @@ func TestRemoveRangeCase5(t *testing.T) {
 	tree := New() // min: 10 max: 12 rmin: 10 rmax: 11
 	istr := strconv.Itoa(12)
 	tree.Put([]byte(istr), []byte(istr))
+	size := tree.Size()
 
-	tree.RemoveRange([]byte("0"), []byte("14"))
-	checkSize(t, tree, 0)
+	rsize := tree.RemoveRange([]byte("0"), []byte("14"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[]")
 
 	tree.Put([]byte(istr), []byte(istr))
-	tree.RemoveRange([]byte("13"), []byte("25"))
-	checkSize(t, tree, 1)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("13"), []byte("25"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[12]")
 
 	tree.Put([]byte(istr), []byte(istr))
-	tree.RemoveRange([]byte("0"), []byte("11"))
-	checkSize(t, tree, 1)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("0"), []byte("11"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[12]")
 }
 
@@ -491,9 +488,10 @@ func TestRemoveRangeCase6(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
+	size := tree.Size()
 	values := tree.Values()
-	tree.RemoveRange([]byte("0"), []byte("99"))
-	checkSize(t, tree, 10)
+	rsize := tree.RemoveRange([]byte("0"), []byte("99"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, getValues(values[890:]))
 
 	tree = New() // min: 10 max: 12 rmin: 10 rmax: 11
@@ -501,9 +499,9 @@ func TestRemoveRangeCase6(t *testing.T) {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
-
-	tree.RemoveRange([]byte("1000"), []byte("5000"))
-	checkSize(t, tree, 500)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("1000"), []byte("5000"))
+	checkSize(t, tree, size-rsize)
 
 	tree = New() // min: 10 max: 12 rmin: 10 rmax: 11
 	for i := 100; i < 1000; i++ {
@@ -511,8 +509,9 @@ func TestRemoveRangeCase6(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
-	tree.RemoveRange([]byte("0"), []byte("999"))
-	checkSize(t, tree, 0)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("0"), []byte("999"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[]")
 }
 
@@ -522,8 +521,9 @@ func TestRemoveRangeCase7(t *testing.T) {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
-	tree.RemoveRange([]byte("9"), []byte("14")) // 2 - 9
-	checkSize(t, tree, 2)
+	size := tree.Size()
+	rsize := tree.RemoveRange([]byte("9"), []byte("14")) // 2 - 9
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[0 1]")
 
 	tree = New() // min: 10 max: 12 rmin: 10 rmax: 11
@@ -531,8 +531,9 @@ func TestRemoveRangeCase7(t *testing.T) {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
-	tree.RemoveRange([]byte("!"), []byte("0"))
-	checkSize(t, tree, 9)
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("!"), []byte("0"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[1 2 3 4 5 6 7 8 9]")
 }
 
@@ -542,13 +543,19 @@ func TestRemoveRangeCase8(t *testing.T) {
 		istr := strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
 	}
-
-	tree.RemoveRange([]byte("0"), []byte("2"))
-	checkSize(t, tree, 7)
+	size := tree.Size()
+	rsize := tree.RemoveRange([]byte("0"), []byte("2"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[3 4 5 6 7 8 9]")
-	tree.RemoveRange([]byte("3"), []byte("8"))
-	checkSize(t, tree, 1)
+
+	size = tree.Size()
+	rsize = tree.RemoveRange([]byte("3"), []byte("8"))
+	checkSize(t, tree, size-rsize)
 	checkValues(t, tree, "[9]")
+}
+
+func TestRemoveRangeCase9(t *testing.T) {
+
 }
 
 func TestRemoveRangeForce(t *testing.T) {
@@ -593,8 +600,9 @@ func TestRemoveRangeForce(t *testing.T) {
 		}
 
 		checkSize(t, tree, size)
-		tree.RemoveRange([]byte(strconv.Itoa(rmin)), []byte(strconv.Itoa(rmax)))
-		// checkSize(t, tree, size-rmax+rmin-1)
+		size = tree.Size()
+		rsize := tree.RemoveRange([]byte(strconv.Itoa(rmin)), []byte(strconv.Itoa(rmax)))
+		checkSize(t, tree, size-rsize)
 		// checkValues(t, tree, fmt.Sprint(result))
 	}
 }
@@ -706,4 +714,27 @@ func TestSeekPrefix(t *testing.T) {
 	if checksize != 0 {
 		t.Error("size is error")
 	}
+}
+
+func TestSeekNode(t *testing.T) {
+	tree := catdogdoc()
+	check := []byte("cat-999")
+	iter := tree.Seek(check)
+
+	var left, mid, right string
+
+	if iter.Next() {
+		mid = string(iter.GetNode().Key())
+	}
+
+	if iter.Next() {
+		right = string(iter.GetNode().Key())
+	}
+
+	iter.Prev()
+	if iter.Prev() {
+		left = string(iter.GetNode().Key())
+	}
+
+	t.Error("left:", left, "mid:", mid, "right:", right)
 }

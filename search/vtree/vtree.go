@@ -97,6 +97,10 @@ func (tree *Tree) Size() int {
 	return tree.root.size
 }
 
+func seekRangeEx(start, end []byte) {
+
+}
+
 // SeekRange start end
 func (tree *Tree) SeekRange(start, end []byte) Iterator {
 	node := tree.seekNode(start)
@@ -168,7 +172,6 @@ func (tree *Tree) seekNode(key []byte) *Node {
 			return switchParent
 		}
 		return lastn
-
 	default:
 		return nil
 	}
@@ -389,16 +392,18 @@ func (sp *searchpath) Append(n *Node, leftright int) {
 }
 
 // RemoveRange remove the node [start, end], contain end. not [start, end)
-func (tree *Tree) RemoveRange(start, end []byte) {
+func (tree *Tree) RemoveRange(start, end []byte) int {
 
 	if tree.root.size == 0 {
-		return
+		return 0
 	}
 
 	switch tree.compartor(start, end) {
 	case 0:
-		tree.Remove(start)
-		return
+		if _, ok := tree.Remove(start); ok {
+			return 1
+		}
+		return 0
 	case 1:
 		start, end = end, start
 	}
@@ -470,7 +475,7 @@ BREAK_RIGHT:
 				}
 
 				tree.RemoveNode(rootpath.node)
-				return
+				return reducesize + 1
 			}
 			rootpath = min
 		} else {
@@ -482,9 +487,11 @@ BREAK_RIGHT:
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
 	if minlast.leftright != maxlast.leftright {
 		tree.RemoveNode(minlast.node) // 删除最后一个相同
+		return 1
 	}
 
 	// rootpath.size -= reducesize
+	return reducesize
 }
 
 func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
