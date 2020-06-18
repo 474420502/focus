@@ -82,3 +82,8 @@ func TestCaseRangePrev(t *testing.T) {
 		}
 	}
 }
+
+func TestRangeCount(t *testing.T) {
+	tree := catdogdoc()
+	t.Error(tree.debugString())
+}
