@@ -84,6 +84,27 @@ func TestCaseRangePrev(t *testing.T) {
 }
 
 func TestRangeCount(t *testing.T) {
-	tree := catdogdoc()
+	tree := New()
+	for i := 0; i < 1000; i += 2 {
+		sv := strconv.Itoa(i)
+		tree.PutString(sv, sv)
+	}
+
+	for i := 0; i < 1000; i++ {
+		sv := strconv.Itoa(i)
+		nnext := tree.seekNodeNext([]byte(sv))
+		nprev := tree.seekNodePrev([]byte(sv))
+		seekv := string(nnext.Value())
+		iter := nnext.IteratorRange(tree)
+		iter.Prev()
+		iter.Prev()
+		seekvNext := string(iter.Value())
+		seekvPrev := string(nprev.Value())
+		if seekvPrev != seekvNext {
+			t.Error(sv, "seek:", seekv, "prev:", seekvPrev, "next:", seekvNext)
+		}
+
+	}
+
 	t.Error(tree.debugString())
 }

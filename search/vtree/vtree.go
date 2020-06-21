@@ -103,7 +103,7 @@ func seekRangeEx(start, end []byte) {
 
 // SeekRange start end
 func (tree *Tree) SeekRange(start, end []byte) Iterator {
-	node := tree.seekNode(start)
+	node := tree.seekNodeNext(start)
 
 	var iter *IteratorRange
 	if node != nil {
@@ -124,7 +124,7 @@ func (tree *Tree) SeekRangeString(start, end string) Iterator {
 
 // SeekPrefix prefix range
 func (tree *Tree) SeekPrefix(prefix []byte) Iterator {
-	if node := tree.seekNode(prefix); node != nil {
+	if node := tree.seekNodeNext(prefix); node != nil {
 		iter := node.IteratorPrefix(tree)
 		iter.SetLimit(prefix)
 		return iter
@@ -138,7 +138,47 @@ func (tree *Tree) SeekPrefixString(prefix string) Iterator {
 }
 
 // Seek search key . like rocksdb/leveldb api
-func (tree *Tree) seekNode(key []byte) *Node {
+func (tree *Tree) seekNodePrev(key []byte) *Node {
+	lastc := 0
+	var n, switchParent, lastn *Node
+	for n = tree.root; n != nil; {
+
+		c := tree.compartor(key, n.key)
+		if lastc*c == -1 {
+			switchParent = n.parent
+		}
+		lastc = c
+
+		switch c {
+		case -1:
+			lastn = n
+			n = n.children[0]
+		case 1:
+			lastn = n
+			n = n.children[1]
+		case 0:
+			return n
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
+		}
+
+	}
+
+	switch lastc {
+	case -1:
+		if switchParent != nil {
+			return switchParent
+		}
+		return lastn
+	case 1:
+		return lastn
+	default:
+		return nil
+	}
+}
+
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) seekNodeNext(key []byte) *Node {
 	lastc := 0
 	var n, switchParent, lastn *Node
 	for n = tree.root; n != nil; {
@@ -179,7 +219,7 @@ func (tree *Tree) seekNode(key []byte) *Node {
 
 // Seek search key . like rocksdb/leveldb api
 func (tree *Tree) Seek(key []byte) Iterator {
-	if node := tree.seekNode(key); node != nil {
+	if node := tree.seekNodeNext(key); node != nil {
 		return node.IteratorBase(tree)
 	}
 	return nil
@@ -589,7 +629,7 @@ func (tree *Tree) Values() [][]byte {
 // GetRange get key
 func (tree *Tree) GetRange(start, end []byte) (result [][]byte) {
 
-	if node := tree.seekNode(start); node != nil {
+	if node := tree.seekNodeNext(start); node != nil {
 		iter := node.IteratorRange(tree)
 		if tree.compartor(start, end) == 1 {
 			iter.SetLimit(end, start)
