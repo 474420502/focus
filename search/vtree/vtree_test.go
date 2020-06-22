@@ -66,6 +66,8 @@ func TestPutSimple(t *testing.T) {
 
 	for _, v := range result {
 		tree.Remove(v)
+		log.Println(tree.debugString(), string(v))
+		t.Error()
 	}
 
 	if len(tree.GetRange([]byte("40"), []byte("80"))) != 0 {

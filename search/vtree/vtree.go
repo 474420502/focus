@@ -425,7 +425,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 	ls, rs := getChildrenSize(n)
 	if ls == 0 && rs == 0 {
 		p := n.parent
-		p.children[getRelationship(n)] = nil
+		p.children[n.relation] = nil
 		tree.fixSizeWithRemove(p)
 		// return n
 		return
@@ -439,9 +439,11 @@ func (tree *Tree) RemoveNode(n *Node) {
 		}
 
 		cleft := cur.children[0]
-		cur.parent.children[getRelationship(cur)] = cleft
+		cur.parent.children[cur.relation] = cleft
+
 		if cleft != nil {
 			cleft.parent = cur.parent
+			cleft.relation = cur.relation
 		}
 
 	} else {
@@ -451,16 +453,32 @@ func (tree *Tree) RemoveNode(n *Node) {
 		}
 
 		cright := cur.children[1]
-		cur.parent.children[getRelationship(cur)] = cright
+		cur.parent.children[cur.relation] = cright
 
 		if cright != nil {
 			cright.parent = cur.parent
+			cright.relation = cur.relation
 		}
+
 	}
 
 	cparent := cur.parent
 	// 修改为interface 交换
-	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
+
+	cur.children = n.children
+	if cur.children[0] != nil {
+		cur.children[0].parent = cur
+	}
+	if cur.children[1] != nil {
+		cur.children[1].parent = cur
+	}
+
+	cur.parent = n.parent
+	cur.relation = n.relation
+	cur.size = n.size
+	n.parent.children[n.relation] = cur
+
+	//n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
 	tree.fixSizeWithRemove(cparent)
