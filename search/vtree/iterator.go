@@ -50,6 +50,10 @@ func (iter *IteratorBase) Value() []byte {
 // Next 下一个 从小到大
 func (iter *IteratorBase) Next() (result bool) {
 
+	// if iter.cur == nil {
+	// 	return false
+	// }
+
 	if iter.dir > -1 {
 		if iter.dir == 1 && iter.cur != nil {
 			iter.tstack.Clear()

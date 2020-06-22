@@ -9,9 +9,10 @@ import (
 type Node struct {
 	children [2]*Node
 	parent   *Node
-	size     int
-	key      []byte
-	value    []byte
+
+	size  int
+	key   []byte
+	value []byte
 }
 
 // IteratorBase return iterator and start by node
@@ -97,9 +98,33 @@ func (tree *Tree) Size() int {
 	return tree.root.size
 }
 
-func seekRangeEx(start, end []byte) {
+// func (tree *Tree) seekRangeEx(start, end []byte) {
+// 	// sn := tree.seekNodeNext(start)
+// 	en := tree.seekNodePrev(end)
 
-}
+// 	var sn, lastn *Node
+// 	// lastn = tree.root
+// 	for sn = tree.root; sn != nil; {
+// 		c := tree.compartor(start, sn.key)
+// 		switch c {
+// 		case -1:
+// 			lastn = sn
+// 			sn = sn.children[0]
+// 		case 1:
+// 			// lastn = n
+// 			sn = sn.children[1]
+// 		case 0:
+// 			break
+// 		default:
+// 			panic("Get Compare only is allowed in -1, 0, 1")
+// 		}
+// 	}
+
+// 	if sn == nil {
+// 		sn = lastn
+// 	}
+
+// }
 
 // SeekRange start end
 func (tree *Tree) SeekRange(start, end []byte) Iterator {
@@ -139,19 +164,15 @@ func (tree *Tree) SeekPrefixString(prefix string) Iterator {
 
 // Seek search key . like rocksdb/leveldb api
 func (tree *Tree) seekNodePrev(key []byte) *Node {
-	lastc := 0
-	var n, switchParent, lastn *Node
+	// lastc := 0
+	var n, lastn *Node
+	// lastn = tree.root
 	for n = tree.root; n != nil; {
 
 		c := tree.compartor(key, n.key)
-		if lastc*c == -1 {
-			switchParent = n.parent
-		}
-		lastc = c
-
 		switch c {
 		case -1:
-			lastn = n
+			// lastn = n
 			n = n.children[0]
 		case 1:
 			lastn = n
@@ -164,37 +185,24 @@ func (tree *Tree) seekNodePrev(key []byte) *Node {
 
 	}
 
-	switch lastc {
-	case -1:
-		if switchParent != nil {
-			return switchParent
-		}
-		return lastn
-	case 1:
-		return lastn
-	default:
-		return nil
-	}
+	return lastn
 }
 
 // Seek search key . like rocksdb/leveldb api
 func (tree *Tree) seekNodeNext(key []byte) *Node {
-	lastc := 0
-	var n, switchParent, lastn *Node
+	// lastc := 0
+	// var n, switchParent, lastn *Node
+	var n, lastn *Node
+	// lastn = tree.root
 	for n = tree.root; n != nil; {
 
 		c := tree.compartor(key, n.key)
-		if lastc*c == -1 {
-			switchParent = n.parent
-		}
-		lastc = c
-
 		switch c {
 		case -1:
 			lastn = n
 			n = n.children[0]
 		case 1:
-			lastn = n
+			// lastn = n
 			n = n.children[1]
 		case 0:
 			return n
@@ -203,23 +211,66 @@ func (tree *Tree) seekNodeNext(key []byte) *Node {
 		}
 
 	}
+	return lastn
+}
 
-	switch lastc {
-	case -1:
-		return lastn
-	case 1:
-		if switchParent != nil {
-			return switchParent
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) seekNodePrevEx(key []byte) *Node {
+	var n, lastleft, lastright *Node
+	// lastn = tree.root
+	for n = tree.root; n != nil; {
+
+		c := tree.compartor(key, n.key)
+		switch c {
+		case -1:
+			lastleft = n
+			n = n.children[0]
+		case 1:
+			lastright = n
+			n = n.children[1]
+		case 0:
+			return n
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
 		}
-		return lastn
-	default:
-		return nil
 	}
+
+	if lastright == nil {
+		return lastleft
+	}
+	return lastright
+}
+
+// Seek search key . like rocksdb/leveldb api
+func (tree *Tree) seekNodeNextEx(key []byte) *Node {
+	var n, lastleft, lastright *Node
+	// lastn = tree.root
+	for n = tree.root; n != nil; {
+
+		c := tree.compartor(key, n.key)
+		switch c {
+		case -1:
+			lastleft = n
+			n = n.children[0]
+		case 1:
+			lastright = n
+			n = n.children[1]
+		case 0:
+			return n
+		default:
+			panic("Get Compare only is allowed in -1, 0, 1")
+		}
+	}
+
+	if lastleft == nil {
+		return lastright
+	}
+	return lastleft
 }
 
 // Seek search key . like rocksdb/leveldb api
 func (tree *Tree) Seek(key []byte) Iterator {
-	if node := tree.seekNodeNext(key); node != nil {
+	if node := tree.seekNodeNextEx(key); node != nil {
 		return node.IteratorBase(tree)
 	}
 	return nil

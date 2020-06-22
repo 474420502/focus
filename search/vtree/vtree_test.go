@@ -717,24 +717,24 @@ func TestSeekPrefix(t *testing.T) {
 }
 
 func TestSeekNode(t *testing.T) {
-	tree := catdogdoc()
-	check := []byte("cat-999")
-	iter := tree.Seek(check)
+	// tree := catdogdoc()
+	// check := []byte("cat-999")
+	// iter := tree.Seek(check)
 
-	var left, mid, right string
+	// var left, mid, right string
 
-	if iter.Next() {
-		mid = string(iter.GetNode().Key())
-	}
+	// if iter.Next() {
+	// 	mid = string(iter.GetNode().Key())
+	// }
 
-	if iter.Next() {
-		right = string(iter.GetNode().Key())
-	}
+	// if iter.Next() {
+	// 	right = string(iter.GetNode().Key())
+	// }
 
-	iter.Prev()
-	if iter.Prev() {
-		left = string(iter.GetNode().Key())
-	}
+	// iter.Prev()
+	// if iter.Prev() {
+	// 	left = string(iter.GetNode().Key())
+	// }
 
-	t.Error("left:", left, "mid:", mid, "right:", right)
+	// t.Error("left:", left, "mid:", mid, "right:", right)
 }
