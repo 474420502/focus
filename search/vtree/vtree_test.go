@@ -716,6 +716,10 @@ func TestSeekPrefix(t *testing.T) {
 	}
 }
 
+func TestRelation(t *testing.T) {
+
+}
+
 func TestSeekNode(t *testing.T) {
 	// tree := catdogdoc()
 	// check := []byte("cat-999")

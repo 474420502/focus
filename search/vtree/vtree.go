@@ -9,10 +9,10 @@ import (
 type Node struct {
 	children [2]*Node
 	parent   *Node
-
-	size  int
-	key   []byte
-	value []byte
+	relation byte
+	size     int
+	key      []byte
+	value    []byte
 }
 
 // IteratorBase return iterator and start by node
@@ -755,7 +755,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 		switch {
 		case c < 0:
 			if cur.children[0] == nil {
-				node := &Node{key: key, value: value, size: 1}
+				node := &Node{key: key, value: value, size: 1, relation: 0}
 				cur.children[0] = node
 				node.parent = cur
 
@@ -775,7 +775,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 			cur = cur.children[0]
 		case c > 0:
 			if cur.children[1] == nil {
-				node := &Node{key: key, value: value, size: 1}
+				node := &Node{key: key, value: value, size: 1, relation: 1}
 
 				cur.children[1] = node
 				node.parent = cur
@@ -809,7 +809,7 @@ func (tree *Tree) PutString(key, value string) bool {
 func (tree *Tree) Put(key, value []byte) bool {
 
 	if tree.root == nil {
-		tree.root = &Node{key: key, value: value, size: 1}
+		tree.root = &Node{key: key, value: value, size: 1, relation: 255}
 		return true
 	}
 
@@ -827,7 +827,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 		switch {
 		case c < 0:
 			if cur.children[0] == nil {
-				node := &Node{key: key, value: value, size: 1}
+				node := &Node{key: key, value: value, size: 1, relation: 0}
 				cur.children[0] = node
 				node.parent = cur
 
@@ -847,7 +847,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 			cur = cur.children[0]
 		case c > 0:
 			if cur.children[1] == nil {
-				node := &Node{key: key, value: value, size: 1}
+				node := &Node{key: key, value: value, size: 1, relation: 1}
 				cur.children[1] = node
 				node.parent = cur
 
@@ -1069,18 +1069,23 @@ func (tree *Tree) lrrotate3(cur *Node) *Node {
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	cur.children[l] = nil
 
 	cur.parent = mov
 	mov.children[r] = cur
+	cur.relation = r
 
 	mov.children[l] = movparent
 	movparent.parent = mov
+	movparent.relation = l
+
 	movparent.children[r] = nil
 
 	mov.size = 3
@@ -1112,15 +1117,18 @@ func (tree *Tree) lrotate3(cur *Node) *Node {
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	cur.children[l] = nil
 
 	mov.children[r] = cur
 	cur.parent = mov
+	cur.relation = r
 
 	mov.size = 3
 	cur.size = 1
@@ -1139,20 +1147,24 @@ func (tree *Tree) lrotate(cur *Node) *Node {
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	if movright != nil {
 		cur.children[l] = movright
 		movright.parent = cur
+		movright.relation = l
 	} else {
 		cur.children[l] = nil
 	}
 
 	mov.children[r] = cur
 	cur.parent = mov
+	cur.relation = r
 
 	cur.size = getChildrenSumSize(cur) + 1
 	mov.size = getChildrenSumSize(mov) + 1
@@ -1170,18 +1182,23 @@ func (tree *Tree) rlrotate3(cur *Node) *Node {
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	cur.children[l] = nil
-	cur.parent = mov
 
+	cur.parent = mov
 	mov.children[r] = cur
+	cur.relation = r
 
 	mov.children[l] = movparent
 	movparent.parent = mov
+	movparent.relation = l
+
 	movparent.children[r] = nil
 
 	mov.size = 3
@@ -1207,21 +1224,25 @@ func (tree *Tree) rlrotate(cur *Node) *Node {
 func (tree *Tree) rrotate3(cur *Node) *Node {
 	const l = 0
 	const r = 1
+
 	// 1 right 0 left
 	mov := cur.children[l]
 
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	cur.children[l] = nil
 
 	mov.children[r] = cur
 	cur.parent = mov
+	cur.relation = r
 
 	mov.size = 3
 	cur.size = 1
@@ -1240,20 +1261,24 @@ func (tree *Tree) rrotate(cur *Node) *Node {
 	if cur.parent == nil {
 		tree.root = mov
 		mov.parent = nil
+		mov.relation = 255
 	} else {
-		cur.parent.children[getRelationship(cur)] = mov
+		cur.parent.children[cur.relation] = mov
 		mov.parent = cur.parent
+		mov.relation = cur.relation
 	}
 
 	if movright != nil {
 		cur.children[l] = movright
 		movright.parent = cur
+		movright.relation = l
 	} else {
 		cur.children[l] = nil
 	}
 
 	mov.children[r] = cur
 	cur.parent = mov
+	cur.relation = r
 
 	cur.size = getChildrenSumSize(cur) + 1
 	mov.size = getChildrenSumSize(mov) + 1
