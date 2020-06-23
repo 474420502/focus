@@ -462,7 +462,6 @@ func (tree *Tree) RemoveNode(n *Node) {
 
 	}
 
-	cparent := cur.parent
 	// 修改为interface 交换
 
 	cur.children = n.children
@@ -473,10 +472,21 @@ func (tree *Tree) RemoveNode(n *Node) {
 		cur.children[1].parent = cur
 	}
 
+	var cparent *Node
+	if cur.parent != n {
+		cparent = cur.parent
+	} else {
+		cparent = cur
+	}
+
 	cur.parent = n.parent
 	cur.relation = n.relation
 	cur.size = n.size
-	n.parent.children[n.relation] = cur
+	if cur.parent != nil {
+		cur.parent.children[cur.relation] = cur
+	} else {
+		tree.root = cur
+	}
 
 	//n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
@@ -493,11 +503,11 @@ type pnode struct {
 }
 
 type searchpath struct {
-	paths []*pnode
+	paths []*Node
 }
 
 func (sp *searchpath) Append(n *Node, leftright int) {
-	sp.paths = append(sp.paths, &pnode{n, leftright})
+	sp.paths = append(sp.paths, n)
 }
 
 // RemoveRange remove the node [start, end], contain end. not [start, end)
@@ -567,23 +577,23 @@ BREAK_RIGHT:
 		}
 	}
 
-	var rootpath *pnode
+	var rootpath *Node
 	reducesize := 0
 	for i, min := range minpath.paths {
 
 		if i < len(maxpath.paths) {
 			max := maxpath.paths[i]
 
-			if min.node != max.node {
+			if min != max {
 				reducesize += tree.removebranch(minpath, i, 0)
 				reducesize += tree.removebranch(maxpath, i, 1)
-				up := rootpath.node.parent
+				up := rootpath.parent
 				for up != nil {
 					up.size -= reducesize
 					up = up.parent
 				}
 
-				tree.RemoveNode(rootpath.node)
+				tree.RemoveNode(rootpath)
 				return reducesize + 1
 			}
 			rootpath = min
@@ -594,8 +604,8 @@ BREAK_RIGHT:
 
 	minlast := minpath.paths[len(minpath.paths)-2] // 倒数第二个为最后一个可能删除的节点
 	maxlast := maxpath.paths[len(maxpath.paths)-2]
-	if minlast.leftright != maxlast.leftright {
-		tree.RemoveNode(minlast.node) // 删除最后一个相同
+	if minlast.relation != maxlast.relation {
+		tree.RemoveNode(minlast) // 删除最后一个相同
 		return 1
 	}
 
@@ -603,12 +613,12 @@ BREAK_RIGHT:
 	return reducesize
 }
 
-func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
+func (tree *Tree) removebranch(minpath *searchpath, i int, selchild byte) int {
 	reducesize := 0
 	curreduce := 0
 
 	var LEFT = selchild
-	var RIGHT = 1
+	var RIGHT byte = 1
 	if selchild == 1 {
 		LEFT = 1
 		RIGHT = 0
@@ -620,11 +630,10 @@ func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
 	for ii := i; ii < len(minpath.paths)-1; ii++ {
 		p := minpath.paths[ii]
 
-		if p.leftright == LEFT {
-			pright := p.node.children[RIGHT]
+		if p.relation == LEFT {
+			pright := p.children[RIGHT]
 			if pright != nil {
 				curreduce += pright.size + 1
-				// reducesize += pright.size + 1
 			} else {
 				curreduce++
 			}
@@ -632,10 +641,10 @@ func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
 			continue
 		}
 
-		if p.node.parent != up.node {
-			p.node.parent = up.node
-			up.node.children[up.leftright] = p.node
-			for rup := up.node; rup != top.node.parent; rup = rup.parent {
+		if p.parent != up {
+			p.parent = up
+			up.children[up.relation] = p
+			for rup := up; rup != top.parent; rup = rup.parent {
 				rup.size -= curreduce
 			}
 		}
@@ -644,23 +653,22 @@ func (tree *Tree) removebranch(minpath *searchpath, i int, selchild int) int {
 		curreduce = 0
 	}
 
-	if last.node != nil {
-		if last.node.parent != up.node {
-			last.node.parent = up.node
-			up.node.children[up.leftright] = last.node
-			for rup := up.node; rup != top.node.parent; rup = rup.parent {
+	if last != nil {
+		if last.parent != up {
+			last.parent = up
+			up.children[up.relation] = last
+			for rup := up; rup != top.parent; rup = rup.parent {
 				rup.size -= curreduce
 			}
 		}
 	} else {
-		up.node.children[up.leftright] = nil
-		for rup := up.node; rup != top.node.parent; rup = rup.parent {
+		up.children[up.relation] = nil
+		for rup := up; rup != top.parent; rup = rup.parent {
 			rup.size -= curreduce
 		}
 	}
 
 	reducesize += curreduce
-
 	return reducesize
 }
 

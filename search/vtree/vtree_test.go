@@ -64,14 +64,14 @@ func TestPutSimple(t *testing.T) {
 		result = append(result, iter.Key())
 	}
 
-	for _, v := range result {
+	for i := range result {
+		v := result[i]
 		tree.Remove(v)
-		log.Println(tree.debugString(), string(v))
-		t.Error()
 	}
 
-	if len(tree.GetRange([]byte("40"), []byte("80"))) != 0 {
-		t.Error(tree.debugString())
+	result = tree.GetRange([]byte("40"), []byte("80"))
+	if len(result) != 0 {
+		t.Error(tree.debugString(), getValues(result))
 	}
 }
 
@@ -273,25 +273,13 @@ func TestSeekOnlyOne(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-
 	tree := New()
-	// defer func() {
-	// 	if err := recover(); err != nil {
-
-	// 		t.Error(tree.debugString())
-	// 		panic(err)
-	// 	}
-	// }()
 
 	for i := 0; i < 50; i++ {
 		istr := "key-" + strconv.Itoa(i)
-		if istr == "key-11" {
-			//log.Println(tree.debugString())
-		}
 		tree.Put([]byte(istr), []byte(istr))
-		// log.Println(tree.debugString())
-		// log.Println(istr)
 	}
+
 	for i := 0; i < 50; i++ {
 		istr := "xxx-" + strconv.Itoa(i)
 		tree.Put([]byte(istr), []byte(istr))
@@ -311,11 +299,19 @@ func TestRemove(t *testing.T) {
 		result = append(result, iter.Key())
 	}
 
+	// log.Println(getValues(result))
 	for _, v := range result {
+		// if string(v) == "key-4" {
+		// log.Println(tree.debugString())
+		// log.Println(string(v))
+		// }
 		tree.Remove(v)
+		// if string(v) == "key-4" {
+		// log.Println(tree.debugString())
+		// }
 	}
 
-	log.Println(tree.debugString())
+	// log.Println(tree.debugString())
 
 	result = tree.GetRange([]byte("key-"), []byte("key-aaa"))
 	if len(result) != 0 {
@@ -323,7 +319,6 @@ func TestRemove(t *testing.T) {
 		for _, v := range result {
 			t.Error(string(v))
 		}
-
 		t.Error("remove is error")
 	}
 }
@@ -363,6 +358,7 @@ func TestRemoveRange(t *testing.T) {
 	}
 
 	tree.RemoveRange([]byte("15"), []byte("31"))
+	log.Println(tree.debugString())
 	checkSize(t, tree, 50-17-2)
 	checkValues(t, tree, "[0 1 10 11 12 13 14 32 33 34 35 36 37 38 39 4 40 41 42 43 44 45 46 47 48 49 5 6 7 8 9]")
 
