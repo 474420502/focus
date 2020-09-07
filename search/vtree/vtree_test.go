@@ -357,6 +357,7 @@ func TestRemoveRange(t *testing.T) {
 		tree.Put([]byte(istr), []byte(istr))
 	}
 
+	log.Println(tree.debugString())
 	tree.RemoveRange([]byte("15"), []byte("31"))
 	log.Println(tree.debugString())
 	checkSize(t, tree, 50-17-2)
