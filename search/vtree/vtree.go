@@ -771,7 +771,7 @@ func (tree *Tree) PutNotCover(key, value []byte) bool {
 
 		if cur.size > 8 {
 			factor := cur.size >> 3 // or factor = 1
-			ls, rs := cur.children[0].size, cur.children[1].size
+			ls, rs := getChildrenSize(cur)
 			if rs >= ls<<1+factor || ls >= rs<<1+factor {
 				cur = tree.fixSize(cur, ls, rs)
 			}
@@ -843,7 +843,7 @@ func (tree *Tree) Put(key, value []byte) bool {
 
 		if cur.size > 8 {
 			factor := cur.size >> 3 // or factor = 1
-			ls, rs := cur.children[0].size, cur.children[1].size
+			ls, rs := getChildrenSize(cur)
 			if rs >= ls<<1+factor || ls >= rs<<1+factor {
 				cur = tree.fixSize(cur, ls, rs)
 			}

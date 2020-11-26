@@ -218,7 +218,7 @@ func (tree *Tree) RemoveNode(n *Node) {
 	n.key, n.value, cur.key, cur.value = cur.key, cur.value, n.key, n.value
 
 	// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
-tree.fixSizeWithRemove(cparent)
+	tree.fixSizeWithRemove(cparent)
 
 	// return cur
 	return
@@ -432,7 +432,7 @@ func (tree *Tree) Put(key, value interface{}) (isInsert bool) {
 
 		if cur.size > 8 {
 			factor := cur.size / 10 // or factor = 1
-			ls, rs := cur.children[0].size, cur.children[1].size
+			ls, rs := getChildrenSize(cur)
 			if rs >= ls*2+factor || ls >= rs*2+factor {
 				tree.fixSize(cur, ls, rs)
 			}
