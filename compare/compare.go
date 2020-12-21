@@ -1,6 +1,13 @@
 package compare
 
-import "time"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+	"time"
+)
+
+var kingTime = reflect.TypeOf(time.Time{}).Kind()
 
 // Compare 如下
 //    k1 > k2 -->  1
@@ -320,4 +327,81 @@ func Time(k1, k2 interface{}) int {
 	default:
 		return 0
 	}
+}
+
+// AutoComapre 通用比较. 自动判断. 效率对比其他低
+func AutoComapre(k1, k2 interface{}) int {
+
+	t1 := reflect.TypeOf(k1)
+	t2 := reflect.TypeOf(k2)
+
+	if t1.Kind() != t2.Kind() {
+		panic("value1 value2 is not same type")
+	}
+
+	rv1 := reflect.ValueOf(k1)
+	rv2 := reflect.ValueOf(k2)
+
+	if t1.Kind() == reflect.Ptr {
+		t1 = t1.Elem()
+		t2 = t2.Elem()
+		rv1 = rv1.Elem()
+		rv2 = rv2.Elem()
+	}
+
+	switch t1.Kind() {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v1 := rv1.Int()
+		v2 := rv2.Int()
+		switch {
+		case v1 > v2:
+			return 1
+		case v1 < v2:
+			return -1
+		default:
+			return 0
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		v1 := rv1.Uint()
+		v2 := rv2.Uint()
+		switch {
+		case v1 > v2:
+			return 1
+		case v1 < v2:
+			return -1
+		default:
+			return 0
+		}
+	case reflect.Float32, reflect.Float64:
+		v1 := rv1.Float()
+		v2 := rv2.Float()
+		switch {
+		case v1 > v2:
+			return 1
+		case v1 < v2:
+			return -1
+		default:
+			return 0
+		}
+	case reflect.String:
+		v1 := rv1.String()
+		v2 := rv2.String()
+		return strings.Compare(v1, v2)
+	case kingTime:
+		v1 := rv1.Interface().(time.Time)
+		v2 := rv1.Interface().(time.Time)
+		switch {
+		case v1.Before(v2):
+			return 1
+		case v1.After(v2):
+			return -1
+		default:
+			return 0
+		}
+	default:
+
+		panic(fmt.Sprintf("%v kind not handled", t1.Kind()))
+	}
+
 }
