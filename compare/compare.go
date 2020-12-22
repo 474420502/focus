@@ -389,12 +389,12 @@ func AutoComapre(k1, k2 interface{}) int {
 		v2 := rv2.String()
 		return strings.Compare(v1, v2)
 	case kingTime:
-		v1 := rv1.Interface().(time.Time)
-		v2 := rv1.Interface().(time.Time)
+		v1 := rv1.Interface().(time.Time).UnixNano()
+		v2 := rv2.Interface().(time.Time).UnixNano()
 		switch {
-		case v1.Before(v2):
+		case v1 > v2:
 			return 1
-		case v1.After(v2):
+		case v1 < v2:
 			return -1
 		default:
 			return 0
