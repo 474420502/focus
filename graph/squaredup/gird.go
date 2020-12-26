@@ -11,28 +11,28 @@ import (
 
 // func NewBytesmap()
 
-// Gird map
-type Gird struct {
+// Grid map
+type Grid struct {
 	bits   []byte
 	X, Y   int
 	weight int
 	cost   int
 }
 
-func NewGird(dimY, dimX int, vlen int) *Gird {
-	g := &Gird{}
+func NewGird(dimY, dimX int, vlen int) *Grid {
+	g := &Grid{}
 	g.bits = make([]byte, dimY*dimX*vlen)
 	return g
 }
 
 // Compare get bit value by x, y, dimX
-func (bm *Gird) Compare(other *Gird) int {
+func (bm *Grid) Compare(other *Grid) int {
 	return bytes.Compare(bm.bits, other.bits)
 }
 
 // Clone get bit value by x, y, dimX
-func (bm *Gird) Clone() *Gird {
-	other := &Gird{}
+func (bm *Grid) Clone() *Grid {
+	other := &Grid{}
 	other.bits = make([]byte, len(bm.bits))
 
 	other.X = bm.X
@@ -42,7 +42,7 @@ func (bm *Gird) Clone() *Gird {
 }
 
 // SwapValue get bit value by x, y, dimX
-func (bm *Gird) SwapValue(dimX, vlen int, x, y int) {
+func (bm *Grid) SwapValue(dimX, vlen int, x, y int) {
 	dstmsize := (y*dimX + x) * vlen
 	srcmsize := (bm.Y*dimX + bm.X) * vlen
 
@@ -53,7 +53,7 @@ func (bm *Gird) SwapValue(dimX, vlen int, x, y int) {
 }
 
 // SetGirdByString set  value by x, y, dimX
-func (bm *Gird) SetGirdByString(dimX, vlen int, value string) {
+func (bm *Grid) SetGirdByString(dimX, vlen int, value string) {
 
 	y := 0
 
@@ -82,7 +82,7 @@ func (bm *Gird) SetGirdByString(dimX, vlen int, value string) {
 	}
 }
 
-func (bm *Gird) GetGirdString(dimY, dimX, vlen int) string {
+func (bm *Grid) GetGirdString(dimY, dimX, vlen int) string {
 
 	dnum := strconv.Itoa(int(math.Log10(float64(dimY*dimX)) + 1))
 
@@ -102,18 +102,18 @@ func (bm *Gird) GetGirdString(dimY, dimX, vlen int) string {
 }
 
 // SetValue set  value by x, y, dimX
-func (bm *Gird) SetValue(dimX, vlen int, x, y int, value []byte) {
+func (bm *Grid) SetValue(dimX, vlen int, x, y int, value []byte) {
 	msize := (y*dimX + x) * vlen
 	copy(bm.bits[msize:msize+vlen], value)
 }
 
 // GetValue get bit value by x, y, dimX
-func (bm *Gird) GetValue(dimX, vlen int, x, y int) []byte {
+func (bm *Grid) GetValue(dimX, vlen int, x, y int) []byte {
 	msize := (y*dimX + x) * vlen
 	return bm.bits[msize : msize+vlen]
 }
 
 // GetValues get bit values
-func (bm *Gird) GetValues() []byte {
+func (bm *Grid) GetValues() []byte {
 	return bm.bits
 }
