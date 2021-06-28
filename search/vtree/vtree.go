@@ -78,7 +78,7 @@ func NewWithCompartor(compartor func([]byte, []byte) int) *Tree {
 
 // New Create a vtree
 func New() *Tree {
-	return &Tree{compartor: CompatorByte}
+	return &Tree{compartor: CompatorMath}
 }
 
 func (tree *Tree) String() string {
@@ -339,75 +339,6 @@ func (tree *Tree) IndexValue(idx int) ([]byte, bool) {
 	}
 	return nil, false
 }
-
-// func (tree *Tree) IndexRange(idx1, idx2 int) (result []interface{}, ok bool) { // 0 -1
-
-// 	if idx1^idx2 < 0 {
-// 		if idx1 < 0 {
-// 			idx1 = tree.root.size + idx1
-// 		} else {
-// 			idx2 = tree.root.size + idx2
-// 		}
-// 	}
-
-// 	if idx1 > idx2 {
-// 		ok = true
-// 		if idx1 >= tree.root.size {
-// 			idx1 = tree.root.size - 1
-// 			ok = false
-// 		}
-
-// 		n := tree.IndexNode(idx1)
-// 		tree.iter.SetNode(n)
-// 		iter := tree.iter
-// 		result = make([]interface{}, 0, idx1-idx2)
-// 		for i := idx2; i <= idx1; i++ {
-// 			if iter.Prev() {
-// 				result = append(result, iter.Value())
-// 			} else {
-// 				ok = false
-// 				return
-// 			}
-// 		}
-
-// 		return
-
-// 	} else {
-// 		ok = true
-// 		if idx2 >= tree.root.size {
-// 			idx2 = tree.root.size - 1
-// 			ok = false
-// 		}
-
-// 		if n := tree.IndexNode(idx1); n != nil {
-// 			tree.iter.SetNode(n)
-// 			iter := tree.iter
-// 			result = make([]interface{}, 0, idx2-idx1)
-// 			for i := idx1; i <= idx2; i++ {
-// 				if iter.Next() {
-// 					result = append(result, iter.Value())
-// 				} else {
-// 					ok = false
-// 					return
-// 				}
-// 			}
-
-// 			return
-// 		}
-
-// 	}
-
-// 	return nil, false
-// }
-
-// func (tree *Tree) RemoveIndex(idx int) (interface{}, bool) {
-// 	n := tree.IndexNode(idx)
-// 	if n != nil {
-// 		tree.RemoveNode(n)
-// 		return n.value, true
-// 	}
-// 	return nil, false
-// }
 
 // RemoveNode remove the node
 func (tree *Tree) removeNodeWithNoFixSize(n *Node) {
