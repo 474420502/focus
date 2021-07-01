@@ -11,6 +11,44 @@ type BinaryList struct {
 	root      *Node
 }
 
+type sNode struct {
+	N *Node
+}
+
+func (bl *BinaryList) Put(key, value []byte) bool {
+	if bl.root == nil {
+		bl.root = &Node{key: key, value: value, size: 1}
+		return true
+	}
+
+	cur := bl.root
+	c := bl.compartor(key, cur.key)
+	var paths []*Node = []*Node{cur}
+
+	for {
+		switch {
+		case c < 0:
+
+			cur = cur.children[0]
+			if cur != nil {
+
+			}
+			paths = append(paths, cur)
+
+		case c > 0:
+
+			cur = cur.children[1]
+
+		default:
+			cur.value = value
+			return false
+		}
+
+	}
+
+	return false
+}
+
 func (bl *BinaryList) String() string {
 	str := "BinaryList:\n"
 	if bl.root == nil {
