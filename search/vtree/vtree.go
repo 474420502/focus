@@ -44,7 +44,6 @@ func (n *Node) String() string {
 	if n == nil {
 		return "nil"
 	}
-
 	return spew.Sprint(string(n.key)) + ":" + spew.Sprint(string(n.value))
 }
 
@@ -1301,7 +1300,6 @@ func (tree *Tree) fixSize(cur *Node, ls, rs int) *Node {
 		return tree.lrrotate(cur)
 	}
 	return tree.lrotate(cur)
-
 }
 
 func output(node *Node, prefix string, isTail bool, str *string) {
