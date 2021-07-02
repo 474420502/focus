@@ -1,7 +1,5 @@
 package blist
 
-import "github.com/davecgh/go-spew/spew"
-
 func assertImplementation() {
 
 }
@@ -11,8 +9,17 @@ type BinaryList struct {
 	root      *Node
 }
 
-type sNode struct {
-	N *Node
+func New() *BinaryList {
+	return &BinaryList{
+		compartor: CompatorMath,
+	}
+}
+
+func checkNil(n *Node) string {
+	if n == nil {
+		return "nil"
+	}
+	return string(n.key)
 }
 
 func (bl *BinaryList) Put(key, value []byte) bool {
@@ -22,31 +29,124 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 	}
 
 	cur := bl.root
-	c := bl.compartor(key, cur.key)
-	var paths []*Node = []*Node{cur}
+
+	var left *Node = nil
+	var right *Node = nil
+
+	const L = 0
+	const R = 1
 
 	for {
+		c := bl.compartor(key, cur.key)
 		switch {
 		case c < 0:
 
-			cur = cur.children[0]
-			if cur != nil {
+			right = cur
+			if cur.children[L] != nil {
+				cur = cur.children[L]
+			} else {
 
+				// log.Println("now left", "left:", checkNil(right), "right:", checkNil(left))
+				node := &Node{parent: cur, key: key, value: value, size: 1}
+				cur.children[L] = node
+
+				if right != nil {
+					right.direct[L] = node
+				}
+
+				if left != nil {
+					left.direct[R] = node
+				}
+
+				node.direct[R] = right
+				node.direct[L] = left
+
+				bl.fixSize(cur)
+				if cur.parent != nil && cur.parent.size >= 3 {
+					bl.fixBalance(cur)
+				}
+				return true
 			}
-			paths = append(paths, cur)
-
 		case c > 0:
 
-			cur = cur.children[1]
+			left = cur
+			if cur.children[R] != nil {
+				cur = cur.children[R]
+			} else {
 
+				// log.Println("now right", "left:", checkNil(right), "right:", checkNil(left))
+				node := &Node{parent: cur, key: key, value: value, size: 1}
+				cur.children[R] = node
+
+				if right != nil {
+					right.direct[L] = node
+				}
+				if left != nil {
+					left.direct[R] = node
+				}
+				node.direct[L] = left
+				node.direct[R] = right
+
+				bl.fixSize(cur)
+				if cur.parent != nil && cur.parent.size >= 3 {
+					bl.fixBalance(cur)
+				}
+
+				return true
+			}
 		default:
 			cur.value = value
 			return false
 		}
-
 	}
 
-	return false
+}
+
+func getLeftSize(cur *Node) int64 {
+	if cur.children[0] == nil {
+		return 0
+	}
+	return cur.children[0].size
+}
+
+func getRightSize(cur *Node) int64 {
+	if cur.children[1] == nil {
+		return 0
+	}
+	return cur.children[1].size
+}
+
+func (bl *BinaryList) fixBalance(cur *Node) {
+	const L = 0
+	const R = 1
+
+	lszie, rsize := getChildrenSize(cur)
+	if lszie != rsize {
+		// var diff int64 = 0
+		if lszie > rsize {
+			// diff = lszie - rsize
+			mid := (cur.size - 1) / 2
+			if lszie == mid {
+				// right rotate
+				bl.rrotate(cur)
+			} else if lszie == cur.children[L].children[R].size {
+				// (left chilid left rotate) + right rotate
+
+				bl.lrotate(cur.children[L])
+				bl.rrotate(cur)
+			}
+		} else {
+			//TODO:
+
+		}
+	}
+}
+
+func (bl *BinaryList) fixSize(cur *Node) {
+	for cur != nil {
+		cur.size++
+		cur = cur.parent
+	}
 }
 
 func (bl *BinaryList) String() string {
@@ -58,82 +158,93 @@ func (bl *BinaryList) String() string {
 	return str
 }
 
-func output(node *Node, prefix string, isTail bool, str *string) {
+func (tree *BinaryList) lrotate(cur *Node) *Node {
 
-	if node.children[1] != nil {
-		newPrefix := prefix
-		if isTail {
-			newPrefix += "│   "
-		} else {
-			newPrefix += "    "
-		}
-		output(node.children[1], newPrefix, false, str)
-	}
-	*str += prefix
-	if isTail {
-		*str += "└── "
+	const l = 1
+	const r = 0
+	// 1 right 0 left
+	mov := cur.children[l]
+	movright := mov.children[r]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+
 	} else {
-		*str += "┌── "
-	}
-
-	*str += "(" + spew.Sprint(string(node.key)) + "->" + spew.Sprint(string(node.value)) + ")" + "\n"
-
-	if node.children[0] != nil {
-		newPrefix := prefix
-		if isTail {
-			newPrefix += "    "
+		if cur.parent.children[l] == cur {
+			cur.parent.children[l] = mov
 		} else {
-			newPrefix += "│   "
+			cur.parent.children[r] = mov
 		}
-		output(node.children[0], newPrefix, true, str)
+		mov.parent = cur.parent
 	}
 
+	if movright != nil {
+		cur.children[l] = movright
+		movright.parent = cur
+
+	} else {
+		cur.children[l] = nil
+	}
+
+	mov.children[r] = cur
+	cur.parent = mov
+
+	cur.size = getChildrenSumSize(cur) + 1
+	mov.size = getChildrenSumSize(mov) + 1
+
+	return mov
 }
 
-func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
+func (tree *BinaryList) rrotate(cur *Node) *Node {
 
-	if node.children[1] != nil {
-		newPrefix := prefix
-		if isTail {
-			newPrefix += "│   "
-		} else {
-			newPrefix += "    "
-		}
-		outputfordebug(node.children[1], newPrefix, false, str)
-	}
-	*str += prefix
-	if isTail {
-		*str += "└── "
+	const l = 0
+	const r = 1
+	// 1 right 0 left
+	mov := cur.children[l]
+	movright := mov.children[r]
+
+	if cur.parent == nil {
+		tree.root = mov
+		mov.parent = nil
+
 	} else {
-		*str += "┌── "
-	}
-
-	suffix := "("
-	parentv := ""
-	if node.parent == nil {
-		parentv = "nil"
-	} else {
-		parentv = spew.Sprint(string(node.parent.key))
-	}
-	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
-	*str += spew.Sprint(string(node.key)) + suffix + "\n"
-
-	if node.children[0] != nil {
-		newPrefix := prefix
-		if isTail {
-			newPrefix += "    "
+		if cur.parent.children[l] == cur {
+			cur.parent.children[l] = mov
 		} else {
-			newPrefix += "│   "
+			cur.parent.children[r] = mov
 		}
-		outputfordebug(node.children[0], newPrefix, true, str)
+		mov.parent = cur.parent
 	}
+
+	if movright != nil {
+		cur.children[l] = movright
+		movright.parent = cur
+
+	} else {
+		cur.children[l] = nil
+	}
+
+	mov.children[r] = cur
+	cur.parent = mov
+
+	cur.size = getChildrenSumSize(cur) + 1
+	mov.size = getChildrenSumSize(mov) + 1
+
+	return mov
 }
 
-func (bl *BinaryList) debugString() string {
-	str := "VTree\n"
-	if bl.root == nil {
-		return str + "nil"
+func getChildrenSumSize(cur *Node) int64 {
+	return getSize(cur.children[0]) + getSize(cur.children[1])
+}
+
+func getChildrenSize(cur *Node) (int64, int64) {
+	return getSize(cur.children[0]), getSize(cur.children[1])
+}
+
+func getSize(cur *Node) int64 {
+	if cur == nil {
+		return 0
 	}
-	outputfordebug(bl.root, "", true, &str)
-	return str
+	return cur.size
 }

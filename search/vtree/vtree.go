@@ -1307,7 +1307,7 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 	if node.children[1] != nil {
 		newPrefix := prefix
 		if isTail {
-			newPrefix += "│   "
+			newPrefix += "\033[34m│   \033[0m"
 		} else {
 			newPrefix += "    "
 		}
@@ -1315,9 +1315,9 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 	}
 	*str += prefix
 	if isTail {
-		*str += "└── "
+		*str += "\033[34;40m└── \033[0m"
 	} else {
-		*str += "┌── "
+		*str += "\033[31;40m┌── \033[0m"
 	}
 
 	*str += "(" + spew.Sprint(string(node.key)) + "->" + spew.Sprint(string(node.value)) + ")" + "\n"
@@ -1327,7 +1327,7 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 		if isTail {
 			newPrefix += "    "
 		} else {
-			newPrefix += "│   "
+			newPrefix += "\033[31m│   \033[0m"
 		}
 		output(node.children[0], newPrefix, true, str)
 	}
@@ -1339,7 +1339,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	if node.children[1] != nil {
 		newPrefix := prefix
 		if isTail {
-			newPrefix += "│   "
+			newPrefix += "\033[34m│   \033[0m"
 		} else {
 			newPrefix += "    "
 		}
@@ -1347,9 +1347,9 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	}
 	*str += prefix
 	if isTail {
-		*str += "└── "
+		*str += "\033[34m└── \033[0m"
 	} else {
-		*str += "┌── "
+		*str += "\033[31m┌── \033[0m"
 	}
 
 	suffix := "("
@@ -1367,14 +1367,14 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 		if isTail {
 			newPrefix += "    "
 		} else {
-			newPrefix += "│   "
+			newPrefix += "\033[31m│   \033[0m"
 		}
 		outputfordebug(node.children[0], newPrefix, true, str)
 	}
 }
 
 func (tree *Tree) debugString() string {
-	str := "VTree\n"
+	str := "VTree:\n"
 	if tree.root == nil {
 		return str + "nil"
 	}

@@ -3,12 +3,15 @@ package blist
 import "github.com/davecgh/go-spew/spew"
 
 type Node struct {
-	parent   *Node
+	parent *Node
+
 	children [2]*Node
 	direct   [2]*Node
-	size     int64
-	key      []byte
-	value    []byte
+
+	size int64
+
+	key   []byte
+	value []byte
 }
 
 // Key get node key
