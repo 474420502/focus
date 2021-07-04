@@ -12,7 +12,8 @@ func TestPut(t *testing.T) {
 	bl := New()
 
 	var dict = make(map[int]bool)
-	for i := 0; i < 50; i++ {
+
+	for i := 0; i < 70; i++ {
 		// for _, n := range []int{42, 15, 35, 34} {
 		n := randomdata.Number(0, 100)
 		if _, ok := dict[n]; !ok {

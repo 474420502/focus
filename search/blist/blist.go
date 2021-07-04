@@ -1,5 +1,7 @@
 package blist
 
+import "log"
+
 func assertImplementation() {
 
 }
@@ -49,6 +51,7 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				// log.Println("now left", "left:", checkNil(right), "right:", checkNil(left))
 				node := &Node{parent: cur, key: key, value: value, size: 1}
 				cur.children[L] = node
+				// node.relation = L
 
 				if right != nil {
 					right.direct[L] = node
@@ -63,7 +66,7 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 
 				bl.fixSize(cur)
 				if cur.parent != nil && cur.parent.size >= 3 {
-					bl.fixBalance(cur)
+					bl.fixBalance(cur.parent)
 				}
 				return true
 			}
@@ -89,7 +92,7 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 
 				bl.fixSize(cur)
 				if cur.parent != nil && cur.parent.size >= 3 {
-					bl.fixBalance(cur)
+					bl.fixBalance(cur.parent)
 				}
 
 				return true
@@ -117,29 +120,153 @@ func getRightSize(cur *Node) int64 {
 }
 
 func (bl *BinaryList) fixBalance(cur *Node) {
+
 	const L = 0
 	const R = 1
 
-	lszie, rsize := getChildrenSize(cur)
-	if lszie != rsize {
-		// var diff int64 = 0
-		if lszie > rsize {
-			// diff = lszie - rsize
-			mid := (cur.size - 1) / 2
-			if lszie == mid {
-				// right rotate
-				bl.rrotate(cur)
-			} else if lszie == cur.children[L].children[R].size {
-				// (left chilid left rotate) + right rotate
+	for cur != nil {
+		lsize, rsize := getChildrenSize(cur)
+		parant := cur.parent
 
-				bl.lrotate(cur.children[L])
-				bl.rrotate(cur)
+		if lsize > rsize {
+			diff := lsize - rsize
+			if diff >= 2 {
+				var mov *Node
+				for i := int64(0); i < (diff / 2); i++ {
+					mov = cur.direct[L]
+				}
+				bl.leftUp(cur, mov)
 			}
-		} else {
-			//TODO:
 
+		} else {
+			diff := rsize - lsize
+			if diff >= 2 {
+				var mov *Node
+				for i := int64(0); i < (diff / 2); i++ {
+					mov = cur.direct[R]
+				}
+				bl.rightUp(cur, mov)
+			}
+		}
+
+		cur = parant
+	}
+}
+
+func (bl *BinaryList) leftUp(cur, mov *Node) {
+	return
+	const L = 0
+	const R = 1
+
+	log.Println("cur:", cur, "mov:", mov)
+
+	left := cur
+	for left.children[L] != nil {
+		left = cur.children[L]
+	}
+
+	right := cur
+	for right.children[R] != nil {
+		right = cur.children[R]
+	}
+
+	parent := cur.parent
+	if parent.children[L] == cur {
+		parent.children[L] = mov
+	} else {
+		parent.children[R] = mov
+	}
+	// cur.size
+
+	mov.children[L] = mov.direct[L]
+	mov.children[R] = mov.direct[R]
+
+}
+
+func (bl *BinaryList) rightUp(cur, mov *Node) {
+	return
+
+	const L = 0
+	const R = 1
+
+	log.Println(cur, mov)
+
+	cparent := cur.parent
+
+	leftGroup := mov.children[L]
+	if leftGroup == nil {
+		leftGroup = mov.direct[L]
+	}
+	for {
+
+		lchild := leftGroup.children[L]
+		var newGroup *Node
+		if lchild == nil {
+			newGroup = leftGroup.direct[L]
+		} else {
+			for lchild.children[L] != nil {
+				lchild = lchild.children[L]
+			}
+			newGroup = lchild.direct[L]
+		}
+
+		if newGroup == nil || newGroup.parent == cur {
+			break
+		}
+
+		newGroup.children[R] = leftGroup
+		leftGroup.parent = newGroup //缺少size计算
+
+		newGroup.size = getChildrenSumSize(newGroup)
+
+		leftGroup = newGroup
+
+	}
+
+	rightGroup := mov.children[R]
+	if rightGroup == nil {
+		rightGroup = mov.direct[R]
+	}
+
+	for {
+		rchild := rightGroup.children[R]
+		var newGroup *Node
+		if rchild == nil {
+			newGroup = rightGroup.direct[R]
+		} else {
+			for rchild.children[R] != nil {
+				rchild = rchild.children[R]
+			}
+			newGroup = rchild.direct[R]
+		}
+
+		if newGroup == nil || newGroup.parent == cur {
+			break
+		}
+
+		newGroup.children[R] = rightGroup
+		rightGroup.parent = newGroup //缺少size计算
+		newGroup.size = getChildrenSumSize(newGroup)
+
+		rightGroup = newGroup
+	}
+
+	if cparent == nil {
+		bl.root = mov
+	} else {
+		if cparent.children[L] == cur {
+			cparent.children[L] = mov
+		} else {
+			cparent.children[R] = mov
 		}
 	}
+	mov.parent = cparent
+
+	mov.children[L] = leftGroup
+	leftGroup.parent = mov
+	mov.children[R] = rightGroup
+	rightGroup.parent = mov
+	mov.size = getChildrenSumSize(mov)
 }
 
 func (bl *BinaryList) fixSize(cur *Node) {
