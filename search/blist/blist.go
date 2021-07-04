@@ -145,7 +145,7 @@ func (bl *BinaryList) fixBalance(cur *Node) {
 				for i := int64(0); i < (diff / 2); i++ {
 					mov = cur.direct[R]
 				}
-				bl.rightUp(cur, mov)
+				bl.leftUp(cur, mov)
 			}
 		}
 
@@ -154,32 +154,45 @@ func (bl *BinaryList) fixBalance(cur *Node) {
 }
 
 func (bl *BinaryList) leftUp(cur, mov *Node) {
-	return
+
 	const L = 0
 	const R = 1
 
 	log.Println("cur:", cur, "mov:", mov)
-
-	left := cur
-	for left.children[L] != nil {
-		left = cur.children[L]
-	}
-
-	right := cur
-	for right.children[R] != nil {
-		right = cur.children[R]
-	}
-
 	parent := cur.parent
-	if parent.children[L] == cur {
-		parent.children[L] = mov
-	} else {
-		parent.children[R] = mov
-	}
-	// cur.size
 
-	mov.children[L] = mov.direct[L]
-	mov.children[R] = mov.direct[R]
+	for mov.parent != parent {
+		if mov.parent.children[L] == mov {
+			bl.rrotate(mov.parent)
+		} else {
+			bl.lrotate(mov.parent)
+		}
+	}
+
+	// left := mov
+	// for left.children[L] != nil {
+	// 	left = left.children[L]
+	// }
+
+	// lgroup := left.direct[L]
+	// for lgroup.parent == lgroup.direct[L] {
+	// 	lgroup = lgroup.parent
+	// }
+
+	// right := mov
+	// for right.children[R] != nil {
+	// 	right = right.children[R]
+	// }
+	// rgroup := right.direct[R]
+	// for rgroup.parent == rgroup.direct[R] {
+	// 	rgroup = rgroup.parent
+	// }
+
+	// left.direct[L].children[R] = mov.children[L]
+	// mov.children[L].parent = left.direct[L].children[R]
+
+	// right.direct[R].children[L] = mov.children[R]
+	// mov.children[R].parent = right.direct[R].children[L]
 
 }
 
