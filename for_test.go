@@ -11,7 +11,7 @@ import (
 	randomdata "github.com/Pallinder/go-randomdata"
 )
 
-const CompartorSize = 1000000
+const CompartorSize = 100000
 const NumberMax = 50000000
 
 func TestSave(t *testing.T) {

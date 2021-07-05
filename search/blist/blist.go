@@ -46,10 +46,8 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				cur = cur.children[L]
 			} else {
 
-				// log.Println("now left", "left:", checkNil(right), "right:", checkNil(left))
 				node := &Node{parent: cur, key: key, value: value, size: 1}
 				cur.children[L] = node
-				// node.relation = L
 
 				if right != nil {
 					right.direct[L] = node
@@ -81,7 +79,6 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				cur = cur.children[R]
 			} else {
 
-				// log.Println("now right", "left:", checkNil(right), "right:", checkNil(left))
 				node := &Node{parent: cur, key: key, value: value, size: 1}
 				cur.children[R] = node
 
@@ -95,7 +92,6 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				node.direct[L] = left
 				node.direct[R] = right
 
-				// bl.fixSize(cur)
 				bl.fixSize(cur)
 				if bl.IsDebug >= 0 {
 					var temp []byte = node.key
@@ -122,31 +118,12 @@ func (bl *BinaryList) fixBalance(cur *Node) {
 		return
 	}
 
-	const L = 0
-	const R = 1
+	bl.blanceSize3(cur)
 
-	if cur.size == 3 {
-		if cur.children[R] == nil {
-			if cur.children[L].children[R] == nil {
-				bl.rrotate3(cur)
-			} else {
-				bl.lrrotate3(cur)
-			}
-			return
-		} else if cur.children[L] == nil {
-			if cur.children[R].children[L] == nil {
-				bl.lrotate3(cur)
-			} else {
-				bl.rlrotate3(cur)
-			}
-			return
-		}
-	}
-
-	var hight = 1
+	var hight = 2
 	for {
 		if cur.size <= (1<<(hight) - 1) {
-			bl.BalanceNode(cur)
+			bl.balanceNode(cur)
 			break
 		}
 		cur = cur.parent
@@ -158,7 +135,7 @@ func (bl *BinaryList) fixBalance(cur *Node) {
 
 }
 
-func (bl *BinaryList) BalanceNode(cur *Node) {
+func (bl *BinaryList) balanceNode(cur *Node) {
 
 	if bl.IsDebug >= 0 {
 		var temp []byte = cur.key
@@ -172,6 +149,12 @@ func (bl *BinaryList) BalanceNode(cur *Node) {
 	const R = 1
 
 	var mov *Node = cur
+
+	if cur.size <= 3 {
+		bl.blanceSize3(cur)
+		return
+	}
+
 	lsize, rsize := getChildrenSize(cur)
 	if lsize > rsize {
 
@@ -180,7 +163,7 @@ func (bl *BinaryList) BalanceNode(cur *Node) {
 			for i := int64(0); i < (diff / 2); i++ {
 				mov = mov.direct[L]
 			}
-			bl.Up(cur, mov)
+			bl.up(cur, mov)
 		}
 
 	} else {
@@ -189,20 +172,20 @@ func (bl *BinaryList) BalanceNode(cur *Node) {
 			for i := int64(0); i < (diff / 2); i++ {
 				mov = mov.direct[R]
 			}
-			bl.Up(cur, mov)
+			bl.up(cur, mov)
 		}
 	}
 
 	if mov.children[L] != nil {
-		bl.BalanceNode(mov.children[L])
+		bl.balanceNode(mov.children[L])
 	}
 	if mov.children[R] != nil {
-		bl.BalanceNode(mov.children[R])
+		bl.balanceNode(mov.children[R])
 	}
 
 }
 
-func (bl *BinaryList) Up(cur, mov *Node) {
+func (bl *BinaryList) up(cur, mov *Node) {
 
 	const L = 0
 	const R = 1
@@ -443,4 +426,27 @@ func (bl *BinaryList) lrotate3(cur *Node) {
 
 	mov.size = 3
 	cur.size = 1
+}
+
+func (bl *BinaryList) blanceSize3(cur *Node) {
+	const L = 0
+	const R = 1
+
+	if cur.size == 3 {
+		if cur.children[R] == nil {
+			if cur.children[L].children[R] == nil {
+				bl.rrotate3(cur)
+			} else {
+				bl.lrrotate3(cur)
+			}
+			return
+		} else if cur.children[L] == nil {
+			if cur.children[R].children[L] == nil {
+				bl.lrotate3(cur)
+			} else {
+				bl.rlrotate3(cur)
+			}
+			return
+		}
+	}
 }
