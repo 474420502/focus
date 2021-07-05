@@ -143,7 +143,7 @@ func (bl *BinaryList) fixBalance(cur *Node) {
 		}
 	}
 
-	var hight = 2
+	var hight = 1
 	for {
 		if cur.size <= (1<<(hight) - 1) {
 			bl.BalanceNode(cur)

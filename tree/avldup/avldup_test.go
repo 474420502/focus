@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/474420502/focus/compare"
@@ -437,37 +438,40 @@ func TestGet(t *testing.T) {
 
 func BenchmarkPut(b *testing.B) {
 
-	l := loadTestData()
+	d := loadTestData()
+	var l [][]byte
+	for _, v := range d {
+		l = append(l, []byte(strconv.Itoa(v)))
+	}
 
 	b.ResetTimer()
 	b.StartTimer()
 
 	b.N = len(l)
-	tree := New(compare.Int)
-	for n := 0; n < b.N; n++ {
-		tree.Put(l[n])
+	tree := New(compare.ByteArray)
+
+	for _, v := range l {
+		tree.Put(v)
 	}
 	// b.Log(tree.count)
 }
 
 func BenchmarkGodsRBPut(b *testing.B) {
-	tree := redblacktree.NewWithIntComparator()
+	tree := redblacktree.NewWith(compare.ByteArray)
 
-	l := loadTestData()
+	d := loadTestData()
+	var l [][]byte
+	for _, v := range d {
+		l = append(l, []byte(strconv.Itoa(v)))
+	}
 
 	b.ResetTimer()
 	b.StartTimer()
 
-	var i = 0
+	b.N = len(l)
 	// tree := New(compare.Int)
 	for n := 0; n < b.N; n++ {
-
-		tree.Put(l[i], l[i])
-		i++
-		if i >= len(l) {
-			i = 0
-		}
-
+		tree.Put(l[n], l[n])
 	}
 
 	// b.N = len(l)
