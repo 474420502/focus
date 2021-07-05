@@ -15,7 +15,7 @@ import (
 )
 
 func loadTestData() []int {
-	data, err := ioutil.ReadFile("../l.log")
+	data, err := ioutil.ReadFile("../../l.log")
 	if err != nil {
 		log.Println(err)
 	}

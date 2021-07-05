@@ -9,10 +9,11 @@ import (
 
 	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/emirpasic/gods/trees/redblacktree"
 )
 
 func loadTestData() []int {
-	data, err := ioutil.ReadFile("../l.log")
+	data, err := ioutil.ReadFile("../../l.log")
 	if err != nil {
 		log.Println(err)
 	}
@@ -434,37 +435,46 @@ func TestGet(t *testing.T) {
 // 	}
 // }
 
-// func BenchmarkPut(b *testing.B) {
+func BenchmarkPut(b *testing.B) {
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	b.StartTimer()
+	b.ResetTimer()
+	b.StartTimer()
 
-// 	execCount := 1000
-// 	b.N = len(l) * execCount
-// 	for i := 0; i < execCount; i++ {
-// 		tree := New(compare.Int)
-// 		for _, v := range l {
-// 			tree.Put(v)
-// 		}
-// 	}
-// 	// b.Log(tree.count)
-// }
+	b.N = len(l)
+	tree := New(compare.Int)
+	for n := 0; n < b.N; n++ {
+		tree.Put(l[n])
+	}
+	// b.Log(tree.count)
+}
 
-// func BenchmarkGodsRBPut(b *testing.B) {
-// 	tree := redblacktree.NewWithIntComparator()
+func BenchmarkGodsRBPut(b *testing.B) {
+	tree := redblacktree.NewWithIntComparator()
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	b.StartTimer()
+	b.ResetTimer()
+	b.StartTimer()
 
-// 	b.N = len(l)
-// 	for _, v := range l {
-// 		tree.Put(v, v)
-// 	}
-// }
+	var i = 0
+	// tree := New(compare.Int)
+	for n := 0; n < b.N; n++ {
+
+		tree.Put(l[i], l[i])
+		i++
+		if i >= len(l) {
+			i = 0
+		}
+
+	}
+
+	// b.N = len(l)
+	// for _, v := range l {
+	// 	tree.Put(v, v)
+	// }
+}
 
 // func BenchmarkGodsPut(b *testing.B) {
 // 	tree := avltree.NewWithIntComparator()

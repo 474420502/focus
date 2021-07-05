@@ -12,7 +12,7 @@ import (
 )
 
 func loadTestData() []int {
-	data, err := ioutil.ReadFile("../l.log")
+	data, err := ioutil.ReadFile("../../l.log")
 	if err != nil {
 		log.Println(err)
 	}
@@ -551,23 +551,34 @@ func TestGet(t *testing.T) {
 // 	}
 // }
 
-// func BenchmarkPut(b *testing.B) {
+func BenchmarkPut(b *testing.B) {
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	b.StartTimer()
+	b.ResetTimer()
+	b.StartTimer()
 
-// 	execCount := 50
-// 	b.N = len(l) * execCount
-// 	for i := 0; i < execCount; i++ {
-// 		tree := New(compare.Int)
-// 		for _, v := range l {
-// 			tree.Put(v)
-// 		}
-// 	}
-// 	// b.Log(tree.count)
-// }
+	// execCount := 50
+	// b.N = len(l) * execCount
+	// for i := 0; i < execCount; i++ {
+	// 	tree := New(compare.Int)
+	// 	for _, v := range l {
+	// 		tree.Put(v)
+	// 	}
+	// }
+
+	tree := New(compare.Int)
+	var n = 0
+	for i := 0; i < b.N; i++ {
+		tree.Put(l[n])
+		n++
+		if n >= len(l) {
+			n = 0
+		}
+	}
+
+	// b.Log(tree.count)
+}
 
 // func BenchmarkGodsRBPut(b *testing.B) {
 // 	tree := redblacktree.NewWithIntComparator()

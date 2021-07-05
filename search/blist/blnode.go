@@ -8,8 +8,7 @@ type Node struct {
 	children [2]*Node
 	direct   [2]*Node
 
-	relation byte
-	size     int64
+	size int64
 
 	key   []byte
 	value []byte

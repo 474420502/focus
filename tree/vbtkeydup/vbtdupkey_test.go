@@ -15,7 +15,7 @@ import (
 )
 
 func loadTestData() []int {
-	data, err := ioutil.ReadFile("../l.log")
+	data, err := ioutil.ReadFile("../../l.log")
 	if err != nil {
 		log.Println(err)
 	}
@@ -793,21 +793,21 @@ func TestTravalsal(t *testing.T) {
 // 	}
 // }
 
-// func BenchmarkPut(b *testing.B) {
-// 	l := loadTestData()
+func BenchmarkPut(b *testing.B) {
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	b.StartTimer()
+	b.ResetTimer()
+	b.StartTimer()
 
-// 	execCount := 50
-// 	b.N = len(l) * execCount
-// 	for i := 0; i < execCount; i++ {
-// 		tree := New(compare.Int)
-// 		for _, v := range l {
-// 			tree.Put(v, v)
-// 		}
-// 	}
-// }
+	b.N = len(l)
+	tree := New(compare.Int)
+	for i := 0; i < b.N; i++ {
+
+		v := l[i]
+		tree.Put(v, v)
+
+	}
+}
 
 // func TestPutStable(t *testing.T) {
 
