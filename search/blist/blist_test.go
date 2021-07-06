@@ -40,15 +40,15 @@ func TestPut(t *testing.T) {
 		bl.Put(k, k)
 		log.Println(bl.debugString())
 
-		if bl.root.size == 10 {
-			bl.IsDebug = 0
-		}
+		// if bl.root.size == 10 {
+		// 	bl.IsDebug = 0
+		// }
 
-		if bl.IsDebug > 0 {
-			log.Println("isDebug:", bl.IsDebug)
-			log.Println(bl.debugString())
-			bl.IsDebug = -1
-		}
+		// if bl.IsDebug > 0 {
+		// 	log.Println("isDebug:", bl.IsDebug)
+		// 	log.Println(bl.debugString())
+		// 	bl.IsDebug = -1
+		// }
 
 	}
 
@@ -59,7 +59,7 @@ func TestPut2(t *testing.T) {
 	tree := avlkeydup.New(compare.Int)
 	gods := avltree.NewWith(compare.Int)
 
-	for i := 0; i <= 40; i++ {
+	for i := 0; i <= 100; i++ {
 		var k []byte
 		if i == 12 {
 			tree.Put(41, 41)
@@ -72,7 +72,7 @@ func TestPut2(t *testing.T) {
 		}
 
 		bl.Put(k, k)
-		if i == 12 {
+		if i == 80 {
 			log.Println("put:", string(k))
 			log.Println(bl.debugString())
 			log.Println("")
@@ -81,7 +81,7 @@ func TestPut2(t *testing.T) {
 			// bl.IsDebug = 0
 		}
 
-		if i == 11 {
+		if i == 91 {
 			log.Println("put:", string(k))
 			log.Println(bl.debugString())
 			log.Println("")

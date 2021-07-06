@@ -63,6 +63,21 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	} else {
 		parentv = spew.Sprint(string(node.parent.key))
 	}
+
+	// var ldirect, rdirect string
+	// if node.direct[0] != nil {
+	// 	ldirect = spew.Sprint(string(node.direct[0].value))
+	// } else {
+	// 	ldirect = "nil"
+	// }
+
+	// if node.direct[1] != nil {
+	// 	rdirect = spew.Sprint(string(node.direct[1].value))
+	// } else {
+	// 	rdirect = "nil"
+	// }
+
+	// suffix += parentv + "|" + spew.Sprint(node.size) + " " + ldirect + "<->" + rdirect + ")"
 	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
 	*str += spew.Sprint(string(node.key)) + suffix + "\n"
 

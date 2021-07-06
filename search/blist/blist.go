@@ -131,24 +131,17 @@ func (bl *BinaryList) fixBalance(cur *Node, node *Node) {
 			bl.balanceNode(cur, node)
 			break
 		}
-		cur = cur.parent
-		if cur == nil {
+
+		if cur.parent == nil {
 			break
 		}
+		cur = cur.parent
 		hight++
 	}
 
 }
 
 func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
-
-	if bl.IsDebug >= 0 {
-		var temp []byte = cur.key
-		cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
-		log.Println(bl.debugString())
-		cur.key = temp
-		bl.IsDebug++
-	}
 
 	const L = 0
 	const R = 1
@@ -161,9 +154,9 @@ func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
 
 		if cur.children[L] == nil {
 			nparent := node.parent
-			// 清除
 			cur.children[L] = node
 			node.parent = cur
+
 			if nparent.children[L] == node {
 				nparent.children[L] = nil
 			} else {
@@ -186,9 +179,10 @@ func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
 		} else if cur.children[R] == nil {
 
 			nparent := node.parent
-			// 清除
+
 			cur.children[R] = node
 			node.parent = cur
+
 			if nparent.children[R] == node {
 				nparent.children[R] = nil
 			} else {
@@ -220,13 +214,9 @@ func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
 
 }
 
-func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) *Node {
+func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) {
 
-	// cur.direct[L] = node
 	c := bl.compartor(cur.key, node.key)
-
-	swapk := node.key
-	swapv := node.value
 
 	var start *Node
 
@@ -235,12 +225,13 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) *Node 
 
 	var L = 0
 	var R = 1
+
+	var dir = 1
 	if c < 0 {
-		L = 1
-		R = 0
+		dir = 0
 	}
 
-	start = node.direct[R]
+	start = node.direct[dir]
 	if start == nil {
 		log.Println("")
 	}
@@ -266,6 +257,7 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) *Node 
 
 		node.direct[L] = cur
 		cur.direct[R] = node
+
 	} else {
 
 		cdLeft := cur.direct[L]
@@ -280,8 +272,17 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) *Node 
 	}
 
 	// log.Println("start:", start, "swapk:", string(swapk), bl.debugString())
-	for start != node {
+	bl.moveNodes(start, node, dir)
 
+	// log.Println(bl.debugString())
+
+}
+
+func (bl *BinaryList) moveNodes(start *Node, node *Node, dir int) {
+	swapk := node.key
+	swapv := node.value
+
+	for start != node {
 		tempk := start.key
 		tempv := start.value
 
@@ -291,19 +292,11 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) *Node 
 		swapk = tempk
 		swapv = tempv
 
-		start = start.direct[R]
-
-		if start == nil {
-			log.Println(bl.debugString())
-		}
+		start = start.direct[dir]
 	}
 
 	start.key = swapk
 	start.value = swapv
-
-	// log.Println(bl.debugString())
-
-	return cur
 }
 
 func (bl *BinaryList) balanceNodeOld(cur *Node) {
