@@ -9,7 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/474420502/focus/compare"
+	"github.com/474420502/focus/tree/avlkeydup"
 	"github.com/Pallinder/go-randomdata"
+	"github.com/emirpasic/gods/trees/avltree"
 )
 
 func init() {
@@ -18,7 +21,7 @@ func init() {
 
 func TestPut(t *testing.T) {
 	bl := New()
-	bl.IsDebug = 0
+	bl.IsDebug = -1
 	var dict = make(map[int]bool)
 
 	for i := 0; i < 20; i++ {
@@ -35,16 +38,16 @@ func TestPut(t *testing.T) {
 
 		log.Println("put:", string(k))
 		bl.Put(k, k)
-		// log.Println(bl.debugString())
+		log.Println(bl.debugString())
 
-		// if bl.root.size == 30 {
-		// 	bl.IsDebug = 0
-		// }
+		if bl.root.size == 10 {
+			bl.IsDebug = 0
+		}
 
 		if bl.IsDebug > 0 {
 			log.Println("isDebug:", bl.IsDebug)
 			log.Println(bl.debugString())
-			bl.IsDebug = 0
+			bl.IsDebug = -1
 		}
 
 	}
@@ -53,13 +56,39 @@ func TestPut(t *testing.T) {
 
 func TestPut2(t *testing.T) {
 	bl := New()
+	tree := avlkeydup.New(compare.Int)
+	gods := avltree.NewWith(compare.Int)
 
-	for i := 40; i >= 0; i-- {
-		k := []byte(strconv.FormatInt(int64(i), 10))
-		log.Println("put:", string(k))
+	for i := 0; i <= 40; i++ {
+		var k []byte
+		if i == 12 {
+			tree.Put(41, 41)
+			gods.Put(41, 41)
+			k = []byte(strconv.FormatInt(int64(41), 10))
+		} else {
+			tree.Put(i, i)
+			gods.Put(i, i)
+			k = []byte(strconv.FormatInt(int64(i), 10))
+		}
+
 		bl.Put(k, k)
-		log.Println(bl.debugString())
-		log.Println("")
+		if i == 12 {
+			log.Println("put:", string(k))
+			log.Println(bl.debugString())
+			log.Println("")
+			log.Println(tree.String())
+			log.Println(gods.String())
+			// bl.IsDebug = 0
+		}
+
+		if i == 11 {
+			log.Println("put:", string(k))
+			log.Println(bl.debugString())
+			log.Println("")
+			log.Println(tree.String())
+			log.Println(gods.String())
+			// bl.IsDebug = -1
+		}
 	}
 
 }

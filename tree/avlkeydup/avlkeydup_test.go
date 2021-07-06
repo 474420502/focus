@@ -10,6 +10,7 @@ import (
 
 	"github.com/474420502/focus/compare"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/emirpasic/gods/trees/avltree"
 )
 
 func loadTestData() []int {
@@ -448,6 +449,27 @@ func BenchmarkPut(b *testing.B) {
 
 	b.N = len(l)
 	tree := New(compare.ByteArray)
+
+	for _, v := range l {
+		tree.Put(v, v)
+	}
+
+	// b.Log(tree.count)
+}
+
+func BenchmarkGodsAVLPut(b *testing.B) {
+
+	d := loadTestData()
+	var l [][]byte
+	for _, v := range d {
+		l = append(l, []byte(strconv.Itoa(v)))
+	}
+
+	b.ResetTimer()
+	b.StartTimer()
+
+	b.N = len(l)
+	tree := avltree.NewWith(compare.ByteArray)
 
 	for _, v := range l {
 		tree.Put(v, v)

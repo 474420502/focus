@@ -77,7 +77,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	}
 }
 func (bl *BinaryList) debugString() string {
-	str := "VTree\n"
+	str := "BinarayList\n"
 	if bl.root == nil {
 		return str + "nil"
 	}
