@@ -59,9 +59,11 @@ func TestPut2(t *testing.T) {
 	tree := avlkeydup.New(compare.Int)
 	gods := avltree.NewWith(compare.Int)
 
+	var look = 5
+
 	for i := 0; i <= 100; i++ {
 		var k []byte
-		if i == 12 {
+		if i == 10002 {
 			tree.Put(41, 41)
 			gods.Put(41, 41)
 			k = []byte(strconv.FormatInt(int64(41), 10))
@@ -72,22 +74,22 @@ func TestPut2(t *testing.T) {
 		}
 
 		bl.Put(k, k)
-		if i == 80 {
-			log.Println("put:", string(k))
+		if i == look {
+			log.Println("put:", string(k), "count:", bl.Count)
 			log.Println(bl.debugString())
 			log.Println("")
-			log.Println(tree.String())
-			log.Println(gods.String())
-			// bl.IsDebug = 0
+			// log.Println(tree.String())
+			// log.Println(gods.String())
+			bl.IsDebug = 0
 		}
 
-		if i == 91 {
-			log.Println("put:", string(k))
+		if i == look+1 {
+			log.Println("put:", string(k), "count:", bl.Count)
 			log.Println(bl.debugString())
 			log.Println("")
-			log.Println(tree.String())
+			// log.Println(tree.String())
 			log.Println(gods.String())
-			// bl.IsDebug = -1
+			bl.IsDebug = -1
 		}
 	}
 
@@ -123,6 +125,7 @@ func BenchmarkCase1(b *testing.B) {
 	}
 
 	b.N = len(l)
+	b.Log(bl.Count)
 }
 
 func TestBenchmarkCase1(t *testing.T) {
@@ -141,5 +144,5 @@ func TestBenchmarkCase1(t *testing.T) {
 		bl.Put(v, v)
 	}
 
-	log.Println(time.Since(now).Nanoseconds() / int64(len(l)))
+	log.Println(time.Since(now).Nanoseconds()/int64(len(l)), bl.Count)
 }

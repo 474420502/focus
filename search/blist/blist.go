@@ -13,6 +13,7 @@ type BinaryList struct {
 	compartor Compare
 	root      *Node
 	IsDebug   int
+	Count     int64
 }
 
 func New() *BinaryList {
@@ -61,6 +62,7 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				node.direct[R] = right
 
 				bl.fixSize(cur)
+
 				if bl.IsDebug >= 0 {
 					var temp []byte = node.key
 					node.key = []byte(fmt.Sprintf("\033[36m%s\033[0m", node.key))
@@ -127,6 +129,7 @@ func (bl *BinaryList) fixBalance(cur *Node, node *Node) {
 
 	var hight = 2
 	for {
+
 		if cur.size <= (1<<(hight) - 1) {
 			bl.balanceNode(cur, node)
 			break
@@ -142,6 +145,14 @@ func (bl *BinaryList) fixBalance(cur *Node, node *Node) {
 }
 
 func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
+
+	if bl.IsDebug >= 0 {
+		var temp []byte = cur.key
+		cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+		log.Println(bl.debugString())
+		cur.key = temp
+		bl.IsDebug++
+	}
 
 	const L = 0
 	const R = 1
@@ -283,6 +294,7 @@ func (bl *BinaryList) moveNodes(start *Node, node *Node, dir int) {
 	swapv := node.value
 
 	for start != node {
+		bl.Count++
 		tempk := start.key
 		tempv := start.value
 
