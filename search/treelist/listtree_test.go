@@ -1,4 +1,4 @@
-package treelist
+package listtree
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ func TestCase1(t *testing.T) {
 		k := []byte(strconv.FormatInt(i, 10))
 		tree.Put(k, k)
 		avl.Put(int(i), int(i))
-		// t.Error(tree.debugString())
+		log.Println(string(k), tree.debugString())
 		// t.Error(avl.String())
 	}
 
@@ -58,5 +58,5 @@ func BenchmarkPut(b *testing.B) {
 		tree.Put(v, v)
 	}
 
-	// b.Log(tree.count)
+	b.Log(tree.Count)
 }

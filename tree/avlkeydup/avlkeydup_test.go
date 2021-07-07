@@ -454,7 +454,7 @@ func BenchmarkPut(b *testing.B) {
 		tree.Put(v, v)
 	}
 
-	// b.Log(tree.count)
+	b.Log(tree.Count)
 }
 
 func BenchmarkGodsAVLPut(b *testing.B) {

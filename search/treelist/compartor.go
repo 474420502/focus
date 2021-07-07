@@ -1,4 +1,4 @@
-package treelist
+package listtree
 
 type Compare func([]byte, []byte) int
 

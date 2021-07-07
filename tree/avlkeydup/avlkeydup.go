@@ -31,6 +31,8 @@ type Tree struct {
 	size    int
 	Compare compare.Compare
 	iter    *Iterator
+
+	Count int
 }
 
 func assertImplementation() {
@@ -484,6 +486,8 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 
 func (tree *Tree) lrrotate(cur *Node) {
 
+	tree.Count += 2
+
 	const l = 1
 	const r = 0
 
@@ -525,6 +529,8 @@ func (tree *Tree) lrrotate(cur *Node) {
 
 func (tree *Tree) rlrotate(cur *Node) {
 
+	tree.Count += 2
+
 	const l = 0
 	const r = 1
 
@@ -564,6 +570,8 @@ func (tree *Tree) rlrotate(cur *Node) {
 
 func (tree *Tree) rrotate(cur *Node) {
 
+	tree.Count++
+
 	const l = 0
 	const r = 1
 	// 1 right 0 left
@@ -598,6 +606,8 @@ func (tree *Tree) rrotate(cur *Node) {
 }
 
 func (tree *Tree) lrotate(cur *Node) {
+
+	tree.Count++
 
 	const l = 1
 	const r = 0

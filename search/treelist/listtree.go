@@ -1,9 +1,4 @@
-package treelist
-
-import (
-	"fmt"
-	"log"
-)
+package listtree
 
 type Node struct {
 	parent   *Node
@@ -60,8 +55,7 @@ func (tree *TreeList) Put(key, value []byte) bool {
 				node.direct[L] = left
 				node.direct[R] = right
 
-				cur.size++
-				tree.fix(cur.parent)
+				tree.fix(cur.parent, [2]int{0, L})
 				return true
 			}
 
@@ -85,8 +79,7 @@ func (tree *TreeList) Put(key, value []byte) bool {
 				node.direct[L] = left
 				node.direct[R] = right
 
-				cur.size++
-				tree.fix(cur.parent)
+				tree.fix(cur, [2]int{0, R})
 				return true
 			}
 		default:
@@ -95,26 +88,43 @@ func (tree *TreeList) Put(key, value []byte) bool {
 	}
 }
 
-func (tree *TreeList) fix(cur *Node) {
-	s := cur
+func (tree *TreeList) fix(cur *Node, relations [2]int) {
 
-	defer func() {
-		if err := recover(); err != nil {
+	// s := cur
+	// defer func() {
+	// 	if err := recover(); err != nil {
 
-			var temp []byte = cur.key
-			var temp2 []byte = s.key
-			cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
-			s.key = []byte(fmt.Sprintf("\033[32m%s\033[0m", s.key))
-			log.Println(tree.debugString())
+	// 		var temp []byte = cur.key
+	// 		var temp2 []byte = s.key
+	// 		cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+	// 		s.key = []byte(fmt.Sprintf("\033[32m%s\033[0m", s.key))
+	// 		log.Println(tree.debugString())
 
-			cur.key = temp
-			s.key = temp2
-			log.Panic(err)
-		}
-	}()
+	// 		cur.key = temp
+	// 		s.key = temp2
+	// 		log.Panic(err)
+	// 	}
+	// }()
 
 	const L = 0
 	const R = 1
+
+	cur.size++
+
+	if cur.parent.children[L] == cur {
+		if relations[1] != L {
+			relations[0] = R
+		} else {
+			relations[0] = L
+		}
+	} else {
+		if relations[1] != R {
+			relations[0] = L
+		} else {
+			relations[0] = R
+		}
+	}
+	cur = cur.parent
 
 	var height int64 = 2
 
@@ -126,26 +136,39 @@ func (tree *TreeList) fix(cur *Node) {
 
 		// (1<< height) -1 允许的最大size　超过证明高度超1
 		if cur.size <= limitsize {
-			lsize, rsize := getChildrenSize(cur)
+			// lsize, rsize := getChildrenSize(cur)
 
-			if lsize >= rsize {
+			if relations[0] == R {
 
-				clsize := getSize(cur.children[L].children[L])
-				if clsize <= childLimitSize {
-					cur = tree.rrotate(cur)
-				} else {
-					tree.lrotate(cur.children[L])
-					cur = tree.rrotate(cur)
+				lsize := getSize(cur.children[L])
+				if lsize <= childLimitSize {
+
+					if relations[1] == L {
+						tree.rrotate(cur.children[R].children[L])
+
+					}
+					cur = tree.lrotate(cur)
+
 				}
 
 			} else {
 
-				crsize := getSize(cur.children[R].children[R])
-				if crsize <= childLimitSize {
-					cur = tree.lrotate(cur)
-				} else {
-					tree.rrotate(cur.children[R])
-					cur = tree.lrotate(cur)
+				rsize := getSize(cur.children[R])
+				if rsize <= childLimitSize {
+
+					if relations[1] == R {
+						tree.lrotate(cur.children[L].children[R])
+					}
+					// if cur.children[L] == nil {
+					// 	log.Println(tree.root.children[0].size)
+					// 	str := "BinarayList\n"
+
+					// 	outputfordebug(cur, "", true, &str)
+					// 	log.Println(str)
+					// 	// log.Println(tree.debugString())
+					// }
+					cur = tree.rrotate(cur)
+
 				}
 
 			}
@@ -155,6 +178,20 @@ func (tree *TreeList) fix(cur *Node) {
 			childLimitSize = limitsize
 		}
 
+		relations[1] = relations[0]
+		if cur.parent.children[L] == cur {
+			if relations[1] != L {
+				relations[0] = R
+			} else {
+				relations[0] = L
+			}
+		} else {
+			if relations[1] != R {
+				relations[0] = L
+			} else {
+				relations[0] = R
+			}
+		}
 		cur = cur.parent
 
 	}

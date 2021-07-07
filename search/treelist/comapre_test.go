@@ -1,4 +1,4 @@
-package treelist
+package listtree
 
 import (
 	"bytes"
