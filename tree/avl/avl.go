@@ -541,7 +541,7 @@ func (tree *Tree) lrrotate(cur *Node) {
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	movparent.height = getMaxChildrenHeight(movparent) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) rlrotate(cur *Node) {
@@ -583,45 +583,7 @@ func (tree *Tree) rlrotate(cur *Node) {
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	movparent.height = getMaxChildrenHeight(movparent) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
-}
-
-func (tree *Tree) rrotateex(cur *Node) {
-
-	const l = 0
-	const r = 1
-	// 1 right 0 left
-	mov := cur.children[l]
-	if mov == nil {
-		return
-	}
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-
-	//  mov.children[l]不可能为nil
-	cur.children[l] = mov.children[l]
-	if mov.children[l] != nil {
-		mov.children[l].parent = cur
-	}
-
-	// 解决mov节点孩子转移的问题
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
-	} else {
-		mov.children[l] = nil
-	}
-
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
-	} else {
-		mov.children[r] = nil
-	}
-
-	// 连接转移后的节点 由于mov只是与cur交换值,parent不变
-	cur.children[r] = mov
-
-	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) rrotate(cur *Node) {
@@ -658,46 +620,7 @@ func (tree *Tree) rrotate(cur *Node) {
 	// cur.size = getChildrenSumSize(cur) + 1
 
 	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
-}
-
-func (tree *Tree) lrotateex(cur *Node) {
-
-	const l = 1
-	const r = 0
-
-	mov := cur.children[l]
-	if mov == nil {
-		return
-	}
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-
-	// 不可能为nil
-	cur.children[l] = mov.children[l]
-	if mov.children[l] != nil {
-		mov.children[l].parent = cur
-	}
-
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
-	} else {
-		mov.children[l] = nil
-	}
-
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
-	} else {
-		mov.children[r] = nil
-	}
-
-	cur.children[r] = mov
-
-	// mov.size = getChildrenSumSize(mov) + 1
-	// cur.size = getChildrenSumSize(cur) + 1
-
-	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) lrotate(cur *Node) {
@@ -732,7 +655,7 @@ func (tree *Tree) lrotate(cur *Node) {
 	// cur.size = getChildrenSumSize(cur) + 1
 
 	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func getMaxAndChildrenHeight(cur *Node) (h1, h2, maxh int) {

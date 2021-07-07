@@ -1,4 +1,4 @@
-package vtree
+package treelist
 
 import (
 	"bytes"

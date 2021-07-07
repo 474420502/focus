@@ -23,6 +23,24 @@ func New() *BinaryList {
 	}
 }
 
+func (bl *BinaryList) Get(key []byte) ([]byte, bool) {
+	const L = 0
+	const R = 1
+	cur := bl.root
+	for cur != nil {
+		c := bl.compartor(key, cur.key)
+		switch {
+		case c < 0:
+			cur = cur.children[L]
+		case c > 0:
+			cur = cur.children[R]
+		default:
+			return cur.value, true
+		}
+	}
+	return nil, false
+}
+
 func (bl *BinaryList) Put(key, value []byte) bool {
 	if bl.root == nil {
 		bl.root = &Node{key: key, value: value, size: 1}
@@ -62,15 +80,6 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				node.direct[R] = right
 
 				bl.fixSize(cur)
-
-				if bl.IsDebug >= 0 {
-					var temp []byte = node.key
-					node.key = []byte(fmt.Sprintf("\033[36m%s\033[0m", node.key))
-					defer func() {
-						node.key = temp
-					}()
-				}
-
 				bl.fixBalance(cur.parent, node)
 
 				return true
@@ -96,14 +105,6 @@ func (bl *BinaryList) Put(key, value []byte) bool {
 				node.direct[R] = right
 
 				bl.fixSize(cur)
-				if bl.IsDebug >= 0 {
-					var temp []byte = node.key
-					node.key = []byte(fmt.Sprintf("\033[36m%s\033[0m", node.key))
-					defer func() {
-						node.key = temp
-					}()
-				}
-
 				bl.fixBalance(cur.parent, node)
 
 				return true
@@ -121,23 +122,16 @@ func (bl *BinaryList) fixBalance(cur *Node, node *Node) {
 	// 	return
 	// }
 
-	if cur == nil {
-		return
-	}
-
 	// bl.blanceSize3(cur)
 
 	var hight = 2
-	for {
+	for cur != nil {
 
 		if cur.size <= (1<<(hight) - 1) {
 			bl.balanceNode(cur, node)
 			break
 		}
 
-		if cur.parent == nil {
-			break
-		}
 		cur = cur.parent
 		hight++
 	}
@@ -146,13 +140,13 @@ func (bl *BinaryList) fixBalance(cur *Node, node *Node) {
 
 func (bl *BinaryList) balanceNode(cur *Node, node *Node) {
 
-	if bl.IsDebug >= 0 {
-		var temp []byte = cur.key
-		cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
-		log.Println(bl.debugString())
-		cur.key = temp
-		bl.IsDebug++
-	}
+	// if bl.IsDebug >= 0 {
+	// 	var temp []byte = cur.key
+	// 	cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+	// 	log.Println(bl.debugString())
+	// 	cur.key = temp
+	// 	bl.IsDebug++
+	// }
 
 	const L = 0
 	const R = 1
@@ -243,9 +237,7 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) {
 	}
 
 	start = node.direct[dir]
-	if start == nil {
-		log.Println("")
-	}
+
 	// log.Println("start:", start)
 
 	nldirect := node.direct[L]
@@ -259,11 +251,11 @@ func (bl *BinaryList) fn0(cur *Node, node *Node, top *Node, relation int) {
 
 	if relation == 1 {
 
-		cdLeft := cur.direct[R]
-		node.direct[R] = cdLeft
+		cdRight := cur.direct[R]
+		node.direct[R] = cdRight
 
-		if cdLeft != nil {
-			cdLeft.direct[L] = node
+		if cdRight != nil {
+			cdRight.direct[L] = node
 		}
 
 		node.direct[L] = cur

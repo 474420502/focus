@@ -536,7 +536,7 @@ func (tree *Tree) lrrotate(cur *Node) {
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	movparent.height = getMaxChildrenHeight(movparent) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) rlrotate(cur *Node) {
@@ -575,7 +575,7 @@ func (tree *Tree) rlrotate(cur *Node) {
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	movparent.height = getMaxChildrenHeight(movparent) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) rrotate(cur *Node) {
@@ -610,7 +610,7 @@ func (tree *Tree) rrotate(cur *Node) {
 	cur.children[r] = mov
 
 	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func (tree *Tree) lrotate(cur *Node) {
@@ -643,7 +643,7 @@ func (tree *Tree) lrotate(cur *Node) {
 	cur.children[r] = mov
 
 	mov.height = getMaxChildrenHeight(mov) + 1
-	cur.height = getMaxChildrenHeight(cur) + 1
+	// cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func getMaxAndChildrenHeight(cur *Node) (h1, h2, maxh int) {

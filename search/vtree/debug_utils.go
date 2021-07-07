@@ -1,4 +1,4 @@
-package blist
+package treelist
 
 import (
 	"strconv"
@@ -57,12 +57,12 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	}
 
 	suffix := "("
-	// parentv := ""
-	// if node.parent == nil {
-	// 	parentv = "nil"
-	// } else {
-	// 	parentv = spew.Sprint(string(node.parent.key))
-	// }
+	parentv := ""
+	if node.parent == nil {
+		parentv = "nil"
+	} else {
+		parentv = spew.Sprint(string(node.parent.key))
+	}
 
 	// var ldirect, rdirect string
 	// if node.direct[0] != nil {
@@ -78,8 +78,8 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	// }
 
 	// suffix += parentv + "|" + spew.Sprint(node.size) + " " + ldirect + "<->" + rdirect + ")"
-	// suffix += parentv + "|" + spew.Sprint(node.size) + ")"
-	suffix = ""
+	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
+	// suffix = ""
 	*str += spew.Sprint(string(node.key)) + suffix + "\n"
 
 	if node.children[0] != nil {
@@ -92,14 +92,15 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 		outputfordebug(node.children[0], newPrefix, true, str)
 	}
 }
-func (bl *BinaryList) debugString() string {
+func (tree *TreeList) debugString() string {
 	str := "BinarayList\n"
-	if bl.root == nil {
+	root := tree.root.children[0]
+	if root == nil {
 		return str + "nil"
 	}
-	outputfordebug(bl.root, "", true, &str)
+	outputfordebug(root, "", true, &str)
 
-	var cur = bl.root
+	var cur = root
 	for cur.children[0] != nil {
 		cur = cur.children[0]
 	}
@@ -111,7 +112,7 @@ func (bl *BinaryList) debugString() string {
 		str += spew.Sprint(string(start.key)) + ","
 		start = start.direct[1]
 		i++
-		if i >= 100 {
+		if i >= 1000 {
 			break
 		}
 	}

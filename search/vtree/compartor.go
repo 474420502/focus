@@ -1,4 +1,6 @@
-package vtree
+package treelist
+
+type Compare func([]byte, []byte) int
 
 // CompatorByte 默认比较字节
 func CompatorByte(s1, s2 []byte) int {
