@@ -3,6 +3,7 @@ package listtree
 import (
 	"fmt"
 	"log"
+	"runtime"
 	"strconv"
 
 	"github.com/davecgh/go-spew/spew"
@@ -39,6 +40,8 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 	}
 
 }
+
+var debugCheck map[string]int
 
 func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 
@@ -82,7 +85,20 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	// suffix += parentv + "|" + spew.Sprint(node.size) + " " + ldirect + "<->" + rdirect + ")"
 	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
 	// suffix = ""
-	*str += spew.Sprint(string(node.key)) + suffix + "\n"
+	k := string(node.key)
+	if _, ok := debugCheck[k]; !ok {
+		debugCheck[k] = 1
+	} else {
+		count := debugCheck[k]
+		count++
+		debugCheck[k] = count
+		if count >= 3 {
+			runtime.Breakpoint()
+			log.Println(node, node.key, node.children)
+		}
+	}
+
+	*str += spew.Sprint(k) + suffix + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix
@@ -113,7 +129,19 @@ func outputfordebugNoSuffix(node *Node, prefix string, isTail bool, str *string)
 		*str += "\033[31m┌── \033[0m"
 	}
 
-	*str += spew.Sprint(string(node.key)) + "\n"
+	k := string(node.key)
+	if _, ok := debugCheck[k]; !ok {
+		debugCheck[k] = 1
+	} else {
+		count := debugCheck[k]
+		count++
+		debugCheck[k] = count
+		if count >= 4 {
+			runtime.Breakpoint()
+		}
+	}
+
+	*str += spew.Sprint(k) + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix
@@ -132,6 +160,10 @@ func (tree *ListTree) debugString(isSuffix bool) string {
 	if root == nil {
 		return str + "nil"
 	}
+
+	debugCheck = make(map[string]int)
+	defer func() { debugCheck = nil }()
+
 	if isSuffix {
 		outputfordebug(root, "", true, &str)
 	} else {

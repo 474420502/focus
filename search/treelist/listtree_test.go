@@ -39,8 +39,10 @@ func TestCase1(t *testing.T) {
 		for i := int64(0); i < 100; i++ {
 			r := randomdata.Number(0, 1000)
 			k := []byte(strconv.FormatInt(int64(r), 10))
-			tree.Put(k, k)
+			log.Println(r)
 			avl.Put(k, k)
+			log.Println(avl.String())
+			tree.Put(k, k)
 
 			// for _, v := range avl.Values() {
 			// 	if _, ok := tree.Get(v.([]byte)); !ok {
@@ -48,9 +50,8 @@ func TestCase1(t *testing.T) {
 			// 		log.Panic("")
 			// 	}
 			// }
-			log.Println(r)
+
 			log.Println(tree.debugString(true))
-			log.Println(avl.String())
 
 			if CompatorByte(tree.getRoot().key, avl.Root.Key.([]byte)) != 0 {
 				log.Println(tree.root.key, avl.Root.Key)

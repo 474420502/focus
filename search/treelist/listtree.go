@@ -190,17 +190,22 @@ func (tree *ListTree) fn0(up *Node, cur *Node, diff int64, L int, R int) {
 		}
 	}
 
-	tree.debugLookNode(up)
+	if up == cur.children[R] {
+		if L == 0 {
+			tree.lrotate(cur)
+		} else {
+			tree.rrotate(cur)
+		}
+
+		return
+	}
+
+	// tree.debugLookNode(up)
+	// tree.debugLookNode(cur)
 
 	upLeft := up.children[L]
 	upRight := up.children[R]
-
-	var upNewRight *Node
-	if up == cur.children[R] {
-		upNewRight = cur.children[R].children[R] //符合规律
-	} else {
-		upNewRight = up.parent
-	}
+	upNewRight := up.parent
 
 	// 链接当前节点的父节点
 	if cur.parent.children[L] == cur {
@@ -217,6 +222,7 @@ func (tree *ListTree) fn0(up *Node, cur *Node, diff int64, L int, R int) {
 	up.children[R] = upNewRight
 	if upNewRight != nil {
 		upNewRight.parent = up
+
 		upNewRight.children[L] = upRight
 		upNewRight.size = getChildrenSumSize(upNewRight) + 1
 		if upRight != nil {
@@ -231,6 +237,8 @@ func (tree *ListTree) fn0(up *Node, cur *Node, diff int64, L int, R int) {
 
 	cur.size = getChildrenSumSize(cur) + 1
 	up.size = getChildrenSumSize(up) + 1
+
+	// log.Println(tree.debugString(true))
 }
 
 func (tree *ListTree) lrotate(cur *Node) *Node {
