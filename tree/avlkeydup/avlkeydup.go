@@ -7,11 +7,13 @@ import (
 	"github.com/474420502/focus/tree"
 )
 
+const HeightDiff = 1
+
 type Node struct {
-	children   [2]*Node
+	Children   [2]*Node
 	parent     *Node
 	height     int
-	key, value interface{}
+	Key, Value interface{}
 }
 
 func (n *Node) String() string {
@@ -21,13 +23,13 @@ func (n *Node) String() string {
 
 	p := "nil"
 	if n.parent != nil {
-		p = spew.Sprint(n.parent.value)
+		p = spew.Sprint(n.parent.Value)
 	}
-	return spew.Sprint(n.value) + "(" + p + "|" + spew.Sprint(n.height) + ")"
+	return spew.Sprint(n.Value) + "(" + p + "|" + spew.Sprint(n.height) + ")"
 }
 
 type Tree struct {
-	root    *Node
+	Root    *Node
 	size    int
 	Compare compare.Compare
 	iter    *Iterator
@@ -48,7 +50,7 @@ func (tree *Tree) String() string {
 		return ""
 	}
 	str := "AVLTree\n"
-	output(tree.root, "", true, &str)
+	output(tree.Root, "", true, &str)
 
 	return str
 }
@@ -67,41 +69,41 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 
 		tree.size--
 		if tree.size == 0 {
-			tree.root = nil
-			return n.value, true
+			tree.Root = nil
+			return n.Value, true
 		}
 
-		left := getHeight(n.children[0])
-		right := getHeight(n.children[1])
+		left := getHeight(n.Children[0])
+		right := getHeight(n.Children[1])
 
 		if left == -1 && right == -1 {
 			p := n.parent
-			p.children[getRelationship(n)] = nil
+			p.Children[getRelationship(n)] = nil
 			tree.fixRemoveHeight(p)
-			return n.value, true
+			return n.Value, true
 		}
 
 		var cur *Node
 		if left > right {
-			cur = n.children[0]
-			for cur.children[1] != nil {
-				cur = cur.children[1]
+			cur = n.Children[0]
+			for cur.Children[1] != nil {
+				cur = cur.Children[1]
 			}
 
-			cleft := cur.children[0]
-			cur.parent.children[getRelationship(cur)] = cleft
+			cleft := cur.Children[0]
+			cur.parent.Children[getRelationship(cur)] = cleft
 			if cleft != nil {
 				cleft.parent = cur.parent
 			}
 
 		} else {
-			cur = n.children[1]
-			for cur.children[0] != nil {
-				cur = cur.children[0]
+			cur = n.Children[1]
+			for cur.Children[0] != nil {
+				cur = cur.Children[0]
 			}
 
-			cright := cur.children[1]
-			cur.parent.children[getRelationship(cur)] = cright
+			cright := cur.Children[1]
+			cur.parent.Children[getRelationship(cur)] = cright
 
 			if cright != nil {
 				cright.parent = cur.parent
@@ -110,8 +112,8 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 
 		cparent := cur.parent
 		// 修改为interface 交换
-		n.value, cur.value = cur.value, n.value
-		n.key, cur.key = cur.key, n.key
+		n.Value, cur.Value = cur.Value, n.Value
+		n.Key, cur.Key = cur.Key, n.Key
 
 		// 考虑到刚好替换的节点是 被替换节点的孩子节点的时候, 从自身修复高度
 		if cparent == n {
@@ -120,7 +122,7 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 			tree.fixRemoveHeight(cparent)
 		}
 
-		return cur.value, true
+		return cur.Value, true
 	}
 
 	return nil, false
@@ -128,14 +130,14 @@ func (tree *Tree) Remove(key interface{}) (interface{}, bool) {
 
 func (tree *Tree) Clear() {
 	tree.size = 0
-	tree.root = nil
+	tree.Root = nil
 	tree.iter = NewIteratorWithCap(nil, 16)
 }
 
 // Values 返回先序遍历的值
 func (tree *Tree) Values() []interface{} {
 	mszie := 0
-	if tree.root != nil {
+	if tree.Root != nil {
 		mszie = tree.size
 	}
 	result := make([]interface{}, 0, mszie)
@@ -204,7 +206,7 @@ func (tree *Tree) GetRange(k1, k2 interface{}) (result []interface{}) {
 		}
 	case 0:
 		if n, ok := tree.GetNode(k1); ok {
-			return []interface{}{n.value}
+			return []interface{}{n.Value}
 		}
 		return []interface{}{}
 	}
@@ -215,7 +217,7 @@ func (tree *Tree) GetRange(k1, k2 interface{}) (result []interface{}) {
 func (tree *Tree) Get(key interface{}) (interface{}, bool) {
 	n, ok := tree.GetNode(key)
 	if ok {
-		return n.value, true
+		return n.Value, true
 	}
 	return n, false
 }
@@ -224,7 +226,7 @@ func (tree *Tree) GetAround(key interface{}) (result [3]interface{}) {
 	an := tree.getArountNode(key)
 	for i, n := range an {
 		if n != nil {
-			result[i] = n.value
+			result[i] = n.Value
 		}
 	}
 	return
@@ -234,15 +236,15 @@ func (tree *Tree) getArountNode(key interface{}) (result [3]*Node) {
 	var last *Node
 	var lastc int
 
-	for n := tree.root; n != nil; {
+	for n := tree.Root; n != nil; {
 		last = n
-		c := tree.Compare(key, n.key)
+		c := tree.Compare(key, n.Key)
 		switch c {
 		case -1:
-			n = n.children[0]
+			n = n.Children[0]
 			lastc = c
 		case 1:
-			n = n.children[1]
+			n = n.Children[1]
 			lastc = c
 		case 0:
 			result[1] = n
@@ -287,12 +289,12 @@ func (tree *Tree) getArountNode(key interface{}) (result [3]*Node) {
 
 func (tree *Tree) GetNode(key interface{}) (*Node, bool) {
 
-	for n := tree.root; n != nil; {
-		switch c := tree.Compare(key, n.key); c {
+	for n := tree.Root; n != nil; {
+		switch c := tree.Compare(key, n.Key); c {
 		case -1:
-			n = n.children[0]
+			n = n.Children[0]
 		case 1:
-			n = n.children[1]
+			n = n.Children[1]
 		case 0:
 			return n, true
 		default:
@@ -306,37 +308,37 @@ func (tree *Tree) Put(key, value interface{}) {
 
 	if tree.size == 0 {
 		tree.size++
-		tree.root = &Node{key: key, value: value}
+		tree.Root = &Node{Key: key, Value: value}
 		return
 	}
 
-	for cur, c := tree.root, 0; ; {
-		c = tree.Compare(key, cur.key)
+	for cur, c := tree.Root, 0; ; {
+		c = tree.Compare(key, cur.Key)
 		if c == -1 {
-			if cur.children[0] == nil {
+			if cur.Children[0] == nil {
 				tree.size++
-				cur.children[0] = &Node{key: key, value: value}
-				cur.children[0].parent = cur
+				cur.Children[0] = &Node{Key: key, Value: value}
+				cur.Children[0].parent = cur
 				if cur.height == 0 {
 					tree.fixPutHeight(cur)
 				}
 				return
 			}
-			cur = cur.children[0]
+			cur = cur.Children[0]
 		} else if c == 1 {
-			if cur.children[1] == nil {
+			if cur.Children[1] == nil {
 				tree.size++
-				cur.children[1] = &Node{key: key, value: value}
-				cur.children[1].parent = cur
+				cur.Children[1] = &Node{Key: key, Value: value}
+				cur.Children[1].parent = cur
 				if cur.height == 0 {
 					tree.fixPutHeight(cur)
 				}
 				return
 			}
-			cur = cur.children[1]
+			cur = cur.Children[1]
 		} else {
-			cur.key = key
-			cur.value = value
+			cur.Key = key
+			cur.Value = value
 			return
 		}
 	}
@@ -363,7 +365,7 @@ const (
 
 // Traversal 遍历的方法 默认是LDR 从小到大 Compare 为 l < r
 func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod ...interface{}) {
-	if tree.root == nil {
+	if tree.Root == nil {
 		return
 	}
 
@@ -379,108 +381,108 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 			if cur == nil {
 				return true
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	case LDR:
 		var traverasl func(cur *Node) bool
 		traverasl = func(cur *Node) bool {
 			if cur == nil {
 				return true
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	case LRD:
 		var traverasl func(cur *Node) bool
 		traverasl = func(cur *Node) bool {
 			if cur == nil {
 				return true
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	case DRL:
 		var traverasl func(cur *Node) bool
 		traverasl = func(cur *Node) bool {
 			if cur == nil {
 				return true
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	case RDL:
 		var traverasl func(cur *Node) bool
 		traverasl = func(cur *Node) bool {
 			if cur == nil {
 				return true
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	case RLD:
 		var traverasl func(cur *Node) bool
 		traverasl = func(cur *Node) bool {
 			if cur == nil {
 				return true
 			}
-			if !traverasl(cur.children[1]) {
+			if !traverasl(cur.Children[1]) {
 				return false
 			}
-			if !traverasl(cur.children[0]) {
+			if !traverasl(cur.Children[0]) {
 				return false
 			}
-			if !every(cur.key, cur.value) {
+			if !every(cur.Key, cur.Value) {
 				return false
 			}
 			return true
 		}
-		traverasl(tree.root)
+		traverasl(tree.Root)
 	}
 }
 
@@ -491,35 +493,35 @@ func (tree *Tree) lrrotate(cur *Node) {
 	const l = 1
 	const r = 0
 
-	movparent := cur.children[l]
-	mov := movparent.children[r]
+	movparent := cur.Children[l]
+	mov := movparent.Children[r]
 
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-	mov.key, cur.key = cur.key, mov.key
+	mov.Value, cur.Value = cur.Value, mov.Value //交换值达到, 相对位移
+	mov.Key, cur.Key = cur.Key, mov.Key
 
-	if mov.children[l] != nil {
-		movparent.children[r] = mov.children[l]
-		movparent.children[r].parent = movparent
+	if mov.Children[l] != nil {
+		movparent.Children[r] = mov.Children[l]
+		movparent.Children[r].parent = movparent
 		//movparent.children[r].child = l
 	} else {
-		movparent.children[r] = nil
+		movparent.Children[r] = nil
 	}
 
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
+	if mov.Children[r] != nil {
+		mov.Children[l] = mov.Children[r]
 		//mov.children[l].child = l
 	} else {
-		mov.children[l] = nil
+		mov.Children[l] = nil
 	}
 
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
+	if cur.Children[r] != nil {
+		mov.Children[r] = cur.Children[r]
+		mov.Children[r].parent = mov
 	} else {
-		mov.children[r] = nil
+		mov.Children[r] = nil
 	}
 
-	cur.children[r] = mov
+	cur.Children[r] = mov
 	mov.parent = cur
 
 	mov.height = getMaxChildrenHeight(mov) + 1
@@ -534,33 +536,33 @@ func (tree *Tree) rlrotate(cur *Node) {
 	const l = 0
 	const r = 1
 
-	movparent := cur.children[l]
-	mov := movparent.children[r]
+	movparent := cur.Children[l]
+	mov := movparent.Children[r]
 
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-	mov.key, cur.key = cur.key, mov.key
+	mov.Value, cur.Value = cur.Value, mov.Value //交换值达到, 相对位移
+	mov.Key, cur.Key = cur.Key, mov.Key
 
-	if mov.children[l] != nil {
-		movparent.children[r] = mov.children[l]
-		movparent.children[r].parent = movparent
+	if mov.Children[l] != nil {
+		movparent.Children[r] = mov.Children[l]
+		movparent.Children[r].parent = movparent
 	} else {
-		movparent.children[r] = nil
+		movparent.Children[r] = nil
 	}
 
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
+	if mov.Children[r] != nil {
+		mov.Children[l] = mov.Children[r]
 	} else {
-		mov.children[l] = nil
+		mov.Children[l] = nil
 	}
 
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
+	if cur.Children[r] != nil {
+		mov.Children[r] = cur.Children[r]
+		mov.Children[r].parent = mov
 	} else {
-		mov.children[r] = nil
+		mov.Children[r] = nil
 	}
 
-	cur.children[r] = mov
+	cur.Children[r] = mov
 	mov.parent = cur
 
 	mov.height = getMaxChildrenHeight(mov) + 1
@@ -575,31 +577,31 @@ func (tree *Tree) rrotate(cur *Node) {
 	const l = 0
 	const r = 1
 	// 1 right 0 left
-	mov := cur.children[l]
+	mov := cur.Children[l]
 
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-	mov.key, cur.key = cur.key, mov.key
+	mov.Value, cur.Value = cur.Value, mov.Value //交换值达到, 相对位移
+	mov.Key, cur.Key = cur.Key, mov.Key
 
 	//  mov.children[l]不可能为nil
-	mov.children[l].parent = cur
-	cur.children[l] = mov.children[l]
+	mov.Children[l].parent = cur
+	cur.Children[l] = mov.Children[l]
 
 	// 解决mov节点孩子转移的问题
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
+	if mov.Children[r] != nil {
+		mov.Children[l] = mov.Children[r]
 	} else {
-		mov.children[l] = nil
+		mov.Children[l] = nil
 	}
 
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
+	if cur.Children[r] != nil {
+		mov.Children[r] = cur.Children[r]
+		mov.Children[r].parent = mov
 	} else {
-		mov.children[r] = nil
+		mov.Children[r] = nil
 	}
 
 	// 连接转移后的节点 由于mov只是与cur交换值,parent不变
-	cur.children[r] = mov
+	cur.Children[r] = mov
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	cur.height = getMaxChildrenHeight(cur) + 1
@@ -612,37 +614,37 @@ func (tree *Tree) lrotate(cur *Node) {
 	const l = 1
 	const r = 0
 
-	mov := cur.children[l]
+	mov := cur.Children[l]
 
-	mov.value, cur.value = cur.value, mov.value //交换值达到, 相对位移
-	mov.key, cur.key = cur.key, mov.key
+	mov.Value, cur.Value = cur.Value, mov.Value //交换值达到, 相对位移
+	mov.Key, cur.Key = cur.Key, mov.Key
 
 	// 不可能为nil
-	mov.children[l].parent = cur
-	cur.children[l] = mov.children[l]
+	mov.Children[l].parent = cur
+	cur.Children[l] = mov.Children[l]
 
-	if mov.children[r] != nil {
-		mov.children[l] = mov.children[r]
+	if mov.Children[r] != nil {
+		mov.Children[l] = mov.Children[r]
 	} else {
-		mov.children[l] = nil
+		mov.Children[l] = nil
 	}
 
-	if cur.children[r] != nil {
-		mov.children[r] = cur.children[r]
-		mov.children[r].parent = mov
+	if cur.Children[r] != nil {
+		mov.Children[r] = cur.Children[r]
+		mov.Children[r].parent = mov
 	} else {
-		mov.children[r] = nil
+		mov.Children[r] = nil
 	}
 
-	cur.children[r] = mov
+	cur.Children[r] = mov
 
 	mov.height = getMaxChildrenHeight(mov) + 1
 	cur.height = getMaxChildrenHeight(cur) + 1
 }
 
 func getMaxAndChildrenHeight(cur *Node) (h1, h2, maxh int) {
-	h1 = getHeight(cur.children[0])
-	h2 = getHeight(cur.children[1])
+	h1 = getHeight(cur.Children[0])
+	h2 = getHeight(cur.Children[1])
 	if h1 > h2 {
 		maxh = h1
 	} else {
@@ -653,8 +655,8 @@ func getMaxAndChildrenHeight(cur *Node) (h1, h2, maxh int) {
 }
 
 func getMaxChildrenHeight(cur *Node) int {
-	h1 := getHeight(cur.children[0])
-	h2 := getHeight(cur.children[1])
+	h1 := getHeight(cur.Children[0])
+	h2 := getHeight(cur.Children[1])
 	if h1 > h2 {
 		return h1
 	}
@@ -679,16 +681,16 @@ func (tree *Tree) fixRemoveHeight(cur *Node) {
 
 		// 计算高度的差值 绝对值大于2的时候需要旋转
 		diff := lefth - rigthh
-		if diff < -1 {
-			r := cur.children[1] // 根据左旋转的右边节点的子节点 左右高度选择旋转的方式
-			if getHeight(r.children[0]) > getHeight(r.children[1]) {
+		if diff < -HeightDiff {
+			r := cur.Children[1] // 根据左旋转的右边节点的子节点 左右高度选择旋转的方式
+			if getHeight(r.Children[0]) > getHeight(r.Children[1]) {
 				tree.lrrotate(cur)
 			} else {
 				tree.lrotate(cur)
 			}
-		} else if diff > 1 {
-			l := cur.children[0]
-			if getHeight(l.children[1]) > getHeight(l.children[0]) {
+		} else if diff > HeightDiff {
+			l := cur.Children[0]
+			if getHeight(l.Children[1]) > getHeight(l.Children[0]) {
 				tree.rlrotate(cur)
 			} else {
 				tree.rrotate(cur)
@@ -712,21 +714,21 @@ func (tree *Tree) fixPutHeight(cur *Node) {
 
 	for {
 
-		lefth := getHeight(cur.children[0])
-		rigthh := getHeight(cur.children[1])
+		lefth := getHeight(cur.Children[0])
+		rigthh := getHeight(cur.Children[1])
 
 		// 计算高度的差值 绝对值大于2的时候需要旋转
 		diff := lefth - rigthh
-		if diff < -1 {
-			r := cur.children[1] // 根据左旋转的右边节点的子节点 左右高度选择旋转的方式
-			if getHeight(r.children[0]) > getHeight(r.children[1]) {
+		if diff < -HeightDiff {
+			r := cur.Children[1] // 根据左旋转的右边节点的子节点 左右高度选择旋转的方式
+			if getHeight(r.Children[0]) > getHeight(r.Children[1]) {
 				tree.lrrotate(cur)
 			} else {
 				tree.lrotate(cur)
 			}
-		} else if diff > 1 {
-			l := cur.children[0]
-			if getHeight(l.children[1]) > getHeight(l.children[0]) {
+		} else if diff > HeightDiff {
+			l := cur.Children[0]
+			if getHeight(l.Children[1]) > getHeight(l.Children[0]) {
 				tree.rlrotate(cur)
 			} else {
 				tree.rrotate(cur)
@@ -750,14 +752,14 @@ func (tree *Tree) fixPutHeight(cur *Node) {
 
 func output(node *Node, prefix string, isTail bool, str *string) {
 
-	if node.children[1] != nil {
+	if node.Children[1] != nil {
 		newPrefix := prefix
 		if isTail {
 			newPrefix += "│   "
 		} else {
 			newPrefix += "    "
 		}
-		output(node.children[1], newPrefix, false, str)
+		output(node.Children[1], newPrefix, false, str)
 	}
 	*str += prefix
 	if isTail {
@@ -766,30 +768,35 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 		*str += "┌── "
 	}
 
-	*str += spew.Sprint(node.value) + "\n"
+	switch k := node.Key.(type) {
+	case []byte:
+		*str += spew.Sprint(string(k)) + "\n"
+	default:
+		*str += spew.Sprint(k) + "\n"
+	}
 
-	if node.children[0] != nil {
+	if node.Children[0] != nil {
 		newPrefix := prefix
 		if isTail {
 			newPrefix += "    "
 		} else {
 			newPrefix += "│   "
 		}
-		output(node.children[0], newPrefix, true, str)
+		output(node.Children[0], newPrefix, true, str)
 	}
 
 }
 
 func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 
-	if node.children[1] != nil {
+	if node.Children[1] != nil {
 		newPrefix := prefix
 		if isTail {
 			newPrefix += "│   "
 		} else {
 			newPrefix += "    "
 		}
-		outputfordebug(node.children[1], newPrefix, false, str)
+		outputfordebug(node.Children[1], newPrefix, false, str)
 	}
 	*str += prefix
 	if isTail {
@@ -803,19 +810,19 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	if node.parent == nil {
 		parentv = "nil"
 	} else {
-		parentv = spew.Sprint(node.parent.value)
+		parentv = spew.Sprint(node.parent.Value)
 	}
 	suffix += parentv + "|" + spew.Sprint(node.height) + ")"
-	*str += spew.Sprint(node.value) + suffix + "\n"
+	*str += spew.Sprint(node.Value) + suffix + "\n"
 
-	if node.children[0] != nil {
+	if node.Children[0] != nil {
 		newPrefix := prefix
 		if isTail {
 			newPrefix += "    "
 		} else {
 			newPrefix += "│   "
 		}
-		outputfordebug(node.children[0], newPrefix, true, str)
+		outputfordebug(node.Children[0], newPrefix, true, str)
 	}
 }
 
@@ -824,6 +831,6 @@ func (tree *Tree) debugString() string {
 		return ""
 	}
 	str := "AVLTree\n"
-	outputfordebug(tree.root, "", true, &str)
+	outputfordebug(tree.Root, "", true, &str)
 	return str
 }

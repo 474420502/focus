@@ -457,6 +457,22 @@ func BenchmarkPut(b *testing.B) {
 	b.Log(tree.Count)
 }
 
+func TraverseGodAVL(node1 *avltree.Node, node2 *Node) {
+
+	if node1 == nil && node2 == nil {
+		return
+	}
+
+	// log.Println(string(node1.Key.([]byte)), string(node2.key))
+
+	if compare.ByteArray(node1.Key.([]byte), node2.Key) != 0 {
+		log.Println(string(node1.Key.([]byte)), string(node2.Key.([]byte)))
+		log.Panic(node2)
+	}
+
+	TraverseGodAVL(node1.Children[0], node2.Children[0])
+	TraverseGodAVL(node1.Children[1], node2.Children[1])
+}
 func BenchmarkGodsAVLPut(b *testing.B) {
 
 	d := loadTestData()
@@ -469,10 +485,13 @@ func BenchmarkGodsAVLPut(b *testing.B) {
 	b.StartTimer()
 
 	b.N = len(l)
-	tree := avltree.NewWith(compare.ByteArray)
+	avl := avltree.NewWith(compare.ByteArray)
 
 	for _, v := range l {
-		tree.Put(v, v)
+
+		avl.Put(v, v)
+
+		// TraverseGodAVL(avl.Root, tree.Root)
 	}
 
 	// b.Log(tree.count)

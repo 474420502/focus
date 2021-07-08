@@ -92,13 +92,49 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 		outputfordebug(node.children[0], newPrefix, true, str)
 	}
 }
-func (tree *TreeList) debugString() string {
+
+func outputfordebugNoSuffix(node *Node, prefix string, isTail bool, str *string) {
+
+	if node.children[1] != nil {
+		newPrefix := prefix
+		if isTail {
+			newPrefix += "\033[34m│   \033[0m"
+		} else {
+			newPrefix += "    "
+		}
+		outputfordebugNoSuffix(node.children[1], newPrefix, false, str)
+	}
+	*str += prefix
+	if isTail {
+		*str += "\033[34m└── \033[0m"
+	} else {
+		*str += "\033[31m┌── \033[0m"
+	}
+
+	*str += spew.Sprint(string(node.key)) + "\n"
+
+	if node.children[0] != nil {
+		newPrefix := prefix
+		if isTail {
+			newPrefix += "    "
+		} else {
+			newPrefix += "\033[31m│   \033[0m"
+		}
+		outputfordebugNoSuffix(node.children[0], newPrefix, true, str)
+	}
+}
+
+func (tree *ListTree) debugString(isSuffix bool) string {
 	str := "BinarayList\n"
-	root := tree.root.children[0]
+	root := tree.getRoot()
 	if root == nil {
 		return str + "nil"
 	}
-	outputfordebug(root, "", true, &str)
+	if isSuffix {
+		outputfordebug(root, "", true, &str)
+	} else {
+		outputfordebugNoSuffix(root, "", true, &str)
+	}
 
 	var cur = root
 	for cur.children[0] != nil {
@@ -112,7 +148,7 @@ func (tree *TreeList) debugString() string {
 		str += spew.Sprint(string(start.key)) + ","
 		start = start.direct[1]
 		i++
-		if i >= 1000 {
+		if i >= 5000 {
 			break
 		}
 	}

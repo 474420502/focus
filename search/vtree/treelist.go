@@ -1,4 +1,4 @@
-package listtree
+package treelist
 
 import (
 	"fmt"
@@ -15,47 +15,20 @@ type Node struct {
 	value []byte
 }
 
-type ListTree struct {
+type TreeList struct {
 	root    *Node
 	compare Compare
 
 	Count int64
 }
 
-func New() *ListTree {
-	return &ListTree{compare: CompatorMath, root: &Node{}}
+func New() *TreeList {
+	return &TreeList{compare: CompatorMath, root: &Node{}}
 }
 
-func (tree *ListTree) getRoot() *Node {
-	return tree.root.children[0]
-}
+func (tree *TreeList) Put(key, value []byte) bool {
 
-func (tree *ListTree) Size() int64 {
-	return tree.root.children[0].size
-}
-
-func (tree *ListTree) Get(key []byte) ([]byte, bool) {
-	const L = 0
-	const R = 1
-
-	cur := tree.getRoot()
-	for cur != nil {
-		c := tree.compare(key, cur.key)
-		switch {
-		case c < 0:
-			cur = cur.children[L]
-		case c > 0:
-			cur = cur.children[R]
-		default:
-			return cur.value, true
-		}
-	}
-	return nil, false
-}
-
-func (tree *ListTree) Put(key, value []byte) bool {
-
-	cur := tree.getRoot()
+	cur := tree.root.children[0]
 	if cur == nil {
 		tree.root.children[0] = &Node{key: key, value: value, size: 1, parent: tree.root}
 		return true
@@ -87,7 +60,8 @@ func (tree *ListTree) Put(key, value []byte) bool {
 				node.direct[L] = left
 				node.direct[R] = right
 
-				tree.fix(cur, [2]int{0, L})
+				cur.size++
+				tree.fix(cur.parent)
 				return true
 			}
 
@@ -111,7 +85,8 @@ func (tree *ListTree) Put(key, value []byte) bool {
 				node.direct[L] = left
 				node.direct[R] = right
 
-				tree.fix(cur, [2]int{0, R})
+				cur.size++
+				tree.fix(cur.parent)
 				return true
 			}
 		default:
@@ -120,26 +95,26 @@ func (tree *ListTree) Put(key, value []byte) bool {
 	}
 }
 
-func (tree *ListTree) fix(cur *Node, relations [2]int) {
+func (tree *TreeList) fix(cur *Node) {
+	s := cur
+
+	defer func() {
+		if err := recover(); err != nil {
+
+			var temp []byte = cur.key
+			var temp2 []byte = s.key
+			cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+			s.key = []byte(fmt.Sprintf("\033[32m%s\033[0m", s.key))
+			log.Println(tree.debugString())
+
+			cur.key = temp
+			s.key = temp2
+			log.Panic(err)
+		}
+	}()
 
 	const L = 0
 	const R = 1
-
-	cur.size++
-
-	if cur.parent.children[L] == cur {
-		relations[0] = L
-	} else {
-		relations[0] = R
-	}
-
-	node := cur.children[relations[1]]
-	var temp []byte = node.key
-	node.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", node.key))
-	log.Println(tree.debugString(false))
-	node.key = temp
-
-	cur = cur.parent
 
 	var height int64 = 2
 
@@ -151,27 +126,28 @@ func (tree *ListTree) fix(cur *Node, relations [2]int) {
 
 		// (1<< height) -1 允许的最大size　超过证明高度超1
 		if cur.size <= limitsize {
-			// lsize, rsize := getChildrenSize(cur)
+			lsize, rsize := getChildrenSize(cur)
 
-			if relations[0] == R {
+			if lsize >= rsize {
 
-				lsize := getSize(cur.children[L])
-				if lsize <= childLimitSize {
-					if relations[1] == L {
-						tree.rrotate(cur.children[R])
-					}
-					cur = tree.lrotate(cur)
+				clsize := getSize(cur.children[L].children[L])
+				if clsize <= childLimitSize {
+					cur = tree.rrotate(cur)
+				} else {
+					tree.lrotate(cur.children[L])
+					cur = tree.rrotate(cur)
 				}
 
 			} else {
 
-				rsize := getSize(cur.children[R])
-				if rsize <= childLimitSize {
-					if relations[1] == R {
-						tree.lrotate(cur.children[L])
-					}
-					cur = tree.rrotate(cur)
+				crsize := getSize(cur.children[R].children[R])
+				if crsize <= childLimitSize {
+					cur = tree.lrotate(cur)
+				} else {
+					tree.rrotate(cur.children[R])
+					cur = tree.lrotate(cur)
 				}
+
 			}
 
 		} else {
@@ -179,18 +155,12 @@ func (tree *ListTree) fix(cur *Node, relations [2]int) {
 			childLimitSize = limitsize
 		}
 
-		relations[1] = relations[0]
-		if cur.parent.children[L] == cur {
-			relations[0] = L
-		} else {
-			relations[0] = R
-		}
 		cur = cur.parent
 
 	}
 }
 
-func (tree *ListTree) lrotate(cur *Node) *Node {
+func (tree *TreeList) lrotate(cur *Node) *Node {
 
 	tree.Count++
 
@@ -223,7 +193,7 @@ func (tree *ListTree) lrotate(cur *Node) *Node {
 	return mov
 }
 
-func (tree *ListTree) rrotate(cur *Node) *Node {
+func (tree *TreeList) rrotate(cur *Node) *Node {
 
 	tree.Count++
 

@@ -14,7 +14,7 @@ type Iterator struct {
 
 func initIterator(avltree *Tree) *Iterator {
 	iter := &Iterator{tstack: lastack.New()}
-	iter.up = avltree.root
+	iter.up = avltree.Root
 	return iter
 }
 
@@ -39,8 +39,8 @@ func (iter *Iterator) ToHead() {
 		iter.cur = iter.cur.parent
 	}
 
-	for iter.cur.children[0] != nil {
-		iter.cur = iter.cur.children[0]
+	for iter.cur.Children[0] != nil {
+		iter.cur = iter.cur.Children[0]
 	}
 	iter.SetNode(iter.cur)
 	iter.cur = nil
@@ -56,8 +56,8 @@ func (iter *Iterator) ToTail() {
 		iter.cur = iter.cur.parent
 	}
 
-	for iter.cur.children[1] != nil {
-		iter.cur = iter.cur.children[1]
+	for iter.cur.Children[1] != nil {
+		iter.cur = iter.cur.Children[1]
 	}
 	iter.SetNode(iter.cur)
 	iter.cur = nil
@@ -74,11 +74,11 @@ func (iter *Iterator) SetNode(n *Node) {
 }
 
 func (iter *Iterator) Key() interface{} {
-	return iter.cur.key
+	return iter.cur.Key
 }
 
 func (iter *Iterator) Value() interface{} {
-	return iter.cur.value
+	return iter.cur.Value
 }
 
 func (iter *Iterator) GetNext(cur *Node, idx int) *Node {
@@ -201,7 +201,7 @@ func (iter *Iterator) Prev() (result bool) {
 }
 
 func getRelationship(cur *Node) int {
-	if cur.parent.children[1] == cur {
+	if cur.parent.Children[1] == cur {
 		return 1
 	}
 	return 0
@@ -218,12 +218,12 @@ func (iter *Iterator) getPrevUp(cur *Node) *Node {
 }
 
 func (iter *Iterator) curPushPrevStack(cur *Node) {
-	Prev := cur.children[0] // 当前的左然后向右找, 找到最大, 就是最接近cur 并且小于cur的值
+	Prev := cur.Children[0] // 当前的左然后向右找, 找到最大, 就是最接近cur 并且小于cur的值
 
 	if Prev != nil {
 		iter.tstack.Push(Prev)
-		for Prev.children[1] != nil {
-			Prev = Prev.children[1]
+		for Prev.Children[1] != nil {
+			Prev = Prev.Children[1]
 			iter.tstack.Push(Prev) // 入栈 用于回溯
 		}
 	}
@@ -240,12 +240,12 @@ func (iter *Iterator) getNextUp(cur *Node) *Node {
 }
 
 func (iter *Iterator) curPushNextStack(cur *Node) {
-	next := cur.children[1]
+	next := cur.Children[1]
 
 	if next != nil {
 		iter.tstack.Push(next)
-		for next.children[0] != nil {
-			next = next.children[0]
+		for next.Children[0] != nil {
+			next = next.Children[0]
 			iter.tstack.Push(next)
 		}
 	}
