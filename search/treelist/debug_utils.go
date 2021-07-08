@@ -1,6 +1,8 @@
 package listtree
 
 import (
+	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/davecgh/go-spew/spew"
@@ -148,11 +150,18 @@ func (tree *ListTree) debugString(isSuffix bool) string {
 		str += spew.Sprint(string(start.key)) + ","
 		start = start.direct[1]
 		i++
-		if i >= 5000 {
+		if i >= 1000 {
 			break
 		}
 	}
 	str = str[0:len(str)-1] + "(" + strconv.Itoa(i) + ")"
 
 	return str
+}
+
+func (tree *ListTree) debugLookNode(cur *Node) {
+	var temp []byte = cur.key
+	cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+	log.Println(tree.debugString(true))
+	cur.key = temp
 }

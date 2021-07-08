@@ -48,7 +48,8 @@ func TestCase1(t *testing.T) {
 			// 		log.Panic("")
 			// 	}
 			// }
-			log.Println(tree.debugString(false))
+			log.Println(r)
+			log.Println(tree.debugString(true))
 			log.Println(avl.String())
 
 			if CompatorByte(tree.getRoot().key, avl.Root.Key.([]byte)) != 0 {
