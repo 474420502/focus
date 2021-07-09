@@ -187,13 +187,13 @@ func (tree *ListTree) debugString(isSuffix bool) string {
 		}
 	}
 	str = str[0:len(str)-1] + "(" + strconv.Itoa(i) + ")"
-
+	str += "\n" + tree.RotateLog
 	return str
 }
 
 func (tree *ListTree) debugLookNode(cur *Node) {
 	var temp []byte = cur.key
-	cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+	cur.key = []byte(fmt.Sprintf("\033[32m%s\033[0m", cur.key))
 	log.Println(tree.debugString(true))
 	cur.key = temp
 }

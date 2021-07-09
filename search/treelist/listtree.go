@@ -1,7 +1,6 @@
 package listtree
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -23,7 +22,8 @@ type ListTree struct {
 	root    *Node
 	compare Compare
 
-	Count int64
+	Count     int64
+	RotateLog string
 }
 
 func New() *ListTree {
@@ -35,7 +35,10 @@ func (tree *ListTree) getRoot() *Node {
 }
 
 func (tree *ListTree) Size() int64 {
-	return tree.root.children[0].size
+	if root := tree.getRoot(); root != nil {
+		return root.size
+	}
+	return 0
 }
 
 func (tree *ListTree) Get(key []byte) ([]byte, bool) {
@@ -58,7 +61,7 @@ func (tree *ListTree) Get(key []byte) ([]byte, bool) {
 }
 
 func (tree *ListTree) Put(key, value []byte) bool {
-
+	tree.RotateLog = ""
 	cur := tree.getRoot()
 	if cur == nil {
 		tree.root.children[0] = &Node{key: key, value: value, size: 1, parent: tree.root}
@@ -92,7 +95,7 @@ func (tree *ListTree) Put(key, value []byte) bool {
 				node.direct[R] = right
 
 				tree.fixSize(cur)
-				tree.fix(cur.parent)
+				tree.fixPut(cur)
 				return true
 			}
 
@@ -117,7 +120,7 @@ func (tree *ListTree) Put(key, value []byte) bool {
 				node.direct[R] = right
 
 				tree.fixSize(cur)
-				tree.fix(cur.parent)
+				tree.fixPut(cur)
 				return true
 			}
 		default:
@@ -133,117 +136,122 @@ func (tree *ListTree) fixSize(cur *Node) {
 	}
 }
 
-func (tree *ListTree) fix(cur *Node) {
+func (tree *ListTree) fixPut(cur *Node) {
 
 	const L = 0
 	const R = 1
 
-	var temp []byte = cur.key
-	cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
-	log.Println(tree.debugString(false))
-	cur.key = temp
+	// var temp []byte = cur.key
+	// cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
+	// log.Println(tree.debugString(false))
+	// cur.key = temp
 
 	var height int64 = 2
-
 	// var childLimitSize int64 = 1 // 1 << (height - 1) - 1
+
+	var relations int
+	if cur.parent.children[R] == cur {
+		relations = R
+	}
+	cur = cur.parent
 
 	for cur != tree.root {
 
 		limitsize := ((int64(1) << height) - 1)
-		// (1<< height) -1 允许的最大size　超过证明高度超1
+		// (1<< height) -1 允许的最大size　超过证明高度超1, 并且有最少１size的空缺
 		if cur.size <= limitsize {
-			lsize, rsize := getChildrenSize(cur)
-			if lsize < rsize {
-				diff := (rsize - lsize) / 2
-				up := cur.direct[R]
-				// 寻找缩小差距的点
-				tree.fn0(up, cur, diff, L, R)
+
+			childlimit := (int64(1) << (height - 2)) - 1
+
+			// 右就检测左边
+			if relations == R {
+				lsize := getSize(cur.children[L])
+				if lsize <= childlimit { // 3
+					// tree.debugLookNode(cur)
+					if lsize == childlimit {
+						if checkEqual(cur.children[L]) {
+							tree.avlrrotate(cur)
+							return
+						}
+					} else {
+						tree.avlrrotate(cur)
+						return
+					}
+
+				}
+
 			} else {
-				diff := (lsize - rsize) / 2
-				up := cur.direct[L]
-				tree.fn0(up, cur, diff, R, L)
+
+				rsize := getSize(cur.children[R])
+				if rsize <= childlimit { // 3
+					// tree.debugLookNode(cur)
+
+					if rsize == childlimit {
+						if checkEqual(cur.children[R]) {
+							tree.avllrotate(cur)
+							return
+						}
+					} else {
+						tree.avllrotate(cur)
+						return
+					}
+
+				}
 			}
-			return
 		}
 
 		height++
+
+		if cur.parent.children[R] == cur {
+			relations = R
+		} else {
+			relations = L
+		}
+
 		cur = cur.parent
 	}
 }
 
-func (tree *ListTree) fn0(up *Node, cur *Node, diff int64, L int, R int) {
+func checkEqual(check *Node) bool {
 
-	minDiff := diff
-
-	for up.parent != cur {
-		ndiff := diff - up.size
-		if ndiff >= 0 {
-			if minDiff >= ndiff {
-				break
-			}
-			minDiff = ndiff
-		} else {
-			if minDiff >= -ndiff {
-				break
-			}
-			minDiff = -ndiff
-		}
+	if check == nil {
+		return true
 	}
 
-	if up == cur.children[R] {
-		if L == 0 {
-			tree.lrotate(cur)
-		} else {
-			tree.rrotate(cur)
-		}
-
-		return
+	lsize, rsize := getChildrenSize(check)
+	if lsize > rsize && lsize-rsize < 3 {
+		return true
 	}
 
-	// tree.debugLookNode(up)
-	// tree.debugLookNode(cur)
-
-	upLeft := up.children[L]
-	upRight := up.children[R]
-	upNewRight := up.parent
-
-	// 链接当前节点的父节点
-	if cur.parent.children[L] == cur {
-		cur.parent.children[L] = up
-	} else {
-		cur.parent.children[R] = up
-	}
-	up.parent = cur.parent
-
-	// cur的父节点释放, 接下来　关联上up
-	up.children[L] = cur
-	cur.parent = up
-
-	up.children[R] = upNewRight
-	if upNewRight != nil {
-		upNewRight.parent = up
-
-		upNewRight.children[L] = upRight
-		upNewRight.size = getChildrenSumSize(upNewRight) + 1
-		if upRight != nil {
-			upRight.parent = upNewRight
-		}
+	if lsize < rsize && rsize-lsize < 3 {
+		return true
 	}
 
-	cur.children[R] = upLeft
-	if upLeft != nil {
-		upLeft.parent = cur
+	return false
+}
+
+func (tree *ListTree) avlrrotate(cur *Node) {
+	const R = 1
+	llsize, lrsize := getChildrenSize(cur.children[R])
+	if llsize > lrsize {
+		tree.rrotate(cur.children[R])
 	}
+	tree.lrotate(cur)
+}
 
-	cur.size = getChildrenSumSize(cur) + 1
-	up.size = getChildrenSumSize(up) + 1
-
-	// log.Println(tree.debugString(true))
+func (tree *ListTree) avllrotate(cur *Node) {
+	const L = 0
+	llsize, lrsize := getChildrenSize(cur.children[L])
+	if llsize < lrsize {
+		tree.lrotate(cur.children[L])
+	}
+	tree.rrotate(cur)
 }
 
 func (tree *ListTree) lrotate(cur *Node) *Node {
 
 	tree.Count++
+	tree.RotateLog += " lrotate "
 
 	const L = 1
 	const R = 0
@@ -277,6 +285,7 @@ func (tree *ListTree) lrotate(cur *Node) *Node {
 func (tree *ListTree) rrotate(cur *Node) *Node {
 
 	tree.Count++
+	tree.RotateLog += "rrotate"
 
 	const L = 0
 	const R = 1

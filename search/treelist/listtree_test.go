@@ -33,15 +33,27 @@ func TraverseGodAVL(node1 *avltree.Node, node2 *Node) {
 
 func TestCase1(t *testing.T) {
 
-	for n := 0; n < 1000000; n++ {
+	var replay = []int{657, 607, 927, 910, 953, 34, 280, 495, 420, 662, 163, 246, 99, 659, 496, 895, 491, 681, 263, 545, 557, 804, 282, 463, 670, 569, 668, 966, 695, 279, 494, 471, 871, 668, 591, 464, 873, 544}
+
+	for n := 0; n < 10; n++ {
 		tree := New()
 		avl := avlkeydup.New(compare.ByteArray)
-		for i := int64(0); i < 100; i++ {
-			r := randomdata.Number(0, 1000)
+		var record []int64
+		for i := 0; i < 100; i++ {
+			var r int
+			if i < len(replay) {
+				r = replay[i]
+			} else {
+				r = randomdata.Number(0, 1000)
+			}
+
 			k := []byte(strconv.FormatInt(int64(r), 10))
-			log.Println(r)
+			record = append(record, int64(r))
+			log.Println("put:", r)
 			avl.Put(k, k)
+			log.Println(record)
 			log.Println(avl.String())
+			log.Println(avl.RotateLog)
 			tree.Put(k, k)
 
 			// for _, v := range avl.Values() {
@@ -51,17 +63,23 @@ func TestCase1(t *testing.T) {
 			// 	}
 			// }
 
-			log.Println(tree.debugString(true))
+			// log.Println(tree.debugString(false))
 
 			if CompatorByte(tree.getRoot().key, avl.Root.Key.([]byte)) != 0 {
-				log.Println(tree.root.key, avl.Root.Key)
+				log.Println(string(tree.getRoot().key), string(avl.Root.Key.([]byte)))
 			}
 
 			// TraverseGodAVL(avl.Root, tree.root.children[0])
 			h1 := getAVLHeight(avl)
 			h2 := tree.getHeight()
+			if avl.Count != int(tree.Count) {
+				log.Println(h1, h2, avl.Count, tree.Count)
+				log.Println(tree.debugString(false))
+			}
+
 			if getAVLHeight(avl) != tree.getHeight() {
-				log.Println(h1, h2)
+				log.Println(h1, h2, avl.Count, tree.Count)
+				log.Println(tree.debugString(false))
 			}
 		}
 
@@ -154,13 +172,17 @@ func BenchmarkPut(b *testing.B) {
 
 	b.N = len(l)
 	tree := New()
-	godsavl := avltree.NewWith(compare.ByteArray)
-	myavl := avlkeydup.New(compare.ByteArray)
+	// godsavl := avltree.NewWith(compare.ByteArray)
+	// myavl := avlkeydup.New(compare.ByteArray)
 	for _, v := range l {
 		tree.Put(v, v)
-		godsavl.Put(v, v)
-		myavl.Put(v, v)
+		// godsavl.Put(v, v)
+		// myavl.Put(v, v)
 	}
 
-	b.Log(tree.Count, tree.Size(), tree.getHeight(), getGodsAVLHeight(godsavl), getAVLHeight(myavl))
+	b.Log(tree.Size(), tree.Count, tree.getHeight())
+	// b.Log(godsavl.Size(), getGodsAVLHeight(godsavl))
+	// b.Log(myavl.Size(), myavl.Count, getAVLHeight(myavl))
+
+	// b.Log(tree.Count, tree.Size(), tree.getHeight(), getGodsAVLHeight(godsavl), getAVLHeight(myavl))
 }

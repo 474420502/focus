@@ -2,6 +2,9 @@ package listtree
 
 func (tree *ListTree) getHeight() int {
 	root := tree.getRoot()
+	if root == nil {
+		return 0
+	}
 
 	var height = 1
 
