@@ -161,19 +161,15 @@ func (tree *ListTree) fixPut(cur *Node) {
 		// (1<< height) -1 允许的最大size　超过证明高度超1, 并且有最少１size的空缺
 		if cur.size <= limitsize {
 
-			childlimit := (int64(1) << (height - 2)) - 1
+			childlimit := (int64(1) << (height - 2))
 
 			// 右就检测左边
 			if relations == R {
 				lsize := getSize(cur.children[L])
 				if lsize <= childlimit { // 3
 					// tree.debugLookNode(cur)
-					if lsize == childlimit {
-						if checkEqual(cur.children[L]) {
-							tree.avlrrotate(cur)
-							return
-						}
-					} else {
+					// rsize := getSize(cur.children[R])
+					if checkWeight(cur.children[L], height) {
 						tree.avlrrotate(cur)
 						return
 					}
@@ -186,12 +182,7 @@ func (tree *ListTree) fixPut(cur *Node) {
 				if rsize <= childlimit { // 3
 					// tree.debugLookNode(cur)
 
-					if rsize == childlimit {
-						if checkEqual(cur.children[R]) {
-							tree.avllrotate(cur)
-							return
-						}
-					} else {
+					if checkWeight(cur.children[R], height-2) {
 						tree.avllrotate(cur)
 						return
 					}
@@ -212,18 +203,18 @@ func (tree *ListTree) fixPut(cur *Node) {
 	}
 }
 
-func checkEqual(check *Node) bool {
+func checkWeight(check *Node, height int64) bool {
 
 	if check == nil {
 		return true
 	}
 
 	lsize, rsize := getChildrenSize(check)
-	if lsize > rsize && lsize-rsize < 3 {
+	if lsize > rsize && lsize-rsize <= height+3 {
 		return true
 	}
 
-	if lsize < rsize && rsize-lsize < 3 {
+	if lsize < rsize && rsize-lsize <= height+3 {
 		return true
 	}
 
