@@ -79,7 +79,7 @@ func ByteArray(k1, k2 interface{}) int {
 	}
 }
 
-// String comp
+// String compare
 func String(k1, k2 interface{}) int {
 	s1 := k1.(string)
 	s2 := k2.(string)

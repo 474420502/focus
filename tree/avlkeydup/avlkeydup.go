@@ -490,7 +490,7 @@ func (tree *Tree) Traversal(every func(k, v interface{}) bool, traversalMethod .
 func (tree *Tree) lrrotate(cur *Node) {
 
 	tree.Count += 2
-	tree.RotateLog += string(cur.Key.([]byte)) + ": lrotate->rrotate "
+	// tree.RotateLog += string(cur.Key.([]byte)) + ": lrotate->rrotate "
 
 	const l = 1
 	const r = 0
@@ -534,7 +534,7 @@ func (tree *Tree) lrrotate(cur *Node) {
 func (tree *Tree) rlrotate(cur *Node) {
 
 	tree.Count += 2
-	tree.RotateLog += string(cur.Key.([]byte)) + ": rrotate->lrotate "
+	// tree.RotateLog += string(cur.Key.([]byte)) + ": rrotate->lrotate "
 
 	const l = 0
 	const r = 1
@@ -576,7 +576,7 @@ func (tree *Tree) rlrotate(cur *Node) {
 func (tree *Tree) rrotate(cur *Node) {
 
 	tree.Count++
-	tree.RotateLog += string(cur.Key.([]byte)) + ": rrotate "
+	// tree.RotateLog += string(cur.Key.([]byte)) + ": rrotate "
 
 	const l = 0
 	const r = 1
@@ -614,7 +614,7 @@ func (tree *Tree) rrotate(cur *Node) {
 func (tree *Tree) lrotate(cur *Node) {
 
 	tree.Count++
-	tree.RotateLog += string(cur.Key.([]byte)) + ": lrotate "
+	// tree.RotateLog += string(cur.Key.([]byte)) + ": lrotate "
 
 	const l = 1
 	const r = 0

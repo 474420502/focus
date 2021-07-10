@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"runtime"
-	"strconv"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -27,7 +26,7 @@ func output(node *Node, prefix string, isTail bool, str *string) {
 		*str += "\033[31;40m┌── \033[0m"
 	}
 
-	*str += "(" + spew.Sprint(string(node.key)) + "->" + spew.Sprint(string(node.value)) + ")" + "\n"
+	*str += "(" + spew.Sprint(string(node.key.([]byte))) + "->" + spew.Sprint(string(node.value.([]byte))) + ")" + "\n"
 
 	if node.children[0] != nil {
 		newPrefix := prefix
@@ -66,7 +65,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	if node.parent == nil {
 		parentv = "nil"
 	} else {
-		parentv = spew.Sprint(string(node.parent.key))
+		parentv = spew.Sprint(string(node.parent.key.([]byte)))
 	}
 
 	// var ldirect, rdirect string
@@ -85,7 +84,7 @@ func outputfordebug(node *Node, prefix string, isTail bool, str *string) {
 	// suffix += parentv + "|" + spew.Sprint(node.size) + " " + ldirect + "<->" + rdirect + ")"
 	suffix += parentv + "|" + spew.Sprint(node.size) + ")"
 	// suffix = ""
-	k := string(node.key)
+	k := string(node.key.([]byte))
 	if _, ok := debugCheck[k]; !ok {
 		debugCheck[k] = 1
 	} else {
@@ -129,7 +128,7 @@ func outputfordebugNoSuffix(node *Node, prefix string, isTail bool, str *string)
 		*str += "\033[31m┌── \033[0m"
 	}
 
-	k := string(node.key)
+	k := string(node.key.([]byte))
 	if _, ok := debugCheck[k]; !ok {
 		debugCheck[k] = 1
 	} else {
@@ -175,24 +174,24 @@ func (tree *ListTree) debugString(isSuffix bool) string {
 		cur = cur.children[0]
 	}
 
-	var i = 0
-	str += "\n"
-	start := cur
-	for start != nil {
-		str += spew.Sprint(string(start.key)) + ","
-		start = start.direct[1]
-		i++
-		if i >= 1000 {
-			break
-		}
-	}
-	str = str[0:len(str)-1] + "(" + strconv.Itoa(i) + ")"
-	str += "\n" + tree.RotateLog
+	// var i = 0
+	// str += "\n"
+	// start := cur
+	// for start != nil {
+	// 	str += spew.Sprint(string(start.key.([]byte))) + ","
+	// 	start = start.direct[1]
+	// 	i++
+	// 	if i >= 1000 {
+	// 		break
+	// 	}
+	// }
+	// str = str[0:len(str)-1] + "(" + strconv.Itoa(i) + ")"
+	// str += "\n" + tree.RotateLog
 	return str
 }
 
 func (tree *ListTree) debugLookNode(cur *Node) {
-	var temp []byte = cur.key
+	var temp []byte = cur.key.([]byte)
 	cur.key = []byte(fmt.Sprintf("\033[32m%s\033[0m", cur.key))
 	log.Println(tree.debugString(true))
 	cur.key = temp

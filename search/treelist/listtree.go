@@ -2,6 +2,8 @@ package listtree
 
 import (
 	"log"
+
+	"github.com/474420502/focus/compare"
 )
 
 func init() {
@@ -11,11 +13,11 @@ func init() {
 type Node struct {
 	parent   *Node
 	children [2]*Node
-	direct   [2]*Node
+	// direct   [2]*Node
 
 	size  int64
-	key   []byte
-	value []byte
+	key   interface{}
+	value interface{}
 }
 
 type ListTree struct {
@@ -27,7 +29,7 @@ type ListTree struct {
 }
 
 func New() *ListTree {
-	return &ListTree{compare: CompatorMath, root: &Node{}}
+	return &ListTree{compare: compare.ByteArray, root: &Node{}}
 }
 
 func (tree *ListTree) getRoot() *Node {
@@ -41,7 +43,7 @@ func (tree *ListTree) Size() int64 {
 	return 0
 }
 
-func (tree *ListTree) Get(key []byte) ([]byte, bool) {
+func (tree *ListTree) Get(key interface{}) (interface{}, bool) {
 	const L = 0
 	const R = 1
 
@@ -60,7 +62,7 @@ func (tree *ListTree) Get(key []byte) ([]byte, bool) {
 	return nil, false
 }
 
-func (tree *ListTree) Put(key, value []byte) bool {
+func (tree *ListTree) Put(key, value interface{}) bool {
 	tree.RotateLog = ""
 	cur := tree.getRoot()
 	if cur == nil {
@@ -68,8 +70,8 @@ func (tree *ListTree) Put(key, value []byte) bool {
 		return true
 	}
 
-	var left *Node = nil
-	var right *Node = nil
+	// var left *Node = nil
+	// var right *Node = nil
 
 	const L = 0
 	const R = 1
@@ -78,21 +80,21 @@ func (tree *ListTree) Put(key, value []byte) bool {
 		c := tree.compare(key, cur.key)
 		switch {
 		case c < 0:
-			right = cur
+			// right = cur
 			if cur.children[L] != nil {
 				cur = cur.children[L]
 			} else {
 
 				node := &Node{parent: cur, key: key, value: value, size: 1}
 				cur.children[L] = node
-				if right != nil {
-					right.direct[L] = node
-				}
-				if left != nil {
-					left.direct[R] = node
-				}
-				node.direct[L] = left
-				node.direct[R] = right
+				// if right != nil {
+				// 	right.direct[L] = node
+				// }
+				// if left != nil {
+				// 	left.direct[R] = node
+				// }
+				// node.direct[L] = left
+				// node.direct[R] = right
 
 				tree.fixSize(cur)
 				tree.fixPut(cur)
@@ -101,7 +103,7 @@ func (tree *ListTree) Put(key, value []byte) bool {
 
 		case c > 0:
 
-			left = cur
+			// left = cur
 			if cur.children[R] != nil {
 				cur = cur.children[R]
 			} else {
@@ -109,15 +111,15 @@ func (tree *ListTree) Put(key, value []byte) bool {
 				node := &Node{parent: cur, key: key, value: value, size: 1}
 				cur.children[R] = node
 
-				if right != nil {
-					right.direct[L] = node
-				}
-				if left != nil {
-					left.direct[R] = node
-				}
+				// if right != nil {
+				// 	right.direct[L] = node
+				// }
+				// if left != nil {
+				// 	left.direct[R] = node
+				// }
 
-				node.direct[L] = left
-				node.direct[R] = right
+				// node.direct[L] = left
+				// node.direct[R] = right
 
 				tree.fixSize(cur)
 				tree.fixPut(cur)
@@ -138,18 +140,16 @@ func (tree *ListTree) fixSize(cur *Node) {
 
 func (tree *ListTree) fixPut(cur *Node) {
 
+	if cur.size == 3 {
+		return
+	}
+
 	const L = 0
 	const R = 1
 
-	// var temp []byte = cur.key
-	// cur.key = []byte(fmt.Sprintf("\033[35m%s\033[0m", cur.key))
-	// log.Println(tree.debugString(false))
-	// cur.key = temp
-
 	var height int64 = 2
-	// var childLimitSize int64 = 1 // 1 << (height - 1) - 1
 
-	var relations int
+	var relations int = L
 	if cur.parent.children[R] == cur {
 		relations = R
 	}
@@ -157,37 +157,37 @@ func (tree *ListTree) fixPut(cur *Node) {
 
 	for cur != tree.root {
 
-		limitsize := ((int64(1) << height) - 1)
+		root2nsize := (int64(1) << height)
 		// (1<< height) -1 允许的最大size　超过证明高度超1, 并且有最少１size的空缺
-		if cur.size <= limitsize {
+		if cur.size < root2nsize {
 
-			childlimit := (int64(1) << (height - 2))
+			child2nsize := root2nsize >> 2
+			// childlimit := child2nsize - child2nsize>>2
+			bottomsize := child2nsize + child2nsize>>1
 
 			// 右就检测左边
 			if relations == R {
 				lsize := getSize(cur.children[L])
-				if lsize <= childlimit { // 3
-					// tree.debugLookNode(cur)
-					// rsize := getSize(cur.children[R])
-					if checkWeight(cur.children[L], height) {
-						tree.avlrrotate(cur)
-						return
-					}
-
+				// if lsize < child2nsize { // 3
+				// tree.debugLookNode(cur)
+				rsize := getSize(cur.children[R])
+				if rsize-lsize >= bottomsize {
+					tree.avlrrotate(cur)
+					return
 				}
+				// }
 
 			} else {
 
 				rsize := getSize(cur.children[R])
-				if rsize <= childlimit { // 3
-					// tree.debugLookNode(cur)
-
-					if checkWeight(cur.children[R], height-2) {
-						tree.avllrotate(cur)
-						return
-					}
-
+				// if rsize < child2nsize { // 3
+				lsize := getSize(cur.children[L])
+				if lsize-rsize >= bottomsize {
+					tree.avllrotate(cur)
+					return
 				}
+				// }
+
 			}
 		}
 
@@ -201,24 +201,6 @@ func (tree *ListTree) fixPut(cur *Node) {
 
 		cur = cur.parent
 	}
-}
-
-func checkWeight(check *Node, height int64) bool {
-
-	if check == nil {
-		return true
-	}
-
-	lsize, rsize := getChildrenSize(check)
-	if lsize > rsize && lsize-rsize <= height+3 {
-		return true
-	}
-
-	if lsize < rsize && rsize-lsize <= height+3 {
-		return true
-	}
-
-	return false
 }
 
 func (tree *ListTree) avlrrotate(cur *Node) {
@@ -242,7 +224,7 @@ func (tree *ListTree) avllrotate(cur *Node) {
 func (tree *ListTree) lrotate(cur *Node) *Node {
 
 	tree.Count++
-	tree.RotateLog += " lrotate "
+	// tree.RotateLog += " lrotate "
 
 	const L = 1
 	const R = 0
@@ -276,7 +258,7 @@ func (tree *ListTree) lrotate(cur *Node) *Node {
 func (tree *ListTree) rrotate(cur *Node) *Node {
 
 	tree.Count++
-	tree.RotateLog += "rrotate"
+	// tree.RotateLog += "rrotate"
 
 	const L = 0
 	const R = 1

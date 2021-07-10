@@ -1,6 +1,6 @@
 package listtree
 
-type Compare func([]byte, []byte) int
+type Compare func(interface{}, interface{}) int
 
 // CompatorByte 默认比较字节
 func CompatorByte(s1, s2 []byte) int {
@@ -40,7 +40,10 @@ func CompatorByte(s1, s2 []byte) int {
 }
 
 // CompatorMath 字节看书法的差异, 使用与数学类比较
-func CompatorMath(s1, s2 []byte) int {
+func CompatorMath(i1, i2 interface{}) int {
+
+	s1 := i1.([]byte)
+	s2 := i2.([]byte)
 
 	switch {
 	case len(s1) > len(s2):
