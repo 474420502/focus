@@ -163,28 +163,25 @@ func (tree *ListTree) fixPut(cur *Node) {
 
 			child2nsize := root2nsize >> 2
 			// childlimit := child2nsize - child2nsize>>2
-			bottomsize := child2nsize + child2nsize>>1
+			bottomsize := child2nsize + child2nsize>>(height>>1)
 
 			// 右就检测左边
 			if relations == R {
 				lsize := getSize(cur.children[L])
-				// if lsize < child2nsize { // 3
-				// tree.debugLookNode(cur)
 				rsize := getSize(cur.children[R])
 				if rsize-lsize >= bottomsize {
-					tree.avlrrotate(cur)
-					return
+					cur = tree.avlrrotate(cur)
+					height--
 				}
 				// }
 
 			} else {
 
 				rsize := getSize(cur.children[R])
-				// if rsize < child2nsize { // 3
 				lsize := getSize(cur.children[L])
 				if lsize-rsize >= bottomsize {
-					tree.avllrotate(cur)
-					return
+					cur = tree.avllrotate(cur)
+					height--
 				}
 				// }
 
@@ -192,7 +189,6 @@ func (tree *ListTree) fixPut(cur *Node) {
 		}
 
 		height++
-
 		if cur.parent.children[R] == cur {
 			relations = R
 		} else {
@@ -203,22 +199,22 @@ func (tree *ListTree) fixPut(cur *Node) {
 	}
 }
 
-func (tree *ListTree) avlrrotate(cur *Node) {
+func (tree *ListTree) avlrrotate(cur *Node) *Node {
 	const R = 1
 	llsize, lrsize := getChildrenSize(cur.children[R])
 	if llsize > lrsize {
 		tree.rrotate(cur.children[R])
 	}
-	tree.lrotate(cur)
+	return tree.lrotate(cur)
 }
 
-func (tree *ListTree) avllrotate(cur *Node) {
+func (tree *ListTree) avllrotate(cur *Node) *Node {
 	const L = 0
 	llsize, lrsize := getChildrenSize(cur.children[L])
 	if llsize < lrsize {
 		tree.lrotate(cur.children[L])
 	}
-	tree.rrotate(cur)
+	return tree.rrotate(cur)
 }
 
 func (tree *ListTree) lrotate(cur *Node) *Node {

@@ -457,6 +457,28 @@ func BenchmarkPut(b *testing.B) {
 	b.Log(tree.Count)
 }
 
+func BenchmarkPutBad(b *testing.B) {
+
+	d := loadTestData()
+	var l [][]byte
+	for _, v := range d {
+		l = append(l, []byte(strconv.Itoa(v)))
+	}
+
+	b.ResetTimer()
+	b.StartTimer()
+
+	b.N = len(l)
+	tree := New(compare.ByteArray)
+
+	for i := range l {
+		k := []byte(strconv.Itoa(i))
+		tree.Put(k, k)
+	}
+
+	b.Log(tree.Count)
+}
+
 func TraverseGodAVL(node1 *avltree.Node, node2 *Node) {
 
 	if node1 == nil && node2 == nil {

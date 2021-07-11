@@ -1,7 +1,7 @@
 # structure
 
 there is a lot structure that easy by used
-迁移重构一次. 有好的实现. 不等泛型了
+迁移重构一次. 有好的实现. 不等泛型
 
 ## Tried
 

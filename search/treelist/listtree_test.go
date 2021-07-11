@@ -12,6 +12,7 @@ import (
 	"github.com/474420502/focus/tree/avlkeydup"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/emirpasic/gods/trees/avltree"
+	"github.com/emirpasic/gods/trees/redblacktree"
 )
 
 func TraverseGodAVL(node1 *avltree.Node, node2 *Node) {
@@ -42,7 +43,7 @@ func TestCase1(t *testing.T) {
 		tree := New()
 		avl := avlkeydup.New(compare.ByteArray)
 		var record []int64
-		for i := 0; i < 10000; i++ {
+		for i := 0; i < 100; i++ {
 			var r int
 			if i < len(replay) {
 				r = replay[i]
@@ -115,15 +116,11 @@ func TestCase1(t *testing.T) {
 func BenchmarkPut(b *testing.B) {
 
 	d := loadTestData()
-	// var dict map[int]bool = make(map[int]bool)
 
 	var l [][]byte
 	for _, v := range d {
 		l = append(l, []byte(strconv.Itoa(v)))
-		// if _, ok := dict[v]; !ok {
-		// 	l = append(l, []byte(strconv.Itoa(v)))
-		// 	dict[v] = true
-		// }
+
 	}
 
 	b.ResetTimer()
@@ -131,12 +128,11 @@ func BenchmarkPut(b *testing.B) {
 
 	b.N = len(l)
 	tree := New()
-	// godsavl := avltree.NewWith(compare.ByteArray)
-	// myavl := avlkeydup.New(compare.ByteArray)
+
 	for _, v := range l {
+		// v := []byte(strconv.Itoa(i))
 		tree.Put(v, v)
-		// godsavl.Put(v, v)
-		// myavl.Put(v, v)
+
 	}
 	b.StopTimer()
 
@@ -164,12 +160,37 @@ func BenchmarkAVLPut(b *testing.B) {
 
 	myavl := avlkeydup.New(compare.ByteArray)
 	for _, v := range l {
-
+		// v := []byte(strconv.Itoa(i))
 		myavl.Put(v, v)
 	}
 	b.StopTimer()
 
 	b.Log(myavl.Size(), "rotate count:", myavl.Count, getAVLHeight(myavl)) // 990148 690663 24 1367616 25
+}
+
+func BenchmarkRBTreePut(b *testing.B) {
+
+	d := loadTestData()
+	// var dict map[int]bool = make(map[int]bool)
+
+	var l [][]byte
+	for _, v := range d {
+		l = append(l, []byte(strconv.Itoa(v)))
+	}
+
+	b.ResetTimer()
+	b.StartTimer()
+
+	b.N = len(l)
+
+	myavl := redblacktree.NewWith(compare.ByteArray)
+	for _, v := range l {
+
+		myavl.Put(v, v)
+	}
+	b.StopTimer()
+
+	b.Log(myavl.Size(), getRBTreeHeight(myavl)) // 990148 690663 24 1367616 25
 }
 
 func BenchmarkGet(b *testing.B) {
@@ -299,6 +320,31 @@ func getAVLHeight(tree *avlkeydup.Tree) int {
 
 		traverse(cur.Children[0], h+1)
 		traverse(cur.Children[1], h+1)
+	}
+
+	traverse(root, 1)
+
+	return height
+}
+
+func getRBTreeHeight(tree *redblacktree.Tree) int {
+	root := tree.Root
+
+	var height = 1
+
+	var traverse func(cur *redblacktree.Node, h int)
+	traverse = func(cur *redblacktree.Node, h int) {
+
+		if cur == nil {
+			return
+		}
+
+		if h > height {
+			height = h
+		}
+
+		traverse(cur.Left, h+1)
+		traverse(cur.Right, h+1)
 	}
 
 	traverse(root, 1)
