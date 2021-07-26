@@ -119,6 +119,19 @@ func String(k1, k2 interface{}) int {
 
 }
 
+func IntDesc(k1, k2 interface{}) int {
+	c1 := k1.(int)
+	c2 := k2.(int)
+	switch {
+	case c1 < c2:
+		return 1
+	case c1 > c2:
+		return -1
+	default:
+		return 0
+	}
+}
+
 func Int(k1, k2 interface{}) int {
 	c1 := k1.(int)
 	c2 := k2.(int)

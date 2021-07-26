@@ -147,8 +147,9 @@ func (l *ArrayList) PopFront() (result interface{}, found bool) {
 	if l.size != 0 {
 		l.size--
 		l.hidx++
+		result = l.data[l.hidx]
 		l.shrink()
-		return l.data[l.hidx], true
+		return result, true
 	}
 	return nil, false
 }
@@ -157,8 +158,9 @@ func (l *ArrayList) PopBack() (result interface{}, found bool) {
 	if l.size != 0 {
 		l.size--
 		l.tidx--
+		result = l.data[l.tidx]
 		l.shrink()
-		return l.data[l.tidx], true
+		return result, true
 	}
 	return nil, false
 }

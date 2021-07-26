@@ -1,11 +1,17 @@
 package heap
 
 import (
+	"bytes"
+	"encoding/gob"
+	"io/ioutil"
+	"log"
 	"sort"
 	"testing"
 
 	"github.com/474420502/focus/compare"
 	"github.com/Pallinder/go-randomdata"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/emirpasic/gods/trees/binaryheap"
 )
 
 func TestHeapGrowSlimming(t *testing.T) {
@@ -158,108 +164,108 @@ func TestHeapPushTopPop(t *testing.T) {
 
 // }
 
-// func TestPop(t *testing.T) {
+func TestPop(t *testing.T) {
 
-// 	for i := 0; i < 200000; i++ {
-// 		h := New(Int)
+	for i := 0; i < 200000; i++ {
+		h := New(compare.IntDesc)
 
-// 		// m := make(map[int]int)
-// 		gods := binaryheap.NewWithIntComparator()
-// 		for c := 0; c < 40; c++ {
-// 			v := randomdata.Number(0, 100)
-// 			// if _, ok := m[v]; !ok {
-// 			h.Push(v)
-// 			gods.Push(v)
-// 			// 	m[v] = v
-// 			// }
+		// m := make(map[int]int)
+		gods := binaryheap.NewWithIntComparator()
+		for c := 0; c < 40; c++ {
+			v := randomdata.Number(0, 100)
+			// if _, ok := m[v]; !ok {
+			h.Put(v)
+			gods.Push(v)
+			// 	m[v] = v
+			// }
 
-// 		}
+		}
 
-// 		// t.Error(h.Values())
-// 		// t.Error(gods.Values())
-// 		for c := 0; c < randomdata.Number(5, 10); c++ {
-// 			v1, _ := h.Pop()
-// 			v2, _ := gods.Pop()
+		// t.Error(h.Values())
+		// t.Error(gods.Values())
+		for c := 0; c < randomdata.Number(5, 10); c++ {
+			v1, _ := h.Pop()
+			v2, _ := gods.Pop()
 
-// 			if v1 != v2 {
-// 				t.Error(h.Values(), v1)
-// 				t.Error(gods.Values(), v2)
-// 				return
-// 			}
-// 		}
+			if v1 != v2 {
+				t.Error(h.Values(), v1)
+				t.Error(gods.Values(), v2)
+				return
+			}
+		}
 
-// 		r1 := spew.Sprint(h.Values())
-// 		r2 := spew.Sprint(gods.Values())
-// 		if r1 != r2 {
-// 			t.Error(r1)
-// 			t.Error(r2)
-// 			break
-// 		}
-// 	}
-// }
+		r1 := spew.Sprint(h.Values())
+		r2 := spew.Sprint(gods.Values())
+		if r1 != r2 {
+			t.Error(r1)
+			t.Error(r2)
+			break
+		}
+	}
+}
 
-// func BenchmarkPush(b *testing.B) {
+func BenchmarkPush(b *testing.B) {
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	execCount := 50
-// 	b.N = len(l) * execCount
+	b.ResetTimer()
+	execCount := 50
+	b.N = len(l) * execCount
 
-// 	for c := 0; c < execCount; c++ {
-// 		b.StopTimer()
-// 		h := New(Int)
-// 		b.StartTimer()
-// 		for _, v := range l {
-// 			h.Push(v)
-// 		}
-// 	}
-// }
+	for c := 0; c < execCount; c++ {
+		b.StopTimer()
+		h := New(compare.Int)
+		b.StartTimer()
+		for _, v := range l {
+			h.Put(v)
+		}
+	}
+}
 
-// func BenchmarkPop(b *testing.B) {
+func BenchmarkPop(b *testing.B) {
 
-// 	h := New(Int)
+	h := New(compare.IntDesc)
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	execCount := 20
-// 	b.N = len(l) * execCount
+	b.ResetTimer()
+	execCount := 50
+	b.N = len(l) * execCount
 
-// 	for c := 0; c < execCount; c++ {
-// 		b.StopTimer()
-// 		for _, v := range l {
-// 			h.Push(v)
-// 		}
-// 		b.StartTimer()
-// 		for h.size != 0 {
-// 			h.Pop()
-// 		}
-// 	}
-// }
+	for c := 0; c < execCount; c++ {
+		b.StopTimer()
+		for _, v := range l {
+			h.Put(v)
+		}
+		b.StartTimer()
+		for h.size != 0 {
+			h.Pop()
+		}
+	}
+}
 
-// func BenchmarkGodsPop(b *testing.B) {
+func BenchmarkGodsPop(b *testing.B) {
 
-// 	h := binaryheap.NewWithIntComparator()
+	h := binaryheap.NewWithIntComparator()
 
-// 	l := loadTestData()
+	l := loadTestData()
 
-// 	b.ResetTimer()
-// 	execCount := 20
-// 	b.N = len(l) * execCount
+	b.ResetTimer()
+	execCount := 10
+	b.N = len(l) * execCount
 
-// 	for c := 0; c < execCount; c++ {
-// 		b.StopTimer()
-// 		for _, v := range l {
-// 			h.Push(v)
-// 		}
-// 		b.StartTimer()
-// 		for h.Size() != 0 {
-// 			h.Pop()
-// 		}
-// 	}
+	for c := 0; c < execCount; c++ {
+		b.StopTimer()
+		for _, v := range l {
+			h.Push(v)
+		}
+		b.StartTimer()
+		for h.Size() != 0 {
+			h.Pop()
+		}
+	}
 
-// }
+}
 
 // func BenchmarkGodsPush(b *testing.B) {
 // 	l := loadTestData()
@@ -278,13 +284,13 @@ func TestHeapPushTopPop(t *testing.T) {
 // 	}
 // }
 
-// func loadTestData() []int {
-// 	data, err := ioutil.ReadFile("../l.log")
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// 	var l []int
-// 	decoder := gob.NewDecoder(bytes.NewReader(data))
-// 	decoder.Decode(&l)
-// 	return l
-// }
+func loadTestData() []int {
+	data, err := ioutil.ReadFile("../../l.log")
+	if err != nil {
+		log.Println(err)
+	}
+	var l []int
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	decoder.Decode(&l)
+	return l
+}
