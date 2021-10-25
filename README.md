@@ -1,5 +1,7 @@
 # structure
 
+move to https://github.com/474420502/structure
+
 there is a lot structure that easy by used
 
 ## Tried
